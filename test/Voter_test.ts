@@ -4,7 +4,7 @@ import * as chai from "chai";
 chai.use(require("chai-as-promised")); // to check for failures
 const expect = chai.expect;
 
-describe("PortGTON", function () {
+describe("Voter", function () {
   let owner: Signer;
   let ownerAddress: string;
   let accounts: Signer[];
@@ -48,7 +48,7 @@ describe("PortGTON", function () {
   it("should cast votes", async function () {
 
     await balanceKeeperContract.toggleAdder(ownerAddress);
-    await balanceKeeperContract.addValue(ownerAddress, 3)
+    await balanceKeeperContract.addValue(ownerAddress, 3);
 
     await voterContract.startRound("name", ["option1", "option2"])
 
@@ -61,6 +61,22 @@ describe("PortGTON", function () {
     return expect(parseInt(option1.toString())).to.equal(1) &&
            expect(parseInt(option2.toString())).to.equal(2) &&
            expect(parseInt(options.toString())).to.equal(3)
+  });
+
+  it("should count unique voters", async function () {
+
+    await balanceKeeperContract.toggleAdder(ownerAddress);
+    await balanceKeeperContract.addValue(ownerAddress, 3);
+
+    await voterContract.startRound("name", ["option1", "option2"])
+
+    await voterContract.castVotes(0,[1,2])
+
+    let userCountInRound = await voterContract.userCountInRound(0)
+    let userCountForOption = await voterContract.userCountForOption(0, 0)
+
+    return expect(parseInt(userCountInRound.toString())).to.equal(1) &&
+           expect(parseInt(userCountForOption.toString())).to.equal(1)
   });
 
   it("should check vote balances", async function () {

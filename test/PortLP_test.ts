@@ -4,7 +4,7 @@ import * as chai from "chai";
 chai.use(require("chai-as-promised")); // to check for failures
 const expect = chai.expect;
 
-describe("PortGTON", function () {
+describe("PortLP", function () {
   let owner: Signer;
   let ownerAddress: string;
   let accounts: Signer[];

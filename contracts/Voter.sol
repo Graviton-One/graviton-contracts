@@ -27,9 +27,15 @@ contract Voter {
     mapping(uint => mapping(address => uint)) internal _votesInRoundByUser;
     mapping(uint => mapping(address => uint[])) internal _votesForOptionByUser;
 
+    mapping(uint => mapping(address => bool)) internal _userVotedInRound;
+    mapping(uint => mapping(uint => mapping(address => bool))) internal _userVotedForOption;
+
+    mapping(uint => uint) internal _userCountInRound;
+    mapping(uint => mapping(uint => uint)) internal _userCountForOption;
+
     mapping(address => bool) public allowedCheckers;
 
-    event addValueEvent(address voter, uint roundId);
+    event CastVotesEvent(address voter, uint roundId);
 
     constructor(address _owner, address _balanceKeeper) {
         owner = _owner;
@@ -67,6 +73,31 @@ contract Voter {
         return activeRounds.length;
     }
 
+    // number of options in a round
+    function roundOptionCount(uint roundId) public view returns(uint) {
+        uint sum;
+        for (uint i = 0; i < _roundOptions[roundId].length; i++) {
+            sum ++;
+        }
+        return sum;
+    }
+
+    function userVotedInRound(uint roundId, address user) public view returns(bool) {
+        return _userVotedInRound[roundId][user];
+    }
+
+    function userVotedForOption(uint roundId, uint optionId, address user) public view returns(bool) {
+        return _userVotedForOption[roundId][optionId][user];
+    }
+
+    function userCountInRound(uint roundId) public view returns(uint) {
+        return _userCountInRound[roundId];
+    }
+
+    function userCountForOption(uint roundId, uint optionId) public view returns(uint) {
+        return _userCountForOption[roundId][optionId];
+    }
+
     function transferOwnership(address newOwner) public isOwner {
         owner = newOwner;
     }
@@ -80,7 +111,7 @@ contract Voter {
     }
 
     function isActiveRound(uint roundId) public view returns (bool) {
-        for( uint i = 0; i < activeRounds.length; i++) {
+        for(uint i = 0; i < activeRounds.length; i++) {
             if (activeRounds[i] == roundId) {
                 return true;
             }
@@ -113,12 +144,25 @@ contract Voter {
 
         // update sender's votes
         _votesForOptionByUser[roundId][msg.sender] = votes;
-        _votesInRoundByUser[roundId][msg.sender] = sum;
+
         for (uint optionId = 0; optionId < votes.length; optionId++) {
+
+            if (!_userVotedForOption[roundId][optionId][msg.sender]) {
+                _userVotedForOption[roundId][optionId][msg.sender] = true;
+                _userCountForOption[roundId][optionId]++;
+            }
+
             _votesForOption[roundId][optionId] += votes[optionId];
         }
 
-        emit addValueEvent(msg.sender, roundId);
+        _votesInRoundByUser[roundId][msg.sender] = sum;
+
+        if (!_userVotedInRound[roundId][msg.sender]) {
+            _userVotedInRound[roundId][msg.sender] = true;
+            _userCountInRound[roundId]++;
+        }
+
+        emit CastVotesEvent(msg.sender, roundId);
     }
 
     // allow oracle to check votes
