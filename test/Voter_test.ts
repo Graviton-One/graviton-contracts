@@ -109,4 +109,16 @@ describe("Voter", function () {
     return expect(voterContract.castVotes(0,[2,4])).to.be.rejected;
   });
 
+  it("should count finalized rounds", async function () {
+
+    await voterContract.startRound("name", ["option1", "option2"])
+    await voterContract.finalizeRound(0)
+
+    await voterContract.startRound("name", ["option1", "option2"])
+    await voterContract.finalizeRound(1)
+
+    let pastRounds = await voterContract.pastRounds(1)
+
+    return expect(pastRounds.toString()).to.equal("1")
+  });
 });

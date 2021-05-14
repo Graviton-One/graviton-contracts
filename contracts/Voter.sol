@@ -19,6 +19,7 @@ contract Voter {
 
     uint public roundCount;
     uint[] public activeRounds;
+    uint[] public pastRounds;
     mapping(uint => string) internal _roundName;
     mapping(uint => string[]) internal _roundOptions;
 
@@ -71,6 +72,9 @@ contract Voter {
     // number of сurrently active rounds
     function activeRoundCount() public view returns (uint) {
         return activeRounds.length;
+    }
+    function pastRoundCount() public view returns (uint) {
+        return pastRounds.length;
     }
 
     // number of options in a round
@@ -209,5 +213,6 @@ contract Voter {
             j++;
         }
         activeRounds = filteredRounds;
+        pastRounds.push(roundId);
     }
 }
