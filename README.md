@@ -22,7 +22,3 @@ npx hardhat test
 - tokens
   - ERC20PresetFixedSupply.sol
   - ERC20PresetMinterPauser.sol
-  - ERC20PresetMinterPauserGToken.sol
-- impact lp
-  - ImpactLP.sol
-  - LPLockPort.sol
