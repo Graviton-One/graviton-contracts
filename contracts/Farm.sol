@@ -1,6 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
+/// @title Farm
+/// @author Artemij Artamonov - <array.clean@gmail.com>
+/// @author Anton Davydov - <fetsorn@gmail.com>
 contract Farm {
 
     address public owner;

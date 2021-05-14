@@ -5,6 +5,9 @@ interface IFarm {
     function totalUnlocked() external returns (uint);
 }
 
+/// @title BalanceKeeper
+/// @author Artemij Artamonov - <array.clean@gmail.com>
+/// @author Anton Davydov - <fetsorn@gmail.com>
 contract BalanceKeeper {
 
     address public owner;

@@ -21,6 +21,9 @@ interface IFarm {
     function totalUnlocked() external returns (uint);
 }
 
+/// @title PortLP
+/// @author Artemij Artamonov - <array.clean@gmail.com>
+/// @author Anton Davydov - <fetsorn@gmail.com>
 contract PortLP {
 
     address public owner;

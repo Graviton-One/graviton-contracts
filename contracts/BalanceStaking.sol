@@ -14,6 +14,9 @@ interface IBalanceKeeper {
     function totalUsers() external returns (uint);
 }
 
+/// @title BalanceStaking
+/// @author Artemij Artamonov - <array.clean@gmail.com>
+/// @author Anton Davydov - <fetsorn@gmail.com>
 contract BalanceStaking {
 
     address public owner;

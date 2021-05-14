@@ -6,6 +6,9 @@ interface Balance {
 
 }
 
+/// @title Voter
+/// @author Artemij Artamonov - <array.clean@gmail.com>
+/// @author Anton Davydov - <fetsorn@gmail.com>
 contract Voter {
 
     address public owner;

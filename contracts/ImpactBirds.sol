@@ -2,6 +2,9 @@ pragma solidity >=0.8.0;
 
 import "./ImpactAbstract.sol";
 
+/// @title BirdsImpact
+/// @author Artemij Artamonov - <array.clean@gmail.com>
+/// @author Anton Davydov - <fetsorn@gmail.com>
 contract BirdsImpact is DepositersImpact{
 
     constructor(address _owner, address _nebula, address[] memory _allowedTokens, address _governanceTokenAddr, address _farmAddr)

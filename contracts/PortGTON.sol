@@ -21,6 +21,9 @@ interface IVoter {
     function checkVoteBalances(address user, uint newBalance) external;
 }
 
+/// @title PortGTON
+/// @author Artemij Artamonov - <array.clean@gmail.com>
+/// @author Anton Davydov - <fetsorn@gmail.com>
 contract PortGTON {
 
     address public owner;

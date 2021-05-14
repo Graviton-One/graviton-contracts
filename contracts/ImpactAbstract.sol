@@ -24,6 +24,9 @@ interface NewContract {
     function setTotalSupply(uint256 supply) external;
 }
 
+/// @title DepositersImpact
+/// @author Artemij Artamonov - <array.clean@gmail.com>
+/// @author Anton Davydov - <fetsorn@gmail.com>
 abstract contract DepositersImpact is ImpactKeeper {
     event Transfer(address token, address user, uint256 value, uint256 id, uint256 action);
 
