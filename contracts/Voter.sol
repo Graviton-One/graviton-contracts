@@ -154,7 +154,7 @@ contract Voter {
 
         for (uint optionId = 0; optionId < votes.length; optionId++) {
 
-            if (!_userVotedForOption[roundId][optionId][msg.sender]) {
+            if (!_userVotedForOption[roundId][optionId][msg.sender] && votes[optionId] != 0) {
                 _userVotedForOption[roundId][optionId][msg.sender] = true;
                 _userCountForOption[roundId][optionId]++;
             }

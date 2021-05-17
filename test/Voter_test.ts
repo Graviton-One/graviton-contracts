@@ -79,6 +79,22 @@ describe("Voter", function () {
            expect(parseInt(userCountForOption.toString())).to.equal(1)
   });
 
+  it("should not count 0 votes for option", async function () {
+
+    await balanceKeeperContract.toggleAdder(ownerAddress);
+    await balanceKeeperContract.addValue(ownerAddress, 3);
+
+    await voterContract.startRound("name", ["option1", "option2"])
+
+    await voterContract.castVotes(0,[0,2])
+
+    let userCountForOption0 = await voterContract.userCountForOption(0, 0)
+    let userCountForOption1 = await voterContract.userCountForOption(0, 1)
+
+    return expect(parseInt(userCountForOption0.toString())).to.equal(0) &&
+           expect(parseInt(userCountForOption1.toString())).to.equal(1)
+  });
+
   it("should check vote balances", async function () {
 
     await balanceKeeperContract.toggleAdder(ownerAddress);
