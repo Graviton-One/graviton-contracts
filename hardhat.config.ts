@@ -1,5 +1,10 @@
+import * as dotenv from "dotenv";
+dotenv.config({ path: __dirname+'/.env' });
+// require('dotenv').config({ path: __dirname+'/.env' });
+
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
+import "@nomiclabs/hardhat-etherscan";
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -18,5 +23,16 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 export default {
+  networks: {
+    hardhat: {
+    },
+    fantom: {
+      url: "https://rpcapi.fantom.network",
+      accounts: { mnemonic: process.env.MNEMONIC }
+    }
+  },
+  etherscan: {
+    apiKey: process.env.APIKEY
+  },
   solidity: "0.8.0",
 };
