@@ -63,7 +63,7 @@ describe("Voter", function () {
            expect(parseInt(options.toString())).to.equal(3)
   });
 
-  it("should count unique voters", async function () {
+  it("should increment userCountInRound when first casting 1+ votes", async function () {
 
     await balanceKeeperContract.toggleAdder(ownerAddress);
     await balanceKeeperContract.addValue(ownerAddress, 3);
@@ -73,13 +73,58 @@ describe("Voter", function () {
     await voterContract.castVotes(0,[1,2])
 
     let userCountInRound = await voterContract.userCountInRound(0)
-    let userCountForOption = await voterContract.userCountForOption(0, 0)
 
-    return expect(parseInt(userCountInRound.toString())).to.equal(1) &&
-           expect(parseInt(userCountForOption.toString())).to.equal(1)
+    return expect(parseInt(userCountInRound.toString())).to.equal(1)
   });
 
-  it("should not count 0 votes for option", async function () {
+  it("should not change userCountInRound when first casting 0 votes", async function () {
+
+    await balanceKeeperContract.toggleAdder(ownerAddress);
+    await balanceKeeperContract.addValue(ownerAddress, 3);
+
+    await voterContract.startRound("name", ["option1", "option2"])
+
+    await voterContract.castVotes(0,[0,0])
+
+    let userCountInRound = await voterContract.userCountInRound(0)
+
+    return expect(parseInt(userCountInRound.toString())).to.equal(0)
+  });
+
+  it("should decrement userCountInRound when overwriting with 0 votes", async function () {
+
+    await balanceKeeperContract.toggleAdder(ownerAddress);
+    await balanceKeeperContract.addValue(ownerAddress, 3);
+
+    await voterContract.startRound("name", ["option1", "option2"])
+
+    await voterContract.castVotes(0,[1,2])
+
+    let userCountInRound_1 = await voterContract.userCountInRound(0)
+
+    await voterContract.castVotes(0,[0,0])
+
+    let userCountInRound_2 = await voterContract.userCountInRound(0)
+
+    return expect(parseInt(userCountInRound_1.toString())).to.equal(1) &&
+           expect(parseInt(userCountInRound_2.toString())).to.equal(0)
+  });
+
+  it("should increment userCountForOption when first casting 1+ votes", async function () {
+
+    await balanceKeeperContract.toggleAdder(ownerAddress);
+    await balanceKeeperContract.addValue(ownerAddress, 3);
+
+    await voterContract.startRound("name", ["option1", "option2"])
+
+    await voterContract.castVotes(0,[0,2])
+
+    let userCountForOption1 = await voterContract.userCountForOption(0, 1)
+
+    return expect(parseInt(userCountForOption1.toString())).to.equal(1)
+  });
+
+  it("should not change userCountForOption when first casting 0 votes", async function () {
 
     await balanceKeeperContract.toggleAdder(ownerAddress);
     await balanceKeeperContract.addValue(ownerAddress, 3);
@@ -89,10 +134,27 @@ describe("Voter", function () {
     await voterContract.castVotes(0,[0,2])
 
     let userCountForOption0 = await voterContract.userCountForOption(0, 0)
-    let userCountForOption1 = await voterContract.userCountForOption(0, 1)
 
-    return expect(parseInt(userCountForOption0.toString())).to.equal(0) &&
-           expect(parseInt(userCountForOption1.toString())).to.equal(1)
+    return expect(parseInt(userCountForOption0.toString())).to.equal(0)
+  });
+
+  it("should decrement userCountForOption when overwriting 0 votes", async function () {
+
+    await balanceKeeperContract.toggleAdder(ownerAddress);
+    await balanceKeeperContract.addValue(ownerAddress, 3);
+
+    await voterContract.startRound("name", ["option1", "option2"])
+
+    await voterContract.castVotes(0,[0,2])
+
+    let userCountForOption1_1 = await voterContract.userCountForOption(0, 1)
+
+    await voterContract.castVotes(0,[0,0])
+
+    let userCountForOption1_2 = await voterContract.userCountForOption(0, 1)
+
+    return expect(parseInt(userCountForOption1_1.toString())).to.equal(1) &&
+           expect(parseInt(userCountForOption1_2.toString())).to.equal(0)
   });
 
   it("should check vote balances", async function () {

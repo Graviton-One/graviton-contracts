@@ -159,14 +159,23 @@ contract Voter {
                 _userCountForOption[roundId][optionId]++;
             }
 
+            if (_userVotedForOption[roundId][optionId][msg.sender] && votes[optionId] == 0) {
+                _userVotedForOption[roundId][optionId][msg.sender] = false;
+                _userCountForOption[roundId][optionId]--;
+            }
+
             _votesForOption[roundId][optionId] += votes[optionId];
         }
 
         _votesInRoundByUser[roundId][msg.sender] = sum;
 
-        if (!_userVotedInRound[roundId][msg.sender]) {
+        if (!_userVotedInRound[roundId][msg.sender] && sum != 0) {
             _userVotedInRound[roundId][msg.sender] = true;
             _userCountInRound[roundId]++;
+        }
+        if (_userVotedInRound[roundId][msg.sender] && sum == 0) {
+            _userVotedInRound[roundId][msg.sender] = true;
+            _userCountInRound[roundId]--;
         }
 
         emit CastVotesEvent(msg.sender, roundId);
