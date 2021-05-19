@@ -174,7 +174,7 @@ contract Voter {
             _userCountInRound[roundId]++;
         }
         if (_userVotedInRound[roundId][msg.sender] && sum == 0) {
-            _userVotedInRound[roundId][msg.sender] = true;
+            _userVotedInRound[roundId][msg.sender] = false;
             _userCountInRound[roundId]--;
         }
 
