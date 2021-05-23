@@ -67,6 +67,10 @@ async function main() {
     let _c = 2100000;
     let farmStakingContract = await farmStakingFactory.deploy(ownerAddress, _a, _c);
     farmStakingAddress = farmStakingContract.address;
+
+    await farmStakingContract.startFarming();
+    await network.provider.send("evm_increaseTime", [3600]);
+    await farmStakingContract.unlockAsset();
   }
   if (network.name == "fantom") {
      farmStakingAddress = "0xF1b64cB91FFE82F8eFF2575669856a28B30A0450"
@@ -90,7 +94,7 @@ async function main() {
     gtonAddress = gtonContract.address;
   }
   if (network.name == "fantom") {
-      gtonAddress = "0x284f6cF2b21bEBe98c0a62eABF7fd1011Ac3Ce15"
+      gtonAddress = "0x44ec6bcc2B3dC8b1bBB78c8dfb5C0d72Acd41D87"
   }
   let portGTONFactory = await ethers.getContractFactory("PortGTON");
   let portGTONContract = await portGTONFactory.deploy(ownerAddress, gtonAddress, balanceKeeperAddress, [voterAddress]);
