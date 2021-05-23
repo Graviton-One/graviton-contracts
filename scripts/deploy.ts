@@ -112,6 +112,13 @@ async function main() {
   let portLPAddress = portLPContract.address;
   console.log("PortLP:         ", portLPAddress)
 
+  await balanceKeeperContract.toggleAdder(balanceEBAddress)
+  await balanceKeeperContract.toggleAdder(balanceStakingAddress)
+  await balanceKeeperContract.toggleAdder(portGTONAddress)
+  await balanceKeeperContract.toggleAdder(portLPAddress)
+  await balanceKeeperContract.toggleSubtractor(portLPAddress)
+  await voterContract.toggleVoteBalanceChecker(portGTONAddress)
+
   try {
     await run("verify:verify", {
     address: balanceKeeperAddress,
