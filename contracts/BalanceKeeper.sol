@@ -29,13 +29,10 @@ contract BalanceKeeper {
     mapping (address => uint) public userBalance;
 
     // process gton staking
-    uint public previousPortion;
-    uint public currentPortion;
     uint public totalBalance;
-    uint public finalValue;
 
-    event addValueEvent(address adder, address user, uint amount);
-    event subtractValueEvent(address subtractor, address user, uint amount);
+    event AddValueEvent(address adder, address user, uint amount);
+    event SubtractValueEvent(address subtractor, address user, uint amount);
 
     constructor(address _owner) {
         owner = _owner;
@@ -65,7 +62,7 @@ contract BalanceKeeper {
         }
         userBalance[user] += value;
         totalBalance += value;
-        emit addValueEvent(msg.sender, user, value);
+        emit AddValueEvent(msg.sender, user, value);
     }
 
     // subtract user balance
@@ -73,7 +70,7 @@ contract BalanceKeeper {
         require(allowedSubtractors[msg.sender],"not allowed to subtract");
         userBalance[user] -= value;
         totalBalance -= value;
-        emit subtractValueEvent(msg.sender, user, value);
+        emit SubtractValueEvent(msg.sender, user, value);
     }
 
 }

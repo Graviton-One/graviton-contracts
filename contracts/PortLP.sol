@@ -36,9 +36,9 @@ contract PortLP {
     IBalanceKeeper public balanceKeeper;
     IERC20 public lpToken;
 
-    uint currentPortion;
-    uint totalProcessed;
-    uint finalValue;
+    uint public currentPortion;
+    uint public totalProcessed;
+    uint public finalValue;
 
     uint public totalLocked;
 
