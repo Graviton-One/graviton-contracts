@@ -32,26 +32,32 @@ contract BalanceStaking {
 
     uint public finalValue;
     uint public totalUsers;
+    uint public prevPortion;
+    uint public currentPortion;
+    uint public totalBalance;
 
     mapping (address => uint) public sendBalance;
 
-    constructor(address _owner, IFarm _FarmContract, IBalanceKeeper _balanceKeeper) {
+    constructor(address _owner, IFarm _farmStaking, IBalanceKeeper _balanceKeeper) {
         owner = _owner;
-        stakingFarmContract = _FarmContract;
+        stakingFarmContract = _farmStaking;
         balanceKeeper = _balanceKeeper;
     }
 
     function increaseUserStakeValue(address user) internal {
         uint prevBalance = balanceKeeper.userBalance(user);
-        uint newBalance = stakingFarmContract.totalUnlocked() * prevBalance / balanceKeeper.totalBalance();
-        uint add = newBalance - prevBalance;
-        balanceKeeper.addValue(user,add);
+        uint add = currentPortion * prevBalance / totalBalance;
+        balanceKeeper.addValue(user, add);
     }
 
     function processBalances(uint step) public {
+        if (finalValue == 0) {
+            totalUsers = balanceKeeper.totalUsers();
+            currentPortion = stakingFarmContract.totalUnlocked() - prevPortion;
+            totalBalance = balanceKeeper.totalBalance();
+        }
         uint toValue = finalValue + step;
         uint fromValue = finalValue;
-        totalUsers = balanceKeeper.totalUsers();
 
         if (toValue > totalUsers){
             toValue = totalUsers;
