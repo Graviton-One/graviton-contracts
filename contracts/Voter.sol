@@ -3,7 +3,6 @@ pragma solidity >=0.8.0;
 
 interface Balance {
     function userBalance(address user) external returns (uint);
-
 }
 
 /// @title Voter
@@ -40,6 +39,10 @@ contract Voter {
     mapping(address => bool) public allowedCheckers;
 
     event CastVotesEvent(address indexed voter, uint indexed roundId);
+    event StartRoundEvent(address owner, uint roundCount, string name, string[] options);
+    event toggleVoteBalanceCheckerEvent(address owner, address checker, bool newBool);
+    event CheckVoteBalancesEvent(address checker, address user, uint newBalance);
+    event FinalizeRoundEvent(address owner, uint roundId);
 
     constructor(address _owner, address _balanceKeeper) {
         owner = _owner;
@@ -115,6 +118,7 @@ contract Voter {
         _votesForOption[roundCount] = new uint[](options.length);
         activeRounds.push(roundCount);
         roundCount++;
+        emit StartRoundEvent(msg.sender, roundCount, name, options);
     }
 
     function isActiveRound(uint roundId) public view returns (bool) {
@@ -184,6 +188,7 @@ contract Voter {
     // allow/forbid oracle to check votes
     function toggleVoteBalanceChecker(address checker) public isOwner {
         allowedCheckers[checker] = !allowedCheckers[checker];
+        emit toggleVoteBalanceCheckerEvent(msg.sender, checker, allowedCheckers[checker]);
     }
 
     // increase votes proportionally to the increase in balance
@@ -211,6 +216,7 @@ contract Voter {
         for(uint i = 0; i < activeRounds.length; i++) {
             checkVoteBalance(activeRounds[i],user,newBalance);
         }
+        emit CheckVoteBalancesEvent(msg.sender, user, newBalance);
     }
 
     // move roundId from activeRounds to pastRounds
@@ -226,5 +232,6 @@ contract Voter {
         }
         activeRounds = filteredRounds;
         pastRounds.push(roundId);
+        emit FinalizeRoundEvent(msg.sender, roundId);
     }
 }
