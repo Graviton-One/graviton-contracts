@@ -120,7 +120,7 @@ async function main() {
   await balanceKeeperContract.toggleAdder(balanceStakingAddress)
   await balanceKeeperContract.toggleAdder(portGTONAddress)
   await balanceKeeperContract.toggleAdder(portLPAddress)
-  await balanceKeeperContract.toggleSubtractor(portLPAddress)
+  await balanceKeeperContract.toggleSubtractor(portGTONAddress)
   await voterContract.toggleVoteBalanceChecker(portGTONAddress)
 
   try {
