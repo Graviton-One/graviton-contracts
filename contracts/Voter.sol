@@ -39,7 +39,7 @@ contract Voter {
 
     mapping(address => bool) public allowedCheckers;
 
-    event CastVotesEvent(address voter, uint roundId);
+    event CastVotesEvent(address indexed voter, uint indexed roundId);
 
     constructor(address _owner, address _balanceKeeper) {
         owner = _owner;
