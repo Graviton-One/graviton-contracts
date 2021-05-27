@@ -181,7 +181,7 @@ contract Voter {
         emit CastVotesEvent(msg.sender, roundId);
     }
 
-    // allow oracle to check votes
+    // allow/forbid oracle to check votes
     function toggleVoteBalanceChecker(address checker) public isOwner {
         allowedCheckers[checker] = !allowedCheckers[checker];
     }
@@ -213,7 +213,7 @@ contract Voter {
         }
     }
 
-    // remove roundId from activeRounds
+    // move roundId from activeRounds to pastRounds
     function finalizeRound(uint roundId) public isOwner {
         uint[] memory filteredRounds = new uint[](activeRounds.length-1);
         uint j = 0;

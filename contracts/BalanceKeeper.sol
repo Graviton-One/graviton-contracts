@@ -28,7 +28,6 @@ contract BalanceKeeper {
 
     mapping (address => uint) public userBalance;
 
-    // process gton staking
     uint public totalBalance;
 
     event AddValueEvent(address indexed adder, address indexed user, uint indexed amount);
