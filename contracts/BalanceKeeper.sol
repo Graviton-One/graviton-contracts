@@ -31,8 +31,8 @@ contract BalanceKeeper {
     // process gton staking
     uint public totalBalance;
 
-    event AddValueEvent(address adder, address user, uint amount);
-    event SubtractValueEvent(address subtractor, address user, uint amount);
+    event AddValueEvent(address indexed adder, address indexed user, uint indexed amount);
+    event SubtractValueEvent(address indexed subtractor, address indexed user, uint indexed amount);
 
     constructor(address _owner) {
         owner = _owner;
