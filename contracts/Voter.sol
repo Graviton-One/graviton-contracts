@@ -39,10 +39,10 @@ contract Voter {
     mapping(address => bool) public allowedCheckers;
 
     event CastVotesEvent(address indexed voter, uint indexed roundId);
-    event StartRoundEvent(address owner, uint roundCount, string name, string[] options);
-    event toggleVoteBalanceCheckerEvent(address owner, address checker, bool newBool);
-    event CheckVoteBalancesEvent(address checker, address user, uint newBalance);
-    event FinalizeRoundEvent(address owner, uint roundId);
+    event StartRoundEvent(address indexed owner, uint roundCount, string name, string[] options);
+    event toggleVoteBalanceCheckerEvent(address indexed owner, address indexed checker, bool indexed newBool);
+    event CheckVoteBalancesEvent(address indexed checker, address indexed user, uint newBalance);
+    event FinalizeRoundEvent(address indexed owner, uint roundId);
 
     constructor(address _owner, address _balanceKeeper) {
         owner = _owner;
