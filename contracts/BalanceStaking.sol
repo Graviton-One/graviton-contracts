@@ -59,7 +59,7 @@ contract BalanceStaking {
         uint toValue = finalValue + step;
         uint fromValue = finalValue;
 
-        if (toValue > totalUsers){
+        if (toValue > totalUsers) {
             toValue = totalUsers;
         }
 
