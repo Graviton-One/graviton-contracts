@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
+import "hardhat/console.sol";
+
 interface IERC20 {
     function mint(address _to, uint256 _value) external;
     function allowance(address owner, address spender) external view returns (uint256);
@@ -39,6 +41,11 @@ contract PortGTON {
     bool public canUnlock = false;
     bool public canLock = false;
 
+    mapping (address => uint) public lastClaimTimestamp;
+    mapping (address => uint) public limitMax;
+    mapping (address => uint) public limitWithdrawn;
+    bool public limitActivated = false;
+
     constructor(address _owner, IERC20 gton, IBalanceKeeper balance, IVoter[] memory votes) {
         owner = _owner;
         gtonToken = gton;
@@ -66,6 +73,10 @@ contract PortGTON {
         canUnlock = !canUnlock;
     }
 
+    function toggleLimit() public isOwner {
+        limitActivated = !limitActivated;
+    }
+
     function migrateGton(address to, uint amount) public isOwner {
         require(gtonToken.transfer(to, amount), "can't transfer");
     }
@@ -80,11 +91,32 @@ contract PortGTON {
         require(canUnlock, "can't unlock");
         uint balance = balanceContract.userBalance(msg.sender);
         require(balance >= amount, "not enough money");
+        uint max;
+        uint withdrawn;
+        uint timestamp;
+        if (limitActivated) {
+            if ((block.timestamp - lastClaimTimestamp[msg.sender]) > 86400) {
+                max = balance / 2;
+                withdrawn = 0;
+                timestamp = block.timestamp;
+            } else {
+                max = limitMax[msg.sender];
+                withdrawn = limitWithdrawn[msg.sender];
+                timestamp = lastClaimTimestamp[msg.sender];
+            }
+            require((amount + withdrawn) <= max);
+        }
         // transfer, fail if there's not enough gton on port, then update
         require(gtonToken.transfer(to, amount), "can't transfer tokens, probably not enough balance on port");
         balanceContract.subtractValue(msg.sender, amount);
         for (uint i = 0; i < voteContracts.length; i++) {
             voteContracts[i].checkVoteBalances(msg.sender, balanceContract.userBalance(msg.sender));
         }
+        if (limitActivated) {
+            limitMax[msg.sender] = max - amount;
+            limitWithdrawn[msg.sender] = withdrawn + amount;
+            lastClaimTimestamp[msg.sender] = timestamp;
+        }
     }
+
 }
