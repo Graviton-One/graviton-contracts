@@ -11,10 +11,10 @@ interface IERC20 {
     function balanceOf(address _owner) external view returns (uint balance);
 }
 
-/// @title CrosschainLock
+/// @title CrosschainLockGTON
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract CrosschainLock {
+contract CrosschainLockGTON {
 
     address public owner;
 
@@ -27,11 +27,15 @@ contract CrosschainLock {
 
     bool public canLock = false;
 
-    event LockTokensEvent(address indexed sender, address indexed receiver, uint amount);
+    event LockTokensEvent(address indexed gton, address indexed sender, address indexed receiver, uint amount);
 
     constructor(address _owner, IERC20 gton) {
         owner = _owner;
         gtonToken = gton;
+    }
+
+    function transferOwnership(address newOwner) public isOwner {
+        owner = newOwner;
     }
 
     function setGtonToken(IERC20 newGton) public isOwner {
@@ -49,7 +53,7 @@ contract CrosschainLock {
     function lockTokens(address receiver, uint amount) public {
         require(canLock, "can't lock");
         require(gtonToken.transferFrom(msg.sender, address(this), amount), "can't transfer");
-        emit LockTokensEvent(msg.sender, receiver, amount);
+        emit LockTokensEvent(address(gtonToken), msg.sender, receiver, amount);
     }
 
 }
