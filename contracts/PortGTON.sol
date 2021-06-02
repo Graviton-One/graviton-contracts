@@ -54,6 +54,10 @@ contract PortGTON {
         voteContracts = votes;
     }
 
+    function transferOwnership(address newOwner) public isOwner {
+        owner = newOwner;
+    }
+
     function setVoteContracts(IVoter[] calldata newVotes) public isOwner {
         voteContracts = newVotes;
     }
@@ -111,7 +115,7 @@ contract PortGTON {
         // transfer, fail if there's not enough gton on port, then update
         require(gtonToken.transfer(to, amount), "can't transfer tokens, probably not enough balance on port");
         balanceContract.subtractValue(msg.sender, amount);
-        emit LockTokensEvent(msg.sender, to, amount);
+        emit UnlockTokensEvent(msg.sender, to, amount);
         for (uint i = 0; i < voteContracts.length; i++) {
             voteContracts[i].checkVoteBalances(msg.sender, balanceContract.userBalance(msg.sender));
         }
