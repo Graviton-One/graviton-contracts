@@ -7,8 +7,6 @@ const expect = chai.expect;
 describe("OracleParser", function () {
   let owner: Signer;
   let ownerAddress: string;
-  let receiver: Signer;
-  let receiverAddress: string;
   let nebula: Signer;
   let nebulaAddress: string;
   let accounts: Signer[];
@@ -20,9 +18,8 @@ describe("OracleParser", function () {
   let oracleParserAddress: string;
 
   beforeEach(async function () {
-    [owner, receiver, nebula, ...accounts] = await ethers.getSigners();
+    [owner, nebula, ...accounts] = await ethers.getSigners();
     ownerAddress = await owner.getAddress();
-    receiverAddress = await receiver.getAddress();
     nebulaAddress = await nebula.getAddress();
 
     let oracleRouterFactory = await ethers.getContractFactory("OracleRouterMock");
@@ -42,28 +39,23 @@ describe("OracleParser", function () {
     let chainStr = "ETH"
     let emiter = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
     let topic0 = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-    let topic1 = "0x0000000000000000000000007d88a5c39059899a8d7e59eb5c5c9b78c0180652"
-    let addr1 = "0x7D88a5C39059899a8D7E59EB5c5C9b78C0180652"
-    let topic2 = "0x0000000000000000000000000a98fb70939162725ae66e626fe4b52cff62c2e5"
-    let addr2 = "0x0A98fB70939162725aE66E626Fe4b52cFF62c2e5"
+    let token32 = "0x0000000000000000000000007d88a5c39059899a8d7e59eb5c5c9b78c0180652"
+    let token = "0x7D88a5C39059899a8D7E59EB5c5C9b78C0180652"
+    let sender32 = "0x0000000000000000000000000a98fb70939162725ae66e626fe4b52cff62c2e5"
+    let sender = "0x0A98fB70939162725aE66E626Fe4b52cFF62c2e5"
+    let receiver32 = "0x0000000000000000000000000a98fb70939162725ae66e626fe4b52cff62c2e5"
+    let receiver = "0x0A98fB70939162725aE66E626Fe4b52cFF62c2e5"
     let amount = "0x000000000000000000000000000000000000000000000000000000002e4d0700"
-    let amountInt = "776800000"
+    let amountStr = "776800000"
 
-    let uuidBytes  = ethers.utils.arrayify(uuid);
-    let chainBytes = ethers.utils.arrayify(chain);
-    let emiterBytes = ethers.utils.arrayify(emiter);
-    let topic0Bytes = ethers.utils.arrayify(topic0);
-    let topic1Bytes = ethers.utils.arrayify(topic1);
-    let topic2Bytes = ethers.utils.arrayify(topic2);
-    let amountBytes = ethers.utils.arrayify(amount);
-
-    let attachValue = ethers.utils.concat([uuidBytes
-                                          ,chainBytes
-                                          ,emiterBytes
-                                          ,topic0Bytes
-                                          ,topic1Bytes
-                                          ,topic2Bytes
-                                          ,amountBytes]);
+    let attachValue = ethers.utils.concat([ethers.utils.arrayify(uuid)
+                                          ,ethers.utils.arrayify(chain)
+                                          ,ethers.utils.arrayify(emiter)
+                                          ,ethers.utils.arrayify(topic0)
+                                          ,ethers.utils.arrayify(topic1)
+                                          ,ethers.utils.arrayify(topic2)
+                                          ,ethers.utils.arrayify(topic3)
+                                          ,ethers.utils.arrayify(amount)]);
 
     oracleParserContract = oracleParserContract.connect(nebula);
     await expect(oracleParserContract.attachValue(attachValue))
@@ -73,9 +65,10 @@ describe("OracleParser", function () {
                 chainStr,
                 emiter,
                 topic0,
-                addr1,
-                addr2,
-                amountInt);
+                token,
+                sender,
+                receiver,
+                amountStr);
   });
 
 });

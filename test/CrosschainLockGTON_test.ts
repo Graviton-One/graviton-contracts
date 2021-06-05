@@ -19,9 +19,6 @@ describe("CrosschainLockGTON", function () {
   let tokenContract: Contract;
   let tokenAddress: string;
 
-  let voterContract: Contract;
-  let voterAddress: string;
-
   let crosschainLockGTONContract: Contract;
   let crosschainLockGTONAddress: string;
 

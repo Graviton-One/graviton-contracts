@@ -12,5 +12,6 @@ contract OracleRouterMock {
                         bytes32 topic0,
                         address topic1,
                         address topic2,
+                        address topic3,
                         uint256 amount) external {}
 }
