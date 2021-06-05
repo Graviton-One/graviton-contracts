@@ -1,14 +1,17 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-interface IERC20 {
-    function mint(address _to, uint256 _value) external;
-    function allowance(address owner, address spender) external view returns (uint256);
-    function approve(address spender, uint256 amount) external returns (bool);
-    function increaseAllowance(address spender, uint256 addedValue) external returns (bool);
-    function transfer(address _to, uint _value) external returns (bool success);
-    function transferFrom(address _from, address _to, uint _value) external returns (bool success);
-    function balanceOf(address _owner) external view returns (uint balance);
+interface IFarm {
+    function totalUnlocked() external returns (uint);
+}
+
+interface IBalanceKeeper {
+    function addValue(address user, uint value) external;
+    function userBalance(address user) external returns (uint);
+    function userAddresses(uint id) external returns (address);
+    function subtractValue(address user, uint value) external;
+    function totalBalance() external returns (uint);
+    function totalUsers() external returns (uint);
 }
 
 /// @title BalanceLP
@@ -23,41 +26,111 @@ contract BalanceLP {
         _;
     }
 
-    uint public totalUsers;
+    IFarm farm;
+    IBalanceKeeper balanceKeeper;
+
+    uint public userCount;
+    mapping (uint => address) public users;
     mapping (address => bool) public knownUsers;
-    mapping (uint => address) public userAddresses;
-    uint public totalLpTokens;
     mapping (address => bool) public knownLpTokens;
     mapping (uint => address) public lpTokens;
-    mapping (address => mapping (address => uint)) balances;
-    uint totalSupply;
-    mapping (address => uint) LpSupply;
+    mapping (address => mapping (address => uint)) public userBalance;
+    uint public totalSupply;
+    mapping (address => uint) public lpSupply;
+    uint public currentPortion;
+    uint public totalProcessed;
+    uint public finalValue;
+    uint public totalLocked;
 
-    event AddTokensEvent(address indexed lptoken,
-                         address indexed sender,
-                         address indexed receiver,
+    // oracles for changing user lp balances
+    mapping (address=>bool) public allowedAdders;
+    mapping (address=>bool) public allowedSubtractors;
+
+    event ToggleAdderEvent(address indexed owner,
+                           address indexed adder,
+                           bool indexed newBool);
+    event ToggleSubtractorEvent(address indexed owner,
+                                address indexed subtractor,
+                                bool indexed newBool);
+    event AddTokensEvent(address indexed adder,
+                         address indexed lptoken,
+                         address indexed user,
                          uint amount);
-    event SubtractTokensEvent(address indexed lptoken,
-                              address indexed sender,
-                              address indexed receiver,
+    event SubtractTokensEvent(address indexed subtractor,
+                              address indexed lptoken,
+                              address indexed user,
                               uint amount);
 
-    constructor(address _owner) {
+    constructor(address _owner, IFarm _farm, IBalanceKeeper _balanceKeeper) {
         owner = _owner;
+        farm = _farm;
+        balanceKeeper = _balanceKeeper;
     }
 
     function transferOwnership(address newOwner) public isOwner {
         owner = newOwner;
     }
 
+    // permit/forbid an oracle to add user balances
+    function toggleAdder(address adder) public isOwner {
+        allowedAdders[adder] = !allowedAdders[adder];
+        emit ToggleAdderEvent(msg.sender, adder, allowedAdders[adder]);
+    }
+
+    // permit/forbid an oracle to subtract user balances
+    function toggleSubtractor(address subtractor) public isOwner {
+        allowedSubtractors[subtractor] = !allowedSubtractors[subtractor];
+        emit ToggleSubtractorEvent(msg.sender, subtractor, allowedSubtractors[subtractor]);
+    }
+
     function addTokens(address lptoken,
                        address user,
                        uint amount) public {
-        balances[lptoken][user] = balances[lptoken][user] + amount;
+        require(allowedAdders[msg.sender],"not allowed to add value");
+        if (!knownUsers[user]) {
+            users[userCount] = user;
+            userCount++;
+            knownUsers[user] = true;
+        }
+        userBalance[lptoken][user] = userBalance[lptoken][user] + amount;
+        lpSupply[lptoken] = lpSupply[lptoken] + amount;
+        totalSupply = totalSupply + amount;
+        emit AddTokensEvent(msg.sender, lptoken, user, amount);
     }
+
     function subtractTokens(address lptoken,
                             address user,
                             uint amount) public {
-        balances[lptoken][user] = balances[lptoken][user] - amount;
+        require(allowedSubtractors[msg.sender],"not allowed to subtract");
+        userBalance[lptoken][user] = userBalance[lptoken][user] - amount;
+        lpSupply[lptoken] = lpSupply[lptoken] - amount;
+        totalSupply = totalSupply - amount;
+        emit SubtractTokensEvent(msg.sender, lptoken, user, amount);
+    }
+
+    function addUserBalance(address lptoken, address user) internal {
+        uint amount = currentPortion * userBalance[lptoken][user] / lpSupply[lptoken];
+        balanceKeeper.addValue(user, amount);
+    }
+
+    function processBalances(address token, uint step) public {
+        uint toValue = finalValue + step;
+        if (finalValue == 0) {
+            currentPortion = farm.totalUnlocked() - totalProcessed;
+        }
+        uint fromValue = finalValue;
+        if (toValue > userCount){
+            toValue = userCount;
+        }
+        for(uint i = fromValue; i <= toValue; i++) {
+            address user = users[i];
+            addUserBalance(token, user);
+        }
+        if (toValue == userCount) {
+            finalValue = 0;
+            totalProcessed += currentPortion;
+        } else {
+            finalValue = toValue;
+        }
     }
 }

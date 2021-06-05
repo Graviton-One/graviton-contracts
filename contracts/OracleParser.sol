@@ -6,8 +6,9 @@ interface IOracleRouter {
                         string memory chain,
                         address emiter,
                         bytes32 topic0,
-                        address topic1,
-                        address topic2,
+                        address token,
+                        address sender,
+                        address receiver,
                         uint256 amount) external;
 }
 
@@ -37,8 +38,9 @@ contract OracleParser {
                            string chain,
                            address emiter,
                            bytes32 topic0,
-                           address topic1,
-                           address topic2,
+                           address token,
+                           address sender,
+                           address receiver,
                            uint256 amount);
 
     constructor(address _owner, IOracleRouter _router, address _nebula) {
@@ -85,20 +87,24 @@ contract OracleParser {
 
     function attachValue(bytes calldata impactData) external isNebula {
 
+        if (impactData.length != 199) { return; } // ignore data with unexpected number of topics
+
         bytes16 uuid = bytesToBytes16(impactData, 0);                          // [  0: 16]
         string memory chain = string(abi.encodePacked(impactData[16:(16+3)])); // [ 16: 19]
         address emiter = deserializeAddress(impactData, 19);                   // [ 19: 39]
         bytes32 topic0 = bytesToBytes32(impactData, 39);                       // [ 39: 71]
-        address topic1 = deserializeAddress(impactData[71:], 12);              // [ 71:103][12:32]
-        address topic2 = deserializeAddress(impactData[103:], 12);             // [103:135][12:32]
-        uint256 amount = deserializeUint(impactData, 135, 32);                 // [135:167]
+        address token = deserializeAddress(impactData[71:], 12);               // [ 71:103][12:32]
+        address sender = deserializeAddress(impactData[103:], 12);             // [103:135][12:32]
+        address receiver = deserializeAddress(impactData[135:], 12);           // [135:167][12:32]
+        uint256 amount = deserializeUint(impactData, 167, 32);                 // [167:199]
 
         oracleRouter.routeValue(uuid,
                                 chain,
                                 emiter,
                                 topic0,
-                                topic1,
-                                topic2,
+                                token,
+                                sender,
+                                receiver,
                                 amount);
 
         emit AttachValueEvent(msg.sender,
@@ -106,9 +112,9 @@ contract OracleParser {
                               chain,
                               emiter,
                               topic0,
-                              topic1,
-                              topic2,
+                              token,
+                              sender,
+                              receiver,
                               amount);
     }
-
 }

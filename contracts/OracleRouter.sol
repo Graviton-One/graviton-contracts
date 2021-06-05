@@ -34,10 +34,10 @@ contract OracleRouter {
     bytes32 public balanceLPAddEventTopic;
     bytes32 public balanceLPSubtractEventTopic;
 
-    event BalanceGTONAddEvent(address receiver, uint amount);
-    event BalanceGTONSubtractEvent(address receiver, uint amount);
-    event BalanceLPAddEvent(address lptoken, address receiver, uint amount);
-    event BalanceLPSubtractEvent(address lptoken, address receiver, uint amount);
+    event BalanceGTONAddEvent(address token, address user, uint amount);
+    event BalanceGTONSubtractEvent(address token, address user, uint amount);
+    event BalanceLPAddEvent(address lptoken, address user, uint amount);
+    event BalanceLPSubtractEvent(address lptoken, address user, uint amount);
 
     constructor(address _owner,
                 IBalanceGTON _balanceGTON,
@@ -56,34 +56,43 @@ contract OracleRouter {
         balanceLPSubtractEventTopic = _balanceLPSubtractEventTopic;
     }
 
+    function setGTONAddEventTopic(bytes32 newTopic) public isOwner {
+        balanceGTONAddEventTopic = newTopic;
+    }
+    function setGTONSubtractEventTopic(bytes32 newTopic) public isOwner {
+        balanceGTONSubtractEventTopic = newTopic;
+    }
+    function setLPAddEventTopic(bytes32 newTopic) public isOwner {
+        balanceLPAddEventTopic = newTopic;
+    }
+    function setLPSubtractEventTopic(bytes32 newTopic) public isOwner {
+        balanceLPSubtractEventTopic = newTopic;
+    }
+
+    // TODO: add access control
     function routeValue(bytes16 uuid,
                         string memory chain,
                         address emiter,
                         bytes32 topic0,
-                        address topic1,
-                        address topic2,
+                        address token,
+                        address sender,
+                        address receiver,
                         uint256 amount) external {
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(balanceGTONAddEventTopic))) {
-            address receiver = topic2;
             balanceGTON.addValue(receiver, amount);
-            emit BalanceGTONAddEvent(receiver, amount);
+            emit BalanceGTONAddEvent(token, receiver, amount);
         }
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(balanceGTONSubtractEventTopic))) {
-            address receiver = topic2;
-            balanceGTON.subtractValue(receiver, amount);
-            emit BalanceGTONSubtractEvent(receiver, amount);
+            balanceGTON.subtractValue(sender, amount);
+            emit BalanceGTONSubtractEvent(token, sender, amount);
         }
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(balanceLPAddEventTopic))) {
-            address receiver = topic2;
-            address lptoken = topic1;
-            balanceLP.addTokens(lptoken, receiver, amount);
-            emit BalanceLPAddEvent(lptoken, receiver, amount);
+            balanceLP.addTokens(token, receiver, amount);
+            emit BalanceLPAddEvent(token, receiver, amount);
         }
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(balanceLPSubtractEventTopic))) {
-            address receiver = topic2;
-            address lptoken = topic1;
-            balanceLP.subtractTokens(lptoken, receiver, amount);
-            emit BalanceLPSubtractEvent(lptoken, receiver, amount);
+            balanceLP.subtractTokens(token, sender, amount);
+            emit BalanceLPSubtractEvent(token, sender, amount);
         }
     }
 }
