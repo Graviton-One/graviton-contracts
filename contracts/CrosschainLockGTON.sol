@@ -29,9 +29,9 @@ contract CrosschainLockGTON {
 
     event LockTokensEvent(address indexed gton, address indexed sender, address indexed receiver, uint amount);
 
-    constructor(address _owner, IERC20 gton) {
+    constructor(address _owner, IERC20 _gtonToken) {
         owner = _owner;
-        gtonToken = gton;
+        gtonToken = _gtonToken;
     }
 
     function transferOwnership(address newOwner) public isOwner {

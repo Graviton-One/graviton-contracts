@@ -26,8 +26,28 @@ export default {
   networks: {
     hardhat: {
     },
-    fantom: {
+    fantom: { // 250
       url: "https://rpcapi.fantom.network",
+      accounts: { mnemonic: process.env.MNEMONIC }
+    },
+    bsc: { // 56
+      url: "https://bsc-dataseed.binance.org",
+      accounts: { mnemonic: process.env.MNEMONIC }
+    },
+    polygon: { // 137
+      url: "https://rpc-mainnet.matic.network",
+      accounts: { mnemonic: process.env.MNEMONIC }
+    },
+    heco: { // 128
+      url: "https://http-mainnet.hecochain.com",
+      accounts: { mnemonic: process.env.MNEMONIC }
+    },
+    avax: { // 43114
+      url: "https://api.avax.network/ext/bc/C/rpc",
+      accounts: { mnemonic: process.env.MNEMONIC }
+    },
+    xdai: { // 100
+      url: "https://rpc.xdaichain.com",
       accounts: { mnemonic: process.env.MNEMONIC }
     }
   },
