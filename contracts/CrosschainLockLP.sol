@@ -23,19 +23,19 @@ contract CrosschainLockLP {
         _;
     }
 
-    mapping (address => bool) allowedTokens;
-    mapping (address => mapping (address => uint)) balances;
-    uint totalSupply;
-    mapping (address => uint) LpSupply;
+    mapping (address => bool) public allowedTokens;
+    mapping (address => mapping (address => uint)) public balances;
+    uint public totalSupply;
+    mapping (address => uint) public lpSupply;
 
-    event LockTokensEvent(address indexed lptoken,
-                          address indexed sender,
-                          address indexed receiver,
-                          uint amount);
-    event UnlockTokensEvent(address indexed lptoken,
-                            address indexed sender,
-                            address indexed receiver,
-                            uint amount);
+    event LockLPEvent(address indexed lptoken,
+                      address indexed sender,
+                      address indexed receiver,
+                      uint amount);
+    event UnlockLPEvent(address indexed lptoken,
+                        address indexed sender,
+                        address indexed receiver,
+                        uint amount);
 
     constructor(address _owner, address[] memory _allowedTokens) {
         for (uint i = 0; i < _allowedTokens.length; i++) {
@@ -54,21 +54,21 @@ contract CrosschainLockLP {
 
     function lockTokens(address tokenAddress, address receiver, uint amount) public {
         require(allowedTokens[tokenAddress], "token not allowed");
-        require(IERC20(tokenAddress).transferFrom(msg.sender, address(this), amount), "not enough allowance");
         balances[tokenAddress][receiver] += amount;
         totalSupply += amount;
-        LpSupply[tokenAddress] += amount;
-        emit LockTokensEvent(tokenAddress, msg.sender, receiver, amount);
+        lpSupply[tokenAddress] += amount;
+        IERC20(tokenAddress).transferFrom(msg.sender, address(this), amount);
+        emit LockLPEvent(tokenAddress, msg.sender, receiver, amount);
     }
 
     function unlockTokens(address tokenAddress, address receiver, uint amount) public {
         require(allowedTokens[tokenAddress], "token not allowed");
         require(balances[tokenAddress][msg.sender] >= amount, "not enough balance");
-        IERC20(tokenAddress).transfer(receiver, amount);
         balances[tokenAddress][msg.sender] -= amount;
         totalSupply -= amount;
-        LpSupply[tokenAddress] -= amount;
-        emit UnlockTokensEvent(tokenAddress, msg.sender, receiver, amount);
+        lpSupply[tokenAddress] -= amount;
+        IERC20(tokenAddress).transfer(receiver, amount);
+        emit UnlockLPEvent(tokenAddress, msg.sender, receiver, amount);
     }
 
 }

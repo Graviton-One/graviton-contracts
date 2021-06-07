@@ -25,10 +25,10 @@ describe("OracleRouter", function () {
   let oracleRouterContract: Contract;
   let oracleRouterAddress: string;
 
-  let balanceGTONAddEventTopic      = "0x0000000000000000000000000000000000000000000000000000000000000001";
-  let balanceGTONSubtractEventTopic = "0x0000000000000000000000000000000000000000000000000000000000000002";
-  let balanceLPAddEventTopic        = "0x0000000000000000000000000000000000000000000000000000000000000003";
-  let balanceLPSubtractEventTopic   = "0x0000000000000000000000000000000000000000000000000000000000000004";
+  let gtonAddTopic = "0x0000000000000000000000000000000000000000000000000000000000000001";
+  let gtonSubTopic = "0x0000000000000000000000000000000000000000000000000000000000000002";
+  let lp__AddTopic = "0x0000000000000000000000000000000000000000000000000000000000000003";
+  let lp__SubTopic = "0x0000000000000000000000000000000000000000000000000000000000000004";
 
   beforeEach(async function () {
     [owner, receiver, nebula, ...accounts] = await ethers.getSigners();
@@ -54,10 +54,10 @@ describe("OracleRouter", function () {
     oracleRouterContract = await oracleRouterFactory.deploy(ownerAddress,
                                                             balanceGTONAddress,
                                                             balanceLPAddress,
-                                                            balanceGTONAddEventTopic,
-                                                            balanceGTONSubtractEventTopic,
-                                                            balanceLPAddEventTopic,
-                                                            balanceLPSubtractEventTopic
+                                                            gtonAddTopic,
+                                                            gtonSubTopic,
+                                                            lp__AddTopic,
+                                                            lp__SubTopic
                                                            );
     oracleRouterAddress = oracleRouterContract.address;
 
@@ -70,13 +70,15 @@ describe("OracleRouter", function () {
     let uuid = "0x5ae47235f0844e55b26703b7cf385294";
     let chain = "ETH";
     let emiter = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-    let topic0 = balanceGTONAddEventTopic;
+    let topic0 = gtonAddTopic;
     let topic1 = "0x7d88a5c39059899a8d7e59eb5c5c9b78c0180652";
     let topic2 = "0x0a98fb70939162725ae66e626fe4b52cff62c2e5";
     let topic3 = "0x0a98fb70939162725ae66e626fe4b52cff62c2e5";
     let receiverAddr = "0x0a98fb70939162725ae66e626fe4b52cff62c2e5";
     let amount = "776800000";
     let amountInt = 776800000;
+
+    await oracleRouterContract.toggleParser(ownerAddress);
 
     await oracleRouterContract.routeValue(uuid,
                                           chain,
@@ -100,12 +102,14 @@ describe("OracleRouter", function () {
     let uuid      = "0x5ae47235f0844e55b26703b7cf385294";
     let chain     = "ETH";
     let emiter    = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-    let topic0    = balanceLPAddEventTopic;
+    let topic0    = lp__AddTopic;
     let token     = "0x7d88a5c39059899a8d7e59eb5c5c9b78c0180652";
     let sender    = "0x0a98fb70939162725ae66e626fe4b52cff62c2e5";
     let receiver  = "0x0a98fb70939162725ae66e626fe4b52cff62c2e5";
     let amountStr = "776800000";
     let amountInt = 776800000;
+
+    await oracleRouterContract.toggleParser(ownerAddress);
 
     await oracleRouterContract.routeValue(uuid,
                                           chain,
@@ -126,10 +130,9 @@ describe("OracleRouter", function () {
 
     await balanceGTONContract.toggleAdder(balanceLPAddress);
 
-    await balanceLPContract.processBalances(token, 50);
+    await balanceLPContract.processBalances(50);
 
     let value = await balanceGTONContract.userBalance(receiver);
-    console.log(value);
 
   });
 });

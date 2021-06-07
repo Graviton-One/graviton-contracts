@@ -29,47 +29,82 @@ contract OracleRouter {
 
     IBalanceGTON public balanceGTON;
     IBalanceLP public balanceLP;
-    bytes32 public balanceGTONAddEventTopic;
-    bytes32 public balanceGTONSubtractEventTopic;
-    bytes32 public balanceLPAddEventTopic;
-    bytes32 public balanceLPSubtractEventTopic;
+    bytes32 public gtonAddTopic;
+    bytes32 public gtonSubTopic;
+    bytes32 public lp__AddTopic;
+    bytes32 public lp__SubTopic;
 
-    event BalanceGTONAddEvent(address token, address user, uint amount);
-    event BalanceGTONSubtractEvent(address token, address user, uint amount);
-    event BalanceLPAddEvent(address lptoken, address user, uint amount);
-    event BalanceLPSubtractEvent(address lptoken, address user, uint amount);
+    mapping (address=>bool) public allowedParsers;
+
+    event ToggleParser(address indexed owner,
+                       address indexed parser,
+                       bool indexed newBool);
+    event GTONAdd(bytes16 uuid,
+                  string chain,
+                  address emiter,
+                  address token,
+                  address sender,
+                  address receiver,
+                  uint256 amount);
+    event GTONSub(bytes16 uuid,
+                  string chain,
+                  address emiter,
+                  address token,
+                  address sender,
+                  address receiver,
+                  uint256 amount);
+    event LP__Add(bytes16 uuid,
+                  string chain,
+                  address emiter,
+                  address token,
+                  address sender,
+                  address receiver,
+                  uint256 amount);
+    event LP__Sub(bytes16 uuid,
+                  string chain,
+                  address emiter,
+                  address token,
+                  address sender,
+                  address receiver,
+                  uint256 amount);
 
     constructor(address _owner,
                 IBalanceGTON _balanceGTON,
                 IBalanceLP _balanceLP,
-                bytes32 _balanceGTONAddEventTopic,
-                bytes32 _balanceGTONSubtractEventTopic,
-                bytes32 _balanceLPAddEventTopic,
-                bytes32 _balanceLPSubtractEventTopic
+                bytes32 _gtonAddTopic,
+                bytes32 _gtonSubTopic,
+                bytes32 _lp__AddTopic,
+                bytes32 _lp__SubTopic
                 ) {
         owner = _owner;
         balanceGTON = _balanceGTON;
         balanceLP = _balanceLP;
-        balanceGTONAddEventTopic = _balanceGTONAddEventTopic;
-        balanceGTONSubtractEventTopic = _balanceGTONSubtractEventTopic;
-        balanceLPAddEventTopic = _balanceLPAddEventTopic;
-        balanceLPSubtractEventTopic = _balanceLPSubtractEventTopic;
+        gtonAddTopic = _gtonAddTopic;
+        gtonSubTopic = _gtonSubTopic;
+        lp__AddTopic = _lp__AddTopic;
+        lp__SubTopic = _lp__SubTopic;
     }
 
-    function setGTONAddEventTopic(bytes32 newTopic) public isOwner {
-        balanceGTONAddEventTopic = newTopic;
+    function setGTONAddTopic(bytes32 newTopic) public isOwner {
+        gtonAddTopic = newTopic;
     }
-    function setGTONSubtractEventTopic(bytes32 newTopic) public isOwner {
-        balanceGTONSubtractEventTopic = newTopic;
+    function setGTONSubTopic(bytes32 newTopic) public isOwner {
+        gtonSubTopic = newTopic;
     }
-    function setLPAddEventTopic(bytes32 newTopic) public isOwner {
-        balanceLPAddEventTopic = newTopic;
+    function setLP__AddTopic(bytes32 newTopic) public isOwner {
+        lp__AddTopic = newTopic;
     }
-    function setLPSubtractEventTopic(bytes32 newTopic) public isOwner {
-        balanceLPSubtractEventTopic = newTopic;
+    function setLP__SubTopic(bytes32 newTopic) public isOwner {
+        lp__SubTopic = newTopic;
     }
 
-    // TODO: add access control
+    // permit/forbid a parser to send data to router
+    function toggleParser(address parser) public isOwner {
+        allowedParsers[parser] = !allowedParsers[parser];
+        emit ToggleParser(msg.sender, parser, allowedParsers[parser]);
+    }
+
+    // add access control
     function routeValue(bytes16 uuid,
                         string memory chain,
                         address emiter,
@@ -78,21 +113,23 @@ contract OracleRouter {
                         address sender,
                         address receiver,
                         uint256 amount) external {
-        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(balanceGTONAddEventTopic))) {
+        require(allowedParsers[msg.sender],"not allowed to route value");
+
+        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(gtonAddTopic))) {
             balanceGTON.addValue(receiver, amount);
-            emit BalanceGTONAddEvent(token, receiver, amount);
+            emit GTONAdd(uuid, chain, emiter, token, sender, receiver, amount);
         }
-        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(balanceGTONSubtractEventTopic))) {
+        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(gtonSubTopic))) {
             balanceGTON.subtractValue(sender, amount);
-            emit BalanceGTONSubtractEvent(token, sender, amount);
+            emit GTONSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
-        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(balanceLPAddEventTopic))) {
+        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(lp__AddTopic))) {
             balanceLP.addTokens(token, receiver, amount);
-            emit BalanceLPAddEvent(token, receiver, amount);
+            emit LP__Add(uuid, chain, emiter, token, sender, receiver, amount);
         }
-        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(balanceLPSubtractEventTopic))) {
+        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(lp__SubTopic))) {
             balanceLP.subtractTokens(token, sender, amount);
-            emit BalanceLPSubtractEvent(token, sender, amount);
+            emit LP__Sub(uuid, chain, emiter, token, sender, receiver, amount);
         }
     }
 }

@@ -27,7 +27,7 @@ contract CrosschainLockGTON {
 
     bool public canLock = false;
 
-    event LockTokensEvent(address indexed gton, address indexed sender, address indexed receiver, uint amount);
+    event LockGTONEvent(address indexed gton, address indexed sender, address indexed receiver, uint amount);
 
     constructor(address _owner, IERC20 _gtonToken) {
         owner = _owner;
@@ -47,13 +47,13 @@ contract CrosschainLockGTON {
     }
 
     function migrateGton(address to, uint amount) public isOwner {
-        require(gtonToken.transfer(to, amount), "can't transfer");
+        gtonToken.transfer(to, amount);
     }
 
     function lockTokens(address receiver, uint amount) public {
         require(canLock, "can't lock");
-        require(gtonToken.transferFrom(msg.sender, address(this), amount), "can't transfer");
-        emit LockTokensEvent(address(gtonToken), msg.sender, receiver, amount);
+        gtonToken.transferFrom(msg.sender, address(this), amount);
+        emit LockGTONEvent(address(gtonToken), msg.sender, receiver, amount);
     }
 
 }

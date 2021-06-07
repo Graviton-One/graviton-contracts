@@ -5,7 +5,7 @@ chai.use(require("chai-as-promised")); // to check for failures
 const expect = chai.expect;
 import {v5 as uuidv5} from 'uuid';
 
-describe("Contracts for lp farming", function () {
+describe("Contracts for locking and farming LP", function () {
   let owner: Signer;
   let ownerAddress: string;
 
@@ -47,10 +47,10 @@ describe("Contracts for lp farming", function () {
   let oracleParserContract: Contract;
   let oracleParserAddress: string;
 
-  let balanceGTONAddEventTopic      = "0x0000000000000000000000000000000000000000000000000000000000000001";
-  let balanceGTONSubtractEventTopic = "0x0000000000000000000000000000000000000000000000000000000000000002";
-  let balanceLPAddEventTopic        = "0x0000000000000000000000000000000000000000000000000000000000000003";
-  let balanceLPSubtractEventTopic   = "0x0000000000000000000000000000000000000000000000000000000000000004";
+  let gtonAddTopic = "0x0000000000000000000000000000000000000000000000000000000000000001";
+  let gtonSubTopic = "0x0000000000000000000000000000000000000000000000000000000000000002";
+  let lp__AddTopic = "0x0000000000000000000000000000000000000000000000000000000000000003";
+  let lp__SubTopic = "0x0000000000000000000000000000000000000000000000000000000000000004";
 
   beforeEach(async function () {
     [owner, nebula, alice, bob, ...accounts] = await ethers.getSigners();
@@ -85,10 +85,10 @@ describe("Contracts for lp farming", function () {
     oracleRouterContract = await oracleRouterFactory.deploy(ownerAddress,
                                                             balanceGTONAddress,
                                                             balanceLPAddress,
-                                                            balanceGTONAddEventTopic,
-                                                            balanceGTONSubtractEventTopic,
-                                                            balanceLPAddEventTopic,
-                                                            balanceLPSubtractEventTopic
+                                                            gtonAddTopic,
+                                                            gtonSubTopic,
+                                                            lp__AddTopic,
+                                                            lp__SubTopic
                                                            );
     oracleRouterAddress = oracleRouterContract.address;
 
@@ -110,7 +110,7 @@ describe("Contracts for lp farming", function () {
 
     crosschainLockLPContract = crosschainLockLPContract.connect(alice);
     await expect(crosschainLockLPContract.lockTokens(lpAddress, bobAddress, amount))
-      .to.emit(crosschainLockLPContract, 'LockTokensEvent')
+      .to.emit(crosschainLockLPContract, 'LockLPEvent')
       .withArgs(lpAddress, aliceAddress, bobAddress, amount);
 
     // mock extractor data format
@@ -118,7 +118,7 @@ describe("Contracts for lp farming", function () {
     let chainStr   = "ETH";
     let chainBytes = "0x455448"
     let emiter     = crosschainLockLPAddress;
-    let topic0     = balanceLPAddEventTopic;
+    let topic0     = lp__AddTopic;
     let token32    = ethers.utils.hexZeroPad(lpAddress, 32);
     let sender32   = ethers.utils.hexZeroPad(aliceAddress, 32);
     let receiver32 = ethers.utils.hexZeroPad(bobAddress, 32);
@@ -135,6 +135,8 @@ describe("Contracts for lp farming", function () {
 
     balanceLPContract = balanceLPContract.connect(owner);
     await balanceLPContract.toggleAdder(oracleRouterAddress);
+    oracleRouterContract = oracleRouterContract.connect(owner);
+    await oracleRouterContract.toggleParser(oracleParserAddress)
 
     oracleParserContract = oracleParserContract.connect(nebula);
     await expect(oracleParserContract.attachValue(attachValue))
@@ -162,7 +164,7 @@ describe("Contracts for lp farming", function () {
     balanceGTONContract = balanceGTONContract.connect(owner);
     await balanceGTONContract.toggleAdder(balanceLPAddress);
 
-    await balanceLPContract.processBalances(lpAddress, 50);
+    await balanceLPContract.processBalances(50);
 
     let balanceGTONBN = await balanceGTONContract.userBalance(bobAddress);
     let balanceGTONInt = parseInt(balanceGTONBN.toString());
@@ -195,7 +197,7 @@ describe("Contracts for lp farming", function () {
 
     crosschainLockLPContract = crosschainLockLPContract.connect(bob);
     await expect(crosschainLockLPContract.unlockTokens(lpAddress, aliceAddress, unlockAmount))
-      .to.emit(crosschainLockLPContract, 'UnlockTokensEvent')
+      .to.emit(crosschainLockLPContract, 'UnlockLPEvent')
       .withArgs(lpAddress, bobAddress, aliceAddress, unlockAmount);
 
     // mock extractor data format
@@ -203,7 +205,7 @@ describe("Contracts for lp farming", function () {
     let chainStr   = "ETH";
     let chainBytes = "0x455448"
     let emiter     = crosschainLockLPAddress;
-    let topic0     = balanceLPSubtractEventTopic;
+    let topic0     = lp__SubTopic;
     let token32    = ethers.utils.hexZeroPad(lpAddress, 32);
     let sender32   = ethers.utils.hexZeroPad(bobAddress, 32);
     let receiver32 = ethers.utils.hexZeroPad(aliceAddress, 32);
@@ -220,6 +222,8 @@ describe("Contracts for lp farming", function () {
 
     balanceLPContract = balanceLPContract.connect(owner);
     await balanceLPContract.toggleSubtractor(oracleRouterAddress);
+    oracleRouterContract = oracleRouterContract.connect(owner);
+    await oracleRouterContract.toggleParser(oracleParserAddress);
 
     oracleParserContract = oracleParserContract.connect(nebula);
     await expect(oracleParserContract.attachValue(attachValue))

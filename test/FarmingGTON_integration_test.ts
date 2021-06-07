@@ -5,7 +5,7 @@ chai.use(require("chai-as-promised")); // to check for failures
 const expect = chai.expect;
 import {v5 as uuidv5} from 'uuid';
 
-describe("Contracts", function () {
+describe("Contracts for locking GTON", function () {
   let owner: Signer;
   let ownerAddress: string;
 
@@ -47,10 +47,10 @@ describe("Contracts", function () {
   let oracleParserContract: Contract;
   let oracleParserAddress: string;
 
-  let balanceGTONAddEventTopic      = "0x0000000000000000000000000000000000000000000000000000000000000001";
-  let balanceGTONSubtractEventTopic = "0x0000000000000000000000000000000000000000000000000000000000000002";
-  let balanceLPAddEventTopic        = "0x0000000000000000000000000000000000000000000000000000000000000003";
-  let balanceLPSubtractEventTopic   = "0x0000000000000000000000000000000000000000000000000000000000000004";
+  let gtonAddTopic = "0x0000000000000000000000000000000000000000000000000000000000000001";
+  let gtonSubTopic = "0x0000000000000000000000000000000000000000000000000000000000000002";
+  let lp__AddTopic = "0x0000000000000000000000000000000000000000000000000000000000000003";
+  let lp__SubTopic = "0x0000000000000000000000000000000000000000000000000000000000000004";
 
   beforeEach(async function () {
     [owner, nebula, alice, bob, ...accounts] = await ethers.getSigners();
@@ -70,7 +70,9 @@ describe("Contracts", function () {
     farmAddress = farmContract.address;
 
     let balanceLPFactory = await ethers.getContractFactory("BalanceLP");
-    balanceLPContract = await balanceLPFactory.deploy(ownerAddress, farmAddress);
+    balanceLPContract = await balanceLPFactory.deploy(ownerAddress,
+                                                      farmAddress,
+                                                      balanceGTONAddress);
     balanceLPAddress = balanceLPContract.address;
 
     let gtonFactory = await ethers.getContractFactory("ERC20PresetMinterPauser");
@@ -78,7 +80,8 @@ describe("Contracts", function () {
     gtonAddress = gtonContract.address;
 
     let crosschainLockGTONFactory = await ethers.getContractFactory("CrosschainLockGTON");
-    crosschainLockGTONContract = await crosschainLockGTONFactory.deploy(ownerAddress, gtonAddress);
+    crosschainLockGTONContract = await crosschainLockGTONFactory.deploy(ownerAddress,
+                                                                        gtonAddress);
     crosschainLockGTONAddress = crosschainLockGTONContract.address;
 
     let lpFactory = await ethers.getContractFactory("ERC20PresetMinterPauser");
@@ -86,17 +89,18 @@ describe("Contracts", function () {
     lpAddress = lpContract.address;
 
     let crosschainLockLPFactory = await ethers.getContractFactory("CrosschainLockLP");
-    crosschainLockLPContract = await crosschainLockLPFactory.deploy(ownerAddress, [lpAddress]);
+    crosschainLockLPContract = await crosschainLockLPFactory.deploy(ownerAddress,
+                                                                    [lpAddress]);
     crosschainLockLPAddress = crosschainLockLPContract.address;
 
     let oracleRouterFactory = await ethers.getContractFactory("OracleRouter");
     oracleRouterContract = await oracleRouterFactory.deploy(ownerAddress,
                                                             balanceGTONAddress,
                                                             balanceLPAddress,
-                                                            balanceGTONAddEventTopic,
-                                                            balanceGTONSubtractEventTopic,
-                                                            balanceLPAddEventTopic,
-                                                            balanceLPSubtractEventTopic
+                                                            gtonAddTopic,
+                                                            gtonSubTopic,
+                                                            lp__AddTopic,
+                                                            lp__SubTopic
                                                            );
     oracleRouterAddress = oracleRouterContract.address;
 
@@ -121,7 +125,7 @@ describe("Contracts", function () {
 
     crosschainLockGTONContract = crosschainLockGTONContract.connect(alice);
     await expect(crosschainLockGTONContract.lockTokens(bobAddress, amount))
-      .to.emit(crosschainLockGTONContract, 'LockTokensEvent')
+      .to.emit(crosschainLockGTONContract, 'LockGTONEvent')
       .withArgs(gtonAddress, aliceAddress, bobAddress, amount);
 
     // mock extractor data format
@@ -129,7 +133,7 @@ describe("Contracts", function () {
     let chainStr   = "ETH";
     let chainBytes = "0x455448"
     let emiter     = crosschainLockGTONAddress;
-    let topic0     = balanceGTONAddEventTopic;
+    let topic0     = gtonAddTopic;
     let token32    = ethers.utils.hexZeroPad(gtonAddress, 32);
     let sender32   = ethers.utils.hexZeroPad(aliceAddress, 32);
     let receiver32 = ethers.utils.hexZeroPad(bobAddress, 32);
@@ -146,6 +150,8 @@ describe("Contracts", function () {
 
     balanceGTONContract = balanceGTONContract.connect(owner);
     await balanceGTONContract.toggleAdder(oracleRouterAddress);
+    oracleRouterContract = oracleRouterContract.connect(owner);
+    await oracleRouterContract.toggleParser(oracleParserAddress);
 
     oracleParserContract = oracleParserContract.connect(nebula);
     await expect(oracleParserContract.attachValue(attachValue))

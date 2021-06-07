@@ -72,10 +72,8 @@ describe("BalanceLP", function () {
     await balanceLPContract.toggleAdder(ownerAddress);
     await balanceLPContract.addTokens(tokenAddress, ownerAddress, 1);
 
-    let count = await balanceLPContract.userCount();
-    console.log(count);
-    let user = await balanceLPContract.users(0);
-    console.log(user);
+    let count = await balanceLPContract.userCount(tokenAddress);
+    let user = await balanceLPContract.userIndex(tokenAddress, 0);
 
     await farmContract.startFarming();
     await network.provider.send("evm_increaseTime", [3600]);
@@ -83,7 +81,7 @@ describe("BalanceLP", function () {
 
     await balanceGTONContract.toggleAdder(balanceLPAddress);
 
-    await balanceLPContract.processBalances(tokenAddress, 50);
+    await balanceLPContract.processBalances(50);
 
     let value = await balanceGTONContract.userBalance(ownerAddress);
 

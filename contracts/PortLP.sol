@@ -62,11 +62,6 @@ contract PortLP {
         gtonEmissionFarm = newGtonAddress;
     }
 
-    function addUserBalance(address user) internal {
-        uint amount = currentPortion * impact[user] / totalLocked;
-        balanceKeeper.addValue(user, amount);
-    }
-
     function lockLP(uint amount) public {
         if (!addedUsers[msg.sender]) {
             users[userCount] = msg.sender;
@@ -85,6 +80,11 @@ contract PortLP {
         totalLocked -= amount;
     }
 
+    function addUserBalance(address user) internal {
+        uint amount = currentPortion * impact[user] / totalLocked;
+        balanceKeeper.addValue(user, amount);
+    }
+
     function processImpacts(uint step) public {
         uint toValue = finalValue + step;
         if (finalValue == 0) {
@@ -94,7 +94,7 @@ contract PortLP {
         if (toValue > userCount){
             toValue = userCount;
         }
-        for(uint i = fromValue; i <= toValue; i++) {
+        for(uint i = fromValue; i < toValue; i++) {
             address user = users[i];
             addUserBalance(user);
         }

@@ -52,13 +52,15 @@ describe("OracleParser", function () {
                                           ,ethers.utils.arrayify(chain)
                                           ,ethers.utils.arrayify(emiter)
                                           ,ethers.utils.arrayify(topic0)
-                                          ,ethers.utils.arrayify(topic1)
-                                          ,ethers.utils.arrayify(topic2)
-                                          ,ethers.utils.arrayify(topic3)
+                                          ,ethers.utils.arrayify(token32)
+                                          ,ethers.utils.arrayify(sender32)
+                                          ,ethers.utils.arrayify(receiver32)
                                           ,ethers.utils.arrayify(amount)]);
 
+    console.log(ethers.utils.hexlify(attachValue));
+
     oracleParserContract = oracleParserContract.connect(nebula);
-    await expect(oracleParserContract.attachValue(attachValue))
+    return expect(oracleParserContract.attachValue(attachValue))
       .to.emit(oracleParserContract, 'AttachValueEvent')
       .withArgs(nebulaAddress,
                 uuid,

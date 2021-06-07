@@ -53,7 +53,7 @@ describe("CrosschainLockLP", function () {
 
     crosschainLockLPContract = crosschainLockLPContract.connect(alice);
     await expect(crosschainLockLPContract.lockTokens(tokenAddress, bobAddress, lockAmount))
-      .to.emit(crosschainLockLPContract, 'LockTokensEvent')
+      .to.emit(crosschainLockLPContract, 'LockLPEvent')
       .withArgs(tokenAddress, aliceAddress, bobAddress, lockAmount);
   });
 
@@ -73,7 +73,7 @@ describe("CrosschainLockLP", function () {
 
     crosschainLockLPContract = crosschainLockLPContract.connect(bob);
     await expect(crosschainLockLPContract.unlockTokens(tokenAddress, aliceAddress, unlockAmount))
-      .to.emit(crosschainLockLPContract, 'UnlockTokensEvent')
+      .to.emit(crosschainLockLPContract, 'UnlockLPEvent')
       .withArgs(tokenAddress, bobAddress, aliceAddress, unlockAmount);
   });
 

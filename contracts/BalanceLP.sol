@@ -26,16 +26,17 @@ contract BalanceLP {
         _;
     }
 
-    IFarm farm;
-    IBalanceKeeper balanceKeeper;
+    IFarm public farm;
+    IBalanceKeeper public balanceKeeper;
 
-    mapping (address => bool) public knownLpTokens;
-    mapping (uint => address) public lpTokens;
+    uint public lpTokenCount;
+    mapping (address => bool) public lpTokenIsKnown;
+    mapping (uint => address) public lpTokenIndex;
+    mapping (address => uint) public supply;
 
     mapping (address => uint) public userCount;
     mapping (address => mapping (uint => address)) public userIndex;
     mapping (address => mapping (address => bool)) public userIsKnown;
-    mapping (address => uint) public supply;
 
     mapping (address => mapping (address => uint)) public userBalance;
 
@@ -88,6 +89,11 @@ contract BalanceLP {
                        address user,
                        uint amount) public {
         require(allowedAdders[msg.sender],"not allowed to add value");
+        if (!lpTokenIsKnown[lptoken]) {
+            lpTokenIndex[lpTokenCount] = lptoken;
+            lpTokenCount++;
+            lpTokenIsKnown[lptoken] = true;
+        }
         if (!userIsKnown[lptoken][user]) {
             userIndex[lptoken][userCount[lptoken]] = user;
             userCount[lptoken]++;
@@ -112,8 +118,8 @@ contract BalanceLP {
         balanceKeeper.addValue(user, amount);
     }
 
-    function processBalances(address lptoken, uint step) public {
-        require(supply[lptoken] > 0, "No supply for the token");
+    function processBalancesForToken(address lptoken, uint step) public {
+        if (supply[lptoken] <= 0) { return; } // skip if no supply for lptoken
 
         uint toValue = finalValue[lptoken] + step;
         if (finalValue[lptoken] == 0) {
@@ -123,7 +129,7 @@ contract BalanceLP {
         if (toValue > userCount[lptoken]){
             toValue = userCount[lptoken];
         }
-        for(uint i = fromValue; i <= toValue; i++) {
+        for(uint i = fromValue; i < toValue; i++) {
             address user = userIndex[lptoken][i];
             addUserBalance(lptoken, user);
         }
@@ -132,6 +138,16 @@ contract BalanceLP {
             previousPortion[lptoken] += currentPortion[lptoken];
         } else {
             finalValue[lptoken] = toValue;
+        }
+    }
+
+    function processBalances(uint step) public {
+        for(uint i = 0; i < lpTokenCount; i++) {
+            address lptoken = lpTokenIndex[i];
+            processBalancesForToken(lptoken, step);
+            while (finalValue[lptoken] != 0) {
+              processBalancesForToken(lptoken, step);
+            }
         }
     }
 }

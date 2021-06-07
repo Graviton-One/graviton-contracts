@@ -53,7 +53,7 @@ describe("CrosschainLockGTON", function () {
 
     crosschainLockGTONContract = crosschainLockGTONContract.connect(alice);
     await expect(crosschainLockGTONContract.lockTokens(bobAddress, lockAmount))
-      .to.emit(crosschainLockGTONContract, 'LockTokensEvent')
+      .to.emit(crosschainLockGTONContract, 'LockGTONEvent')
       .withArgs(tokenAddress, aliceAddress, bobAddress, 1);
   });
 
