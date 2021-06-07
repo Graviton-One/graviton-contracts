@@ -29,18 +29,19 @@ contract BalanceLP {
     IFarm farm;
     IBalanceKeeper balanceKeeper;
 
-    uint public userCount;
-    mapping (uint => address) public users;
-    mapping (address => bool) public knownUsers;
     mapping (address => bool) public knownLpTokens;
     mapping (uint => address) public lpTokens;
+
+    mapping (address => uint) public userCount;
+    mapping (address => mapping (uint => address)) public userIndex;
+    mapping (address => mapping (address => bool)) public userIsKnown;
+    mapping (address => uint) public supply;
+
     mapping (address => mapping (address => uint)) public userBalance;
-    uint public totalSupply;
-    mapping (address => uint) public lpSupply;
-    uint public currentPortion;
-    uint public totalProcessed;
-    uint public finalValue;
-    uint public totalLocked;
+
+    mapping (address => uint) public currentPortion;
+    mapping (address => uint) public previousPortion;
+    mapping (address => uint) public finalValue;
 
     // oracles for changing user lp balances
     mapping (address=>bool) public allowedAdders;
@@ -87,14 +88,13 @@ contract BalanceLP {
                        address user,
                        uint amount) public {
         require(allowedAdders[msg.sender],"not allowed to add value");
-        if (!knownUsers[user]) {
-            users[userCount] = user;
-            userCount++;
-            knownUsers[user] = true;
+        if (!userIsKnown[lptoken][user]) {
+            userIndex[lptoken][userCount[lptoken]] = user;
+            userCount[lptoken]++;
+            userIsKnown[lptoken][user] = true;
         }
-        userBalance[lptoken][user] = userBalance[lptoken][user] + amount;
-        lpSupply[lptoken] = lpSupply[lptoken] + amount;
-        totalSupply = totalSupply + amount;
+        userBalance[lptoken][user] += amount;
+        supply[lptoken] += amount;
         emit AddTokensEvent(msg.sender, lptoken, user, amount);
     }
 
@@ -102,35 +102,36 @@ contract BalanceLP {
                             address user,
                             uint amount) public {
         require(allowedSubtractors[msg.sender],"not allowed to subtract");
-        userBalance[lptoken][user] = userBalance[lptoken][user] - amount;
-        lpSupply[lptoken] = lpSupply[lptoken] - amount;
-        totalSupply = totalSupply - amount;
+        userBalance[lptoken][user] -= amount;
+        supply[lptoken] -= amount;
         emit SubtractTokensEvent(msg.sender, lptoken, user, amount);
     }
 
     function addUserBalance(address lptoken, address user) internal {
-        uint amount = currentPortion * userBalance[lptoken][user] / lpSupply[lptoken];
+        uint amount = currentPortion[lptoken] * userBalance[lptoken][user] / supply[lptoken];
         balanceKeeper.addValue(user, amount);
     }
 
-    function processBalances(address token, uint step) public {
-        uint toValue = finalValue + step;
-        if (finalValue == 0) {
-            currentPortion = farm.totalUnlocked() - totalProcessed;
+    function processBalances(address lptoken, uint step) public {
+        require(supply[lptoken] > 0, "No supply for the token");
+
+        uint toValue = finalValue[lptoken] + step;
+        if (finalValue[lptoken] == 0) {
+            currentPortion[lptoken] = farm.totalUnlocked() - previousPortion[lptoken];
         }
-        uint fromValue = finalValue;
-        if (toValue > userCount){
-            toValue = userCount;
+        uint fromValue = finalValue[lptoken];
+        if (toValue > userCount[lptoken]){
+            toValue = userCount[lptoken];
         }
         for(uint i = fromValue; i <= toValue; i++) {
-            address user = users[i];
-            addUserBalance(token, user);
+            address user = userIndex[lptoken][i];
+            addUserBalance(lptoken, user);
         }
-        if (toValue == userCount) {
-            finalValue = 0;
-            totalProcessed += currentPortion;
+        if (toValue == userCount[lptoken]) {
+            finalValue[lptoken] = 0;
+            previousPortion[lptoken] += currentPortion[lptoken];
         } else {
-            finalValue = toValue;
+            finalValue[lptoken] = toValue;
         }
     }
 }
