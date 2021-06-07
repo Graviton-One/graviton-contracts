@@ -5,7 +5,7 @@ chai.use(require("chai-as-promised")); // to check for failures
 const expect = chai.expect;
 import {v5 as uuidv5} from 'uuid';
 
-describe("Contracts", function () {
+describe("Contracts for lp farming", function () {
   let owner: Signer;
   let ownerAddress: string;
 
@@ -97,7 +97,7 @@ describe("Contracts", function () {
     oracleParserAddress = oracleParserContract.address;
   });
 
-  it("should lock add lp", async function () {
+  it("should lock and add lp", async function () {
 
     let amount = 100;
     let amountBN = ethers.BigNumber.from(amount.toString());
@@ -171,6 +171,73 @@ describe("Contracts", function () {
   });
 
   it("should unlock and subtract lp", async function () {
+
+    let lockAmount = 100;
+    let lockAmountBN = ethers.BigNumber.from(lockAmount.toString());
+    let unlockAmount = 50;
+    let unlockAmountBN = ethers.BigNumber.from(unlockAmount.toString());
+
+    lpContract = lpContract.connect(owner);
+    await lpContract.mint(aliceAddress, lockAmount);
+
+    lpContract = lpContract.connect(alice);
+    await lpContract.approve(crosschainLockLPAddress, lockAmount);
+
+    crosschainLockLPContract = crosschainLockLPContract.connect(alice);
+    await crosschainLockLPContract.lockTokens(lpAddress, bobAddress, lockAmount);
+
+    // skip extractor, mock result of adding lockAmount to balanceLP
+    await balanceLPContract.toggleAdder(ownerAddress);
+    await balanceLPContract.addTokens(lpAddress, bobAddress, lockAmount);
+
+    let value = await balanceLPContract.userBalance(lpAddress, bobAddress);
+    await expect(value).to.equal(lockAmount);
+
+    crosschainLockLPContract = crosschainLockLPContract.connect(bob);
+    await expect(crosschainLockLPContract.unlockTokens(lpAddress, aliceAddress, unlockAmount))
+      .to.emit(crosschainLockLPContract, 'UnlockTokensEvent')
+      .withArgs(lpAddress, bobAddress, aliceAddress, unlockAmount);
+
+    // mock extractor data format
+    let uuid       = "0x5ae47235f0844e55b26703b7cf385294";
+    let chainStr   = "ETH";
+    let chainBytes = "0x455448"
+    let emiter     = crosschainLockLPAddress;
+    let topic0     = balanceLPSubtractEventTopic;
+    let token32    = ethers.utils.hexZeroPad(lpAddress, 32);
+    let sender32   = ethers.utils.hexZeroPad(bobAddress, 32);
+    let receiver32 = ethers.utils.hexZeroPad(aliceAddress, 32);
+    let amount32   = ethers.utils.hexZeroPad(unlockAmountBN.toHexString(), 32);
+
+    let attachValue = ethers.utils.concat([ethers.utils.arrayify(uuid)
+                                          ,ethers.utils.arrayify(chainBytes)
+                                          ,ethers.utils.arrayify(emiter)
+                                          ,ethers.utils.arrayify(topic0)
+                                          ,ethers.utils.arrayify(token32)
+                                          ,ethers.utils.arrayify(sender32)
+                                          ,ethers.utils.arrayify(receiver32)
+                                          ,ethers.utils.arrayify(amount32)]);
+
+    balanceLPContract = balanceLPContract.connect(owner);
+    await balanceLPContract.toggleSubtractor(oracleRouterAddress);
+
+    oracleParserContract = oracleParserContract.connect(nebula);
+    await expect(oracleParserContract.attachValue(attachValue))
+      .to.emit(oracleParserContract, 'AttachValueEvent')
+      .withArgs(nebulaAddress,
+                uuid,
+                chainStr,
+                emiter,
+                topic0,
+                lpAddress,
+                bobAddress,
+                aliceAddress,
+                unlockAmountBN.toString());
+
+    let balanceLPBN = await balanceLPContract.userBalance(lpAddress, bobAddress);
+    let balanceLPInt = parseInt(balanceLPBN.toString());
+
+    await expect(balanceLPInt).to.equal(lockAmount - unlockAmount);
   });
 
 });
