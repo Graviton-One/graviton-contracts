@@ -129,6 +129,7 @@ describe("Contracts for locking GTON", function () {
       .withArgs(gtonAddress, aliceAddress, bobAddress, amount);
 
     // mock extractor data format
+    let topics     = "0x04"
     let uuid       = "0x5ae47235f0844e55b26703b7cf385294";
     let chainStr   = "ETH";
     let chainBytes = "0x455448"
@@ -139,7 +140,8 @@ describe("Contracts for locking GTON", function () {
     let receiver32 = ethers.utils.hexZeroPad(bobAddress, 32);
     let amount32   = ethers.utils.hexZeroPad(amountBN.toHexString(), 32);
 
-    let attachValue = ethers.utils.concat([ethers.utils.arrayify(uuid)
+    let attachValue = ethers.utils.concat([ethers.utils.arrayify(topics)
+                                          ,ethers.utils.arrayify(uuid)
                                           ,ethers.utils.arrayify(chainBytes)
                                           ,ethers.utils.arrayify(emiter)
                                           ,ethers.utils.arrayify(topic0)
