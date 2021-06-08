@@ -33,6 +33,8 @@ contract OracleParser {
 
     IOracleRouter public oracleRouter;
 
+    mapping (bytes17 => bool) public uuidIsProcessed;
+
     event AttachValueEvent(address nebula,
                            bytes16 uuid,
                            string chain,
@@ -90,6 +92,9 @@ contract OracleParser {
         if (impactData.length != 200) { return; }  // ignore data with unexpected length
 
         bytes16 uuid = bytesToBytes16(impactData, 0);                      // [  0: 16]
+        // TODO: check if uuid already tested
+        if (uuidIsProcessed[uuid]) { return; } // parse data only once
+        uuidIsProcessed[uuid] = true;
         string memory chain = string(abi.encodePacked(impactData[16:19])); // [ 16: 19]
         address emiter = deserializeAddress(impactData, 19);               // [ 19: 39]
         bytes1 topics = bytes1(impactData[39]);                            // [ 39: 40]
