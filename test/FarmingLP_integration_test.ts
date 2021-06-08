@@ -114,21 +114,21 @@ describe("Contracts for locking and farming LP", function () {
       .withArgs(lpAddress, aliceAddress, bobAddress, amount);
 
     // mock extractor data format
-    let topics     = "0x04"
     let uuid       = "0x5ae47235f0844e55b26703b7cf385294";
     let chainStr   = "ETH";
     let chainBytes = "0x455448"
     let emiter     = crosschainLockLPAddress;
+    let topics     = "0x04"
     let topic0     = lp__AddTopic;
     let token32    = ethers.utils.hexZeroPad(lpAddress, 32);
     let sender32   = ethers.utils.hexZeroPad(aliceAddress, 32);
     let receiver32 = ethers.utils.hexZeroPad(bobAddress, 32);
     let amount32   = ethers.utils.hexZeroPad(amountBN.toHexString(), 32);
 
-    let attachValue = ethers.utils.concat([ethers.utils.arrayify(topics)
-                                          ,ethers.utils.arrayify(uuid)
+    let attachValue = ethers.utils.concat([ethers.utils.arrayify(uuid)
                                           ,ethers.utils.arrayify(chainBytes)
                                           ,ethers.utils.arrayify(emiter)
+                                          ,ethers.utils.arrayify(topics)
                                           ,ethers.utils.arrayify(topic0)
                                           ,ethers.utils.arrayify(token32)
                                           ,ethers.utils.arrayify(sender32)
@@ -203,21 +203,21 @@ describe("Contracts for locking and farming LP", function () {
       .withArgs(lpAddress, bobAddress, aliceAddress, unlockAmount);
 
     // mock extractor data format
-    let topics     = "0x04"
     let uuid       = "0x5ae47235f0844e55b26703b7cf385294";
     let chainStr   = "ETH";
     let chainBytes = "0x455448"
     let emiter     = crosschainLockLPAddress;
+    let topics     = "0x04"
     let topic0     = lp__SubTopic;
     let token32    = ethers.utils.hexZeroPad(lpAddress, 32);
     let sender32   = ethers.utils.hexZeroPad(bobAddress, 32);
     let receiver32 = ethers.utils.hexZeroPad(aliceAddress, 32);
     let amount32   = ethers.utils.hexZeroPad(unlockAmountBN.toHexString(), 32);
 
-    let attachValue = ethers.utils.concat([ethers.utils.arrayify(topics)
-                                          ,ethers.utils.arrayify(uuid)
+    let attachValue = ethers.utils.concat([ethers.utils.arrayify(uuid)
                                           ,ethers.utils.arrayify(chainBytes)
                                           ,ethers.utils.arrayify(emiter)
+                                          ,ethers.utils.arrayify(topics)
                                           ,ethers.utils.arrayify(topic0)
                                           ,ethers.utils.arrayify(token32)
                                           ,ethers.utils.arrayify(sender32)

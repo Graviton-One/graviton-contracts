@@ -87,16 +87,16 @@ contract OracleParser {
 
     function attachValue(bytes calldata impactData) external isNebula {
 
-        if (impactData.length != 200) { return; }  // ignore data with unexpected number of topics
+        if (impactData.length != 200) { return; }  // ignore data with unexpected length
 
-        bytes1 topics = bytes1(impactData[0]);                             // [  0:  1]
+        bytes16 uuid = bytesToBytes16(impactData, 0);                      // [  0: 16]
+        string memory chain = string(abi.encodePacked(impactData[16:19])); // [ 16: 19]
+        address emiter = deserializeAddress(impactData, 19);               // [ 19: 39]
+        bytes1 topics = bytes1(impactData[39]);                            // [ 39: 40]
         if (keccak256(abi.encodePacked(topics)) != // ignore data with unexpected number of topics
             keccak256(abi.encodePacked(bytes1(abi.encodePacked(uint(4))[31])))) {
             return;
         }
-        bytes16 uuid = bytesToBytes16(impactData, 1);                      // [  1: 17]
-        string memory chain = string(abi.encodePacked(impactData[17:20])); // [ 17: 20]
-        address emiter = deserializeAddress(impactData, 20);               // [ 20: 40]
         bytes32 topic0 = bytesToBytes32(impactData, 40);                   // [ 40: 72]
         address token = deserializeAddress(impactData[72:], 12);           // [ 72:104][12:32]
         address sender = deserializeAddress(impactData[104:], 12);         // [104:136][12:32]
