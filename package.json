@@ -15,10 +15,13 @@
   },
   "dependencies": {
     "@nomiclabs/hardhat-etherscan": "^2.1.2",
+    "@typechain/ethers-v5": "^7.0.1",
+    "@typechain/hardhat": "^2.0.2",
     "@types/chai-as-promised": "^7.1.4",
     "chai-as-promised": "^7.1.1",
     "dotenv": "^9.0.2",
-    "prettier-plugin-solidity": "*"
+    "prettier-plugin-solidity": "*",
+    "typechain": "^5.0.0"
   },
   "scripts": {
     "compile": "hardhat compile",

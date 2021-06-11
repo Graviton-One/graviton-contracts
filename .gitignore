@@ -6,3 +6,4 @@ cache
 artifacts
 /.env
 *coverage*
+typechain/
