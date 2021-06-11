@@ -1,24 +1,23 @@
-# test
+<p align="center">
+  <img src="https://graviton.one/_nuxt/img/nav-logo.2809ecd.svg" width="300" alt="Graviton">
+  <h3 align="center">Graviton</h3>
+  <p align="center">Smart contracts for the Graviton project</p>
+</p>
 
-``` shell
-npm install
-npx hardhat test
+## Features ⚡
+
+
+- `BalanceKeeper.sol` tracks governance balances of gton holders
+- `ImpactAbstract.sol` and `ImpactBirds.sol` track deposits of early birds
+- `Farm.sol` calculates early birds unlocking schedule 
+- `BalanceEB.sol` unlocks gton to governance balances of early birds according to unlocking schedule
+- `FarmLinear.sol` calculates linear staking schedule
+- `BalanceStaking.sol` unlocks gton to governance balances according to staking schedule
+- `Voter.sol` holds voting matches using governance balance from `BalanceKeeper.sol`.
+
+## Usage
+
+```bash
+yarn
+yarn test
 ```
-
-# contracts
-- impact early birds
-  - ImpactAbstract.sol
-  - ImpactBirds.sol
-- emission
-  - Farm.sol
-- balance
-  - BalanceKeeper.sol
-  - BalanceEB.sol
-  - BalanceStaking.sol
-  - PortGTON.sol
-  - PortLP.sol
-- voting
-  - Voter.sol
-- tokens
-  - ERC20PresetFixedSupply.sol
-  - ERC20PresetMinterPauser.sol
