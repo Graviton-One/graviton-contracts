@@ -36,8 +36,6 @@ contract BalanceStaking {
     uint public currentPortion;
     uint public totalBalance;
 
-    mapping (address => uint) public sendBalance;
-
     constructor(address _owner, IFarm _farmStaking, IBalanceKeeper _balanceKeeper) {
         owner = _owner;
         stakingFarmContract = _farmStaking;
