@@ -68,6 +68,7 @@ contract BalanceStaking {
 
         if (toValue == totalUsers) {
             finalValue = 0;
+            prevPortion = currentPortion;
         } else {
             finalValue = toValue;
         }
