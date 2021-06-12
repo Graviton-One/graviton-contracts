@@ -35,6 +35,7 @@ contract BalanceStaking {
     uint public prevPortion;
     uint public currentPortion;
     uint public totalBalance;
+    uint public totalUnlocked;
 
     constructor(address _owner, IFarm _farmStaking, IBalanceKeeper _balanceKeeper) {
         owner = _owner;
@@ -51,7 +52,8 @@ contract BalanceStaking {
     function processBalances(uint step) public {
         if (finalValue == 0) {
             totalUsers = balanceKeeper.totalUsers();
-            currentPortion = stakingFarmContract.totalUnlocked() - prevPortion;
+            totalUnlocked = stakingFarmContract.totalUnlocked()
+            currentPortion = totalUnlocked - prevPortion;
             totalBalance = balanceKeeper.totalBalance();
         }
         uint toValue = finalValue + step;
@@ -68,7 +70,7 @@ contract BalanceStaking {
 
         if (toValue == totalUsers) {
             finalValue = 0;
-            prevPortion = currentPortion;
+            prevPortion = totalUnlocked;
         } else {
             finalValue = toValue;
         }
