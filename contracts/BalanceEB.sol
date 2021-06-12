@@ -44,6 +44,8 @@ contract BalanceEB {
 
     mapping (address => uint) public sendBalance;
 
+    event SetOwner(address ownerOld, address ownerNew);
+
     constructor(address _owner, IFarm _ebFarmContract, Impact _ebImpactContract, IBalanceKeeper _balanceKeeper) {
         owner = _owner;
         ebFarmContract = _ebFarmContract;

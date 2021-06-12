@@ -44,8 +44,9 @@ contract PortGTON {
     mapping (address => uint) public limitWithdrawn;
     bool public limitActivated = false;
 
-    event LockTokensEvent(address indexed sender, uint amount);
-    event UnlockTokensEvent(address indexed sender, address indexed receiver, uint amount);
+    event LockTokens(address indexed sender, uint amount);
+    event UnlockTokens(address indexed sender, address indexed receiver, uint amount);
+    event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner, IERC20 gton, IBalanceKeeper balance, IVoter[] memory votes) {
         owner = _owner;
@@ -54,8 +55,10 @@ contract PortGTON {
         voteContracts = votes;
     }
 
-    function transferOwnership(address newOwner) public isOwner {
-        owner = newOwner;
+    function setOwner(address _owner) public isOwner {
+        address ownerOld = owner;
+        owner = _owner;
+        emit SetOwner(ownerOld, _owner);
     }
 
     function setVoteContracts(IVoter[] calldata newVotes) public isOwner {
@@ -90,7 +93,7 @@ contract PortGTON {
         require(canLock, "can't lock");
         require(gtonToken.transferFrom(msg.sender, address(this), amount), "can't transfer");
         balanceContract.addValue(msg.sender, amount);
-        emit LockTokensEvent(msg.sender, amount);
+        emit LockTokens(msg.sender, amount);
     }
 
     function unlockTokens(uint amount, address to) public {
@@ -115,7 +118,7 @@ contract PortGTON {
         // transfer, fail if there's not enough gton on port, then update
         require(gtonToken.transfer(to, amount), "can't transfer tokens, probably not enough balance on port");
         balanceContract.subtractValue(msg.sender, amount);
-        emit UnlockTokensEvent(msg.sender, to, amount);
+        emit UnlockTokens(msg.sender, to, amount);
         for (uint i = 0; i < voteContracts.length; i++) {
             voteContracts[i].checkVoteBalances(msg.sender, balanceContract.userBalance(msg.sender));
         }

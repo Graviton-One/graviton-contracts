@@ -46,6 +46,7 @@ contract PortLP {
     mapping (uint => address) public users;
     mapping (address => bool) public addedUsers;
     uint public userCount;
+    event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner, IFarm _gtonEmissionFarm, IBalanceKeeper _balanceKeeper, IERC20 _lpToken) {
         owner = _owner;
@@ -54,8 +55,8 @@ contract PortLP {
         gtonEmissionFarm = _gtonEmissionFarm;
     }
 
-    function transferOwnership(address newOwnerAddress) public isOwner {
-        owner = newOwnerAddress;
+    function setOwner(address _owner) public isOwner {
+        owner = _owner;
     }
 
     function setNewGtonFarmAddr(IFarm newGtonAddress) public isOwner {

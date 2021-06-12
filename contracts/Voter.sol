@@ -38,11 +38,12 @@ contract Voter {
 
     mapping(address => bool) public allowedCheckers;
 
-    event CastVotesEvent(address indexed voter, uint indexed roundId);
-    event StartRoundEvent(address indexed owner, uint roundCount, string name, string[] options);
-    event toggleVoteBalanceCheckerEvent(address indexed owner, address indexed checker, bool indexed newBool);
-    event CheckVoteBalancesEvent(address indexed checker, address indexed user, uint newBalance);
-    event FinalizeRoundEvent(address indexed owner, uint roundId);
+    event CastVotes(address indexed voter, uint indexed roundId);
+    event StartRound(address indexed owner, uint roundCount, string name, string[] options);
+    event ToggleVoteBalanceChecker(address indexed owner, address indexed checker, bool indexed newBool);
+    event CheckVoteBalances(address indexed checker, address indexed user, uint newBalance);
+    event FinalizeRound(address indexed owner, uint roundId);
+    event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner, address _balanceKeeper) {
         owner = _owner;
@@ -108,8 +109,10 @@ contract Voter {
         return _userCountForOption[roundId][optionId];
     }
 
-    function transferOwnership(address newOwner) public isOwner {
-        owner = newOwner;
+    function setOwner(address _owner) public isOwner {
+        address ownerOld = owner;
+        owner = _owner;
+        emit SetOwner(ownerOld, _owner);
     }
 
     function startRound(string memory name, string[] memory options) public isOwner {
@@ -118,7 +121,7 @@ contract Voter {
         _votesForOption[roundCount] = new uint[](options.length);
         activeRounds.push(roundCount);
         roundCount++;
-        emit StartRoundEvent(msg.sender, roundCount, name, options);
+        emit StartRound(msg.sender, roundCount, name, options);
     }
 
     function isActiveRound(uint roundId) public view returns (bool) {
@@ -182,13 +185,13 @@ contract Voter {
             _userCountInRound[roundId]--;
         }
 
-        emit CastVotesEvent(msg.sender, roundId);
+        emit CastVotes(msg.sender, roundId);
     }
 
     // allow/forbid oracle to check votes
     function toggleVoteBalanceChecker(address checker) public isOwner {
         allowedCheckers[checker] = !allowedCheckers[checker];
-        emit toggleVoteBalanceCheckerEvent(msg.sender, checker, allowedCheckers[checker]);
+        emit ToggleVoteBalanceChecker(msg.sender, checker, allowedCheckers[checker]);
     }
 
     // increase votes proportionally to the increase in balance
@@ -216,7 +219,7 @@ contract Voter {
         for(uint i = 0; i < activeRounds.length; i++) {
             checkVoteBalance(activeRounds[i],user,newBalance);
         }
-        emit CheckVoteBalancesEvent(msg.sender, user, newBalance);
+        emit CheckVoteBalances(msg.sender, user, newBalance);
     }
 
     // move roundId from activeRounds to pastRounds
@@ -232,6 +235,6 @@ contract Voter {
         }
         activeRounds = filteredRounds;
         pastRounds.push(roundId);
-        emit FinalizeRoundEvent(msg.sender, roundId);
+        emit FinalizeRound(msg.sender, roundId);
     }
 }

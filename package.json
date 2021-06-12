@@ -1,4 +1,7 @@
 {
+  "name": "@graviton-one/v1-core",
+  "description": "Core smart contracts of Graviton",
+  "license": "",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
@@ -18,9 +21,9 @@
     "@typechain/ethers-v5": "^7.0.1",
     "@typechain/hardhat": "^2.0.2",
     "@types/chai-as-promised": "^7.1.4",
-    "@types/uuid": "^8.3.0",
     "chai-as-promised": "^7.1.1",
     "dotenv": "^9.0.2",
+    "mocha-chai-jest-snapshot": "^1.1.2",
     "prettier-plugin-solidity": "*",
     "typechain": "^5.0.0"
   },

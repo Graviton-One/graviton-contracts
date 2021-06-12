@@ -46,20 +46,21 @@ contract BalanceLP {
     mapping (address=>bool) public allowedAdders;
     mapping (address=>bool) public allowedSubtractors;
 
-    event ToggleAdderEvent(address indexed owner,
+    event ToggleAdder(address indexed owner,
                            address indexed adder,
                            bool indexed newBool);
-    event ToggleSubtractorEvent(address indexed owner,
+    event ToggleSubtractor(address indexed owner,
                                 address indexed subtractor,
                                 bool indexed newBool);
-    event AddTokensEvent(address indexed adder,
+    event AddTokens(address indexed adder,
                          address indexed lptoken,
                          address indexed user,
                          uint amount);
-    event SubtractTokensEvent(address indexed subtractor,
+    event SubtractTokens(address indexed subtractor,
                               address indexed lptoken,
                               address indexed user,
                               uint amount);
+    event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner, IFarm _farm, IBalanceKeeper _balanceKeeper) {
         owner = _owner;
@@ -67,8 +68,8 @@ contract BalanceLP {
         balanceKeeper = _balanceKeeper;
     }
 
-    function transferOwnership(address newOwner) public isOwner {
-        owner = newOwner;
+    function setOwner(address _owner) public isOwner {
+        owner = _owner;
     }
 
     function lpTokenCount() public view returns (uint) {
@@ -82,13 +83,13 @@ contract BalanceLP {
     // permit/forbid an oracle to add user balances
     function toggleAdder(address adder) public isOwner {
         allowedAdders[adder] = !allowedAdders[adder];
-        emit ToggleAdderEvent(msg.sender, adder, allowedAdders[adder]);
+        emit ToggleAdder(msg.sender, adder, allowedAdders[adder]);
     }
 
     // permit/forbid an oracle to subtract user balances
     function toggleSubtractor(address subtractor) public isOwner {
         allowedSubtractors[subtractor] = !allowedSubtractors[subtractor];
-        emit ToggleSubtractorEvent(msg.sender, subtractor, allowedSubtractors[subtractor]);
+        emit ToggleSubtractor(msg.sender, subtractor, allowedSubtractors[subtractor]);
     }
 
     function addTokens(address lptoken,
@@ -105,7 +106,7 @@ contract BalanceLP {
         }
         userBalance[lptoken][user] += amount;
         supply[lptoken] += amount;
-        emit AddTokensEvent(msg.sender, lptoken, user, amount);
+        emit AddTokens(msg.sender, lptoken, user, amount);
     }
 
     function subtractTokens(address lptoken,
@@ -114,7 +115,7 @@ contract BalanceLP {
         require(allowedSubtractors[msg.sender],"not allowed to subtract");
         userBalance[lptoken][user] -= amount;
         supply[lptoken] -= amount;
-        emit SubtractTokensEvent(msg.sender, lptoken, user, amount);
+        emit SubtractTokens(msg.sender, lptoken, user, amount);
     }
 
     function addUserBalance(address lptoken, address user) internal {

@@ -1,0 +1,141 @@
+import { ethers, waffle } from 'hardhat'
+import { MockTimeFarmLinear } from '../typechain/MockTimeFarmLinear'
+import { expect } from './shared/expect'
+import { expandTo18Decimals, STAKING_AMOUNT, STAKING_PERIOD } from './shared/utilities'
+import { TEST_FARM_START_TIME } from './shared/fixtures'
+
+const createFixtureLoader = waffle.createFixtureLoader
+
+describe('FarmLinear', () => {
+  const [wallet, other] = waffle.provider.getWallets()
+
+  let farm: MockTimeFarmLinear
+
+  const fixture = async () => {
+    const farmFactory = await ethers.getContractFactory('MockTimeFarmLinear')
+    return (await farmFactory.deploy(wallet.address, STAKING_AMOUNT, STAKING_PERIOD)) as MockTimeFarmLinear
+  }
+
+  let loadFixture: ReturnType<typeof createFixtureLoader>
+
+  before('create fixture loader', async () => {
+    loadFixture = createFixtureLoader([wallet, other])
+  })
+
+  beforeEach('deploy farm', async () => {
+    farm = await loadFixture(fixture)
+  })
+
+  it('constructor initializes variables', async () => {
+    expect(await farm.owner()).to.eq(wallet.address)
+    expect(await farm.amount()).to.eq(STAKING_AMOUNT)
+    expect(await farm.period()).to.eq(STAKING_PERIOD)
+  })
+
+  it('starting state after deployment', async () => {
+    expect(await farm.totalUnlocked()).to.eq(0)
+    expect(await farm.lastClaimedTimestamp()).to.eq(0)
+    expect(await farm.startTimestampOffset()).to.eq(0)
+    expect(await farm.farmingStarted()).to.eq(false)
+  })
+
+  describe('#setOwner', () => {
+    it('fails if caller is not owner', async () => {
+      await expect(farm.connect(other).setOwner(wallet.address)).to.be.reverted
+    })
+
+    it('emits a SetOwner event', async () => {
+      expect(await farm.setOwner(other.address))
+        .to.emit(farm, 'SetOwner')
+        .withArgs(wallet.address, other.address)
+    })
+
+    it('updates owner', async () => {
+      await farm.setOwner(other.address)
+      expect(await farm.owner()).to.eq(other.address)
+    })
+
+    it('cannot be called by original owner', async () => {
+      await farm.setOwner(other.address)
+      await expect(farm.setOwner(wallet.address)).to.be.reverted
+    })
+  })
+
+  describe('#setDeprecated', () => {
+    it('fails if caller is not owner', async () => {
+      await expect(farm.connect(other).setDeprecated()).to.be.reverted
+    })
+
+    it('updates deprecated', async () => {
+      await farm.setDeprecated()
+      expect(await farm.deprecated()).to.eq(true)
+    })
+  })
+
+  describe('#startFarming', () => {
+    it('fails if caller is not owner', async () => {
+      await expect(farm.connect(other).startFarming()).to.be.reverted
+    })
+
+    it('sets starting timestamp', async () => {
+      await farm.startFarming()
+      farm.advanceTime(1)
+      await expect(await farm.startTimestampOffset()).to.be.eq(TEST_FARM_START_TIME)
+    })
+
+    it('fails last claimed timestamp', async () => {
+      await farm.startFarming()
+      farm.advanceTime(1)
+      await expect(await farm.lastClaimedTimestamp()).to.be.eq(TEST_FARM_START_TIME)
+    })
+  })
+
+  describe('#unlockAsset', () => {
+
+    it('cannot be called before initialization', async () => {
+      await expect(farm.unlockAsset()).to.be.reverted
+    })
+
+    it('cannot be called after the contract is deprecated', async () => {
+      await farm.startFarming()
+      farm.advanceTime(1)
+      await farm.setDeprecated()
+      await expect(farm.unlockAsset()).to.be.reverted
+    })
+
+    it('unlocks after a year', async () => {
+      await farm.startFarming()
+      farm.advanceTime(31536000)
+      await farm.unlockAsset()
+      await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(365000))
+    })
+
+    it('unlocks after six months', async () => {
+      await farm.startFarming()
+      farm.advanceTime(14515200)
+      await farm.unlockAsset()
+      await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(168000))
+    })
+
+    it('unlocks after four weeks', async () => {
+      await farm.startFarming()
+      farm.advanceTime(2419200)
+      await farm.unlockAsset()
+      await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(28000))
+    })
+
+    it('unlocks after two weeks', async () => {
+      await farm.startFarming()
+      farm.advanceTime(1209600)
+      await farm.unlockAsset()
+      await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(14000))
+    })
+
+    it('unlocks after one week', async () => {
+      await farm.startFarming()
+      farm.advanceTime(604800)
+      await farm.unlockAsset()
+      await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(7000))
+    })
+  })
+})

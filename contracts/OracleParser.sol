@@ -35,15 +35,16 @@ contract OracleParser {
 
     mapping (bytes17 => bool) public uuidIsProcessed;
 
-    event AttachValueEvent(address nebula,
-                           bytes16 uuid,
-                           string chain,
-                           address emiter,
-                           bytes32 topic0,
-                           address token,
-                           address sender,
-                           address receiver,
-                           uint256 amount);
+    event AttachValue(address nebula,
+                      bytes16 uuid,
+                      string chain,
+                      address emiter,
+                      bytes32 topic0,
+                      address token,
+                      address sender,
+                      address receiver,
+                      uint256 amount);
+    event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner, IOracleRouter _router, address _nebula) {
         owner = _owner;
@@ -117,7 +118,7 @@ contract OracleParser {
                                 receiver,
                                 amount);
 
-        emit AttachValueEvent(msg.sender,
+        emit AttachValue(msg.sender,
                               uuid,
                               chain,
                               emiter,

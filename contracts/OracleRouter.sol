@@ -67,6 +67,7 @@ contract OracleRouter {
                   address sender,
                   address receiver,
                   uint256 amount);
+    event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner,
                 IBalanceGTON _balanceGTON,

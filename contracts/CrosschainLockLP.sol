@@ -28,14 +28,15 @@ contract CrosschainLockLP {
     uint public totalSupply;
     mapping (address => uint) public lpSupply;
 
-    event LockLPEvent(address indexed lptoken,
-                      address indexed sender,
-                      address indexed receiver,
-                      uint amount);
-    event UnlockLPEvent(address indexed lptoken,
-                        address indexed sender,
-                        address indexed receiver,
-                        uint amount);
+    event LockLP(address indexed lptoken,
+                 address indexed sender,
+                 address indexed receiver,
+                 uint amount);
+    event UnlockLP(address indexed lptoken,
+                   address indexed sender,
+                   address indexed receiver,
+                   uint amount);
+    event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner, address[] memory _allowedTokens) {
         for (uint i = 0; i < _allowedTokens.length; i++) {
@@ -44,8 +45,8 @@ contract CrosschainLockLP {
         owner = _owner;
     }
 
-    function transferOwnership(address newOwner) public isOwner {
-        owner = newOwner;
+    function setOwner(address _owner) public isOwner {
+        owner = _owner;
     }
 
     function toggleToken(address tokenAddress) public isOwner {
@@ -58,7 +59,7 @@ contract CrosschainLockLP {
         totalSupply += amount;
         lpSupply[tokenAddress] += amount;
         IERC20(tokenAddress).transferFrom(msg.sender, address(this), amount);
-        emit LockLPEvent(tokenAddress, msg.sender, receiver, amount);
+        emit LockLP(tokenAddress, msg.sender, receiver, amount);
     }
 
     function unlockTokens(address tokenAddress, address receiver, uint amount) public {
@@ -68,7 +69,7 @@ contract CrosschainLockLP {
         totalSupply -= amount;
         lpSupply[tokenAddress] -= amount;
         IERC20(tokenAddress).transfer(receiver, amount);
-        emit UnlockLPEvent(tokenAddress, msg.sender, receiver, amount);
+        emit UnlockLP(tokenAddress, msg.sender, receiver, amount);
     }
 
 }

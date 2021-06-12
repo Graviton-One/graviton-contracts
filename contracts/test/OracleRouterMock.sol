@@ -1,9 +1,6 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.0;
 
-/// @title OracleRouter
-/// @author Artemij Artamonov - <array.clean@gmail.com>
-/// @author Anton Davydov - <fetsorn@gmail.com>
 contract OracleRouterMock {
 
     function routeValue(bytes16 uuid,

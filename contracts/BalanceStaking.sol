@@ -37,6 +37,8 @@ contract BalanceStaking {
     uint public totalBalance;
     uint public totalUnlocked;
 
+    event SetOwner(address ownerOld, address ownerNew);
+
     constructor(address _owner, IFarm _farmStaking, IBalanceKeeper _balanceKeeper) {
         owner = _owner;
         stakingFarmContract = _farmStaking;

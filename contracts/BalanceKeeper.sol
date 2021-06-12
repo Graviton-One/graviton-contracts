@@ -30,32 +30,32 @@ contract BalanceKeeper {
 
     uint public totalBalance;
 
-    event AddValueEvent(address indexed adder, address indexed user, uint indexed amount);
-    event SubtractValueEvent(address indexed subtractor, address indexed user, uint indexed amount);
-    event TransferOwnershipEvent(address oldOwner, address newOwner);
-    event ToggleAdderEvent(address indexed owner, address indexed adder, bool indexed newBool);
-    event ToggleSubtractorEvent(address indexed owner, address indexed subtractor, bool indexed newBool);
+    event AddValue(address indexed adder, address indexed user, uint indexed amount);
+    event SubtractValue(address indexed subtractor, address indexed user, uint indexed amount);
+    event ToggleAdder(address indexed owner, address indexed adder, bool indexed newBool);
+    event ToggleSubtractor(address indexed owner, address indexed subtractor, bool indexed newBool);
+    event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner) {
         owner = _owner;
     }
 
-    function transferOwnership(address newOwner) public isOwner {
-        address oldOwner = owner;
-        owner = newOwner;
-        emit TransferOwnershipEvent(oldOwner, newOwner);
+    function setOwner(address _owner) public isOwner {
+        address ownerOld = owner;
+        owner = _owner;
+        emit SetOwner(ownerOld, _owner);
     }
 
     // permit/forbid an oracle to add user balances
     function toggleAdder(address adder) public isOwner {
         allowedAdders[adder] = !allowedAdders[adder];
-        emit ToggleAdderEvent(msg.sender, adder, allowedAdders[adder]);
+        emit ToggleAdder(msg.sender, adder, allowedAdders[adder]);
     }
 
     // permit/forbid an oracle to subtract user balances
     function toggleSubtractor(address subtractor) public isOwner {
         allowedSubtractors[subtractor] = !allowedSubtractors[subtractor];
-        emit ToggleSubtractorEvent(msg.sender, subtractor, allowedSubtractors[subtractor]);
+        emit ToggleSubtractor(msg.sender, subtractor, allowedSubtractors[subtractor]);
     }
 
     // add user balance
@@ -68,7 +68,7 @@ contract BalanceKeeper {
         }
         userBalance[user] += value;
         totalBalance += value;
-        emit AddValueEvent(msg.sender, user, value);
+        emit AddValue(msg.sender, user, value);
     }
 
     // subtract user balance
@@ -76,7 +76,7 @@ contract BalanceKeeper {
         require(allowedSubtractors[msg.sender],"not allowed to subtract");
         userBalance[user] -= value;
         totalBalance -= value;
-        emit SubtractValueEvent(msg.sender, user, value);
+        emit SubtractValue(msg.sender, user, value);
     }
 
 }

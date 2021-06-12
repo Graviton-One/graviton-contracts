@@ -1,42 +1,30 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./ImpactAbstract.sol";
+import "./ImpactKeeper.sol";
 
-/// @title BirdsImpact
+/// @title ImpactEB
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BirdsImpact is DepositersImpact{
+contract ImpactEB is ImpactKeeper {
 
-    constructor(address _owner, address _nebula, address[] memory _allowedTokens, address _governanceTokenAddr, address _farmAddr)
-        DepositersImpact(_owner,_nebula,_allowedTokens,_governanceTokenAddr,_farmAddr) {
-            withdrawAllowance = false;
-            attachAllowance = true;
-        }
+    bool public withdrawIsAllowed = false;
+    bool public attachIsAllowed = true;
 
-    event withdrawEvent(address user,uint amount);
-    bool public withdrawAllowance;
-    bool public attachAllowance;
+    constructor(address _owner, address _nebula, address[] memory _allowedTokens)
+        ImpactKeeper(_owner, _nebula, _allowedTokens) {}
 
-    function toggleWithdraw(bool allowance) public isOwner {
-        withdrawAllowance = allowance;
+    function setWithdrawIsAllowed(bool _withdrawIsAllowed) public isOwner {
+        withdrawIsAllowed = _withdrawIsAllowed;
     }
 
-    function toggleAttach(bool allowance) public isOwner {
-        attachAllowance = allowance;
-    }
-
-    function withdraw(uint amount) public {
-        require(withdrawAllowance,"withdraw not allowed");
-        require(amount <= impact[msg.sender], "you don't have so much impact");
-        impact[msg.sender] -= amount;
-        totalSupply -= amount;
-        emit withdrawEvent(msg.sender,amount);
+    function setAttachIsAllowed(bool _attachIsAllowed) public isOwner {
+        attachIsAllowed = _attachIsAllowed;
     }
 
     // called from gravity to add impact to users
     function attachValue(bytes calldata impactData) external override isNebula {
-        if (!attachAllowance) { return; } // do nothing if attach is no longer allowed (early birds is over)
+        if (!attachIsAllowed) { return; } // do nothing if attach is no longer allowed (early birds is over)
         address lockTokenAddress = this.deserializeAddress(impactData, 0);
         address depositerAddress = this.deserializeAddress(impactData, 20);
         uint amount = this.deserializeUint(impactData, 40, 32);

@@ -15,7 +15,7 @@ contract FarmLinear {
     uint public amount;
     uint public period;
 
-    bool private notDeprecated = true;
+    bool public deprecated = false;
     bool public farmingStarted = false;
 
     modifier isOwner() {
@@ -23,12 +23,16 @@ contract FarmLinear {
         _;
     }
 
-    function transferOwnership(address newOwnerAddress) public isOwner {
-        owner = newOwnerAddress;
+    event SetOwner(address ownerOld, address ownerNew);
+
+    function setOwner(address _owner) public isOwner {
+        address ownerOld = owner;
+        owner = _owner;
+        emit SetOwner(ownerOld, _owner);
     }
 
     function setDeprecated() public isOwner {
-        notDeprecated = false;
+        deprecated = true;
     }
 
     constructor(address _owner, uint _amount, uint _period) {
@@ -37,18 +41,23 @@ contract FarmLinear {
         period = _period;
     }
 
+    /// @dev Returns the block timestamp. This method is overridden in tests.
+    function _blockTimestamp() internal view virtual returns (uint) {
+        return block.timestamp;
+    }
+
     function startFarming() public isOwner {
         farmingStarted = true;
-        startTimestampOffset = block.timestamp;
+        startTimestampOffset = _blockTimestamp();
         lastClaimedTimestamp = startTimestampOffset;
     }
 
     function unlockAsset() public {
         require(farmingStarted, "farming is not started yet");
-        require(notDeprecated, "This contract is deprecated.");
+        require(!deprecated, "This contract is deprecated.");
 
         uint lastTimestamp    = lastClaimedTimestamp;
-        uint currentTimestamp = block.timestamp;
+        uint currentTimestamp = _blockTimestamp();
 
         uint lastY    = (amount * (lastTimestamp    - startTimestampOffset) * (1e18)) / period;
         uint currentY = (amount * (currentTimestamp - startTimestampOffset) * (1e18)) / period;
