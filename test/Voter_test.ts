@@ -41,7 +41,6 @@ describe("Voter", function () {
     let option2 = expect(roundOption2).to.equal("option2")
     let count = expect(roundCount).to.equal(1)
 
-    return name && option1 && option2 && count
 
   });
 
