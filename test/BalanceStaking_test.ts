@@ -99,5 +99,32 @@ describe("BalanceStaking", function () {
        balance = await balanceKeeperContract.userBalance(ownerAddress);
        expect(balance).to.be.eq("13450589995884913494576");
     });
+    it("should processBalances", async function () {
+
+       // add balance
+       await balanceKeeperContract.toggleAdder(ownerAddress);
+       await balanceKeeperContract.addValue(ownerAddress, "10000000000000000000000");
+       await balanceKeeperContract.addValue(otherAddress, "90000000000000000000000");
+
+       // start staking farm
+       await farmStakingContract.startFarming();
+       await network.provider.send("evm_increaseTime", [86400]);
+       await farmStakingContract.unlockAsset();
+
+       // process staking
+       await balanceKeeperContract.toggleAdder(balanceStakingAddress);
+       await balanceStakingContract.processBalances(2);
+
+       let balance = await balanceKeeperContract.userBalance(ownerAddress);
+       expect(balance).to.be.eq("10100000000000000000000");
+
+       await network.provider.send("evm_increaseTime", [86400]);
+       await farmStakingContract.unlockAsset();
+
+       await balanceStakingContract.processBalances(2);
+
+       balance = await balanceKeeperContract.userBalance(ownerAddress);
+       expect(balance).to.be.eq("10200002314814814814814");
+    });
   });
 });

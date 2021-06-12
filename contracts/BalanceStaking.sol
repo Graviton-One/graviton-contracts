@@ -52,7 +52,7 @@ contract BalanceStaking {
     function processBalances(uint step) public {
         if (finalValue == 0) {
             totalUsers = balanceKeeper.totalUsers();
-            totalUnlocked = stakingFarmContract.totalUnlocked()
+            totalUnlocked = stakingFarmContract.totalUnlocked();
             currentPortion = totalUnlocked - prevPortion;
             totalBalance = balanceKeeper.totalBalance();
         }
