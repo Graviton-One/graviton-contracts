@@ -1,25 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-interface IFarm {
-    function totalUnlocked() external returns (uint);
-}
-
-interface Impact {
-    function impact(address user) external returns (uint);
-    function totalSupply() external returns (uint);
-    function users(uint id) external returns (address);
-    function userCount() external returns (uint);
-}
-
-interface IBalanceKeeper {
-    function addValue(address user, uint value) external;
-    function userBalance(address user) external returns (uint);
-    function userAddresses(uint id) external returns (address);
-    function subtractValue(address user, uint value) external;
-    function totalBalance() external returns (uint);
-    function totalUsers() external returns (uint);
-}
+import './interfaces/IFarm.sol';
+import './interfaces/IImpactKeeper.sol';
+import './interfaces/IBalanceKeeper.sol';
 
 /// @title BalanceEB
 /// @author Artemij Artamonov - <array.clean@gmail.com>
@@ -35,7 +19,7 @@ contract BalanceEB {
 
     // early birds emission data
     IFarm public ebFarmContract;
-    Impact public ebImpactContract;
+    IImpactKeeper public ebImpactContract;
 
     IBalanceKeeper public balanceKeeper;
 
@@ -46,7 +30,7 @@ contract BalanceEB {
 
     event SetOwner(address ownerOld, address ownerNew);
 
-    constructor(address _owner, IFarm _ebFarmContract, Impact _ebImpactContract, IBalanceKeeper _balanceKeeper) {
+    constructor(address _owner, IFarm _ebFarmContract, IImpactKeeper _ebImpactContract, IBalanceKeeper _balanceKeeper) {
         owner = _owner;
         ebFarmContract = _ebFarmContract;
         ebImpactContract = _ebImpactContract;

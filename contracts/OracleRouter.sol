@@ -1,24 +1,14 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-interface IBalanceGTON {
-    function addValue(address user, uint value) external;
-    function userBalance(address user) external returns (uint);
-    function userAddresses(uint id) external returns (address);
-    function subtractValue(address user, uint value) external;
-    function users() external returns (uint);
-    function impact() external returns (uint);
-}
-
-interface IBalanceLP {
-    function addTokens(address lptoken, address user, uint value) external;
-    function subtractTokens(address lptoken, address user, uint value) external;
-}
+import './interfaces/IBalanceKeeper.sol';
+import './interfaces/IBalanceLP.sol';
+import './interfaces/IOracleRouter.sol';
 
 /// @title OracleRouter
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract OracleRouter {
+contract OracleRouter is IOracleRouter {
 
     address public owner;
 
@@ -27,18 +17,18 @@ contract OracleRouter {
         _;
     }
 
-    IBalanceGTON public balanceGTON;
+    IBalanceKeeper public balanceKeeper;
     IBalanceLP public balanceLP;
     bytes32 public gtonAddTopic;
     bytes32 public gtonSubTopic;
     bytes32 public lp__AddTopic;
     bytes32 public lp__SubTopic;
 
-    mapping (address=>bool) public allowedParsers;
+    mapping (address=>bool) public canParse;
 
-    event ToggleParser(address indexed owner,
-                       address indexed parser,
-                       bool indexed newBool);
+    event SetCanParse(address indexed owner,
+                      address indexed parser,
+                      bool indexed newBool);
     event GTONAdd(bytes16 uuid,
                   string chain,
                   address emiter,
@@ -70,7 +60,7 @@ contract OracleRouter {
     event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner,
-                IBalanceGTON _balanceGTON,
+                IBalanceKeeper _balanceKeeper,
                 IBalanceLP _balanceLP,
                 bytes32 _gtonAddTopic,
                 bytes32 _gtonSubTopic,
@@ -78,7 +68,7 @@ contract OracleRouter {
                 bytes32 _lp__SubTopic
                 ) {
         owner = _owner;
-        balanceGTON = _balanceGTON;
+        balanceKeeper = _balanceKeeper;
         balanceLP = _balanceLP;
         gtonAddTopic = _gtonAddTopic;
         gtonSubTopic = _gtonSubTopic;
@@ -100,9 +90,9 @@ contract OracleRouter {
     }
 
     // permit/forbid a parser to send data to router
-    function toggleParser(address parser) public isOwner {
-        allowedParsers[parser] = !allowedParsers[parser];
-        emit ToggleParser(msg.sender, parser, allowedParsers[parser]);
+    function setCanParse(address parser, bool _canParse) public isOwner {
+        canParse[parser] = _canParse;
+        emit SetCanParse(msg.sender, parser, canParse[parser]);
     }
 
     // add access control
@@ -113,15 +103,15 @@ contract OracleRouter {
                         address token,
                         address sender,
                         address receiver,
-                        uint256 amount) external {
-        require(allowedParsers[msg.sender],"not allowed to route value");
+                        uint256 amount) external override {
+        require(canParse[msg.sender],"not allowed to route value");
 
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(gtonAddTopic))) {
-            balanceGTON.addValue(receiver, amount);
+            balanceKeeper.addValue(receiver, amount);
             emit GTONAdd(uuid, chain, emiter, token, sender, receiver, amount);
         }
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(gtonSubTopic))) {
-            balanceGTON.subtractValue(sender, amount);
+            balanceKeeper.subtractValue(sender, amount);
             emit GTONSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(lp__AddTopic))) {

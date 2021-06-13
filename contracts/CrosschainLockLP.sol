@@ -1,15 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-interface IERC20 {
-    function mint(address _to, uint256 _value) external;
-    function allowance(address owner, address spender) external view returns (uint256);
-    function approve(address spender, uint256 amount) external returns (bool);
-    function increaseAllowance(address spender, uint256 addedValue) external returns (bool);
-    function transfer(address _to, uint _value) external returns (bool success);
-    function transferFrom(address _from, address _to, uint _value) external returns (bool success);
-    function balanceOf(address _owner) external view returns (uint balance);
-}
+import './interfaces/IERC20.sol';
 
 /// @title CrosschainLockLP
 /// @author Artemij Artamonov - <array.clean@gmail.com>
@@ -23,7 +15,7 @@ contract CrosschainLockLP {
         _;
     }
 
-    mapping (address => bool) public allowedTokens;
+    mapping (address => bool) public tokenIsAllowed;
     mapping (address => mapping (address => uint)) public balances;
     uint public totalSupply;
     mapping (address => uint) public lpSupply;
@@ -38,9 +30,9 @@ contract CrosschainLockLP {
                    uint amount);
     event SetOwner(address ownerOld, address ownerNew);
 
-    constructor(address _owner, address[] memory _allowedTokens) {
-        for (uint i = 0; i < _allowedTokens.length; i++) {
-            allowedTokens[_allowedTokens[i]] = true;
+    constructor(address _owner, address[] memory allowedTokens) {
+        for (uint i = 0; i < allowedTokens.length; i++) {
+            tokenIsAllowed[allowedTokens[i]] = true;
         }
         owner = _owner;
     }
@@ -49,12 +41,12 @@ contract CrosschainLockLP {
         owner = _owner;
     }
 
-    function toggleToken(address tokenAddress) public isOwner {
-        allowedTokens[tokenAddress] = !allowedTokens[tokenAddress];
+    function setTokenIsAllowed(address tokenAddress, bool _tokenIsAllowed) public isOwner {
+        tokenIsAllowed[tokenAddress] = _tokenIsAllowed;
     }
 
     function lockTokens(address tokenAddress, address receiver, uint amount) public {
-        require(allowedTokens[tokenAddress], "token not allowed");
+        require(tokenIsAllowed[tokenAddress], "token not allowed");
         balances[tokenAddress][receiver] += amount;
         totalSupply += amount;
         lpSupply[tokenAddress] += amount;
@@ -63,7 +55,7 @@ contract CrosschainLockLP {
     }
 
     function unlockTokens(address tokenAddress, address receiver, uint amount) public {
-        require(allowedTokens[tokenAddress], "token not allowed");
+        require(tokenIsAllowed[tokenAddress], "token not allowed");
         require(balances[tokenAddress][msg.sender] >= amount, "not enough balance");
         balances[tokenAddress][msg.sender] -= amount;
         totalSupply -= amount;

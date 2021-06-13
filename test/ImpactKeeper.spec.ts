@@ -26,15 +26,15 @@ describe('ImpactKeeper', () => {
   it('constructor initializes variables', async () => {
     expect(await impactKeeper.owner()).to.eq(wallet.address)
     expect(await impactKeeper.nebula()).to.eq(nebula.address)
-    expect(await impactKeeper.allowedTokens(token1.address)).to.eq(true)
-    expect(await impactKeeper.allowedTokens(token2.address)).to.eq(true)
+    expect(await impactKeeper.tokenIsAllowed(token1.address)).to.eq(true)
+    expect(await impactKeeper.tokenIsAllowed(token2.address)).to.eq(true)
   })
 
   it('starting state after deployment', async () => {
     expect(await impactKeeper.totalSupply()).to.eq(0)
     expect(await impactKeeper.userCount()).to.eq(0)
     expect(await impactKeeper.finalValue()).to.eq(0)
-    expect(await impactKeeper.claimIsAllowed()).to.eq(false)
+    expect(await impactKeeper.canClaim()).to.eq(false)
   })
 
   describe('#setOwner', () => {
@@ -59,15 +59,15 @@ describe('ImpactKeeper', () => {
     })
   })
 
-  describe('#setClaimIsAllowed', () => {
+  describe('#setCanClaim', () => {
     it('fails if caller is not owner', async () => {
-      await expect(impactKeeper.connect(other).setClaimIsAllowed(true)).to.be.reverted
+      await expect(impactKeeper.connect(other).setCanClaim(true)).to.be.reverted
     })
 
     it('updates claiming', async () => {
-      await expect(await impactKeeper.claimIsAllowed()).to.eq(false)
-      await impactKeeper.setClaimIsAllowed(true)
-      await expect(await impactKeeper.claimIsAllowed()).to.eq(true)
+      await expect(await impactKeeper.canClaim()).to.eq(false)
+      await impactKeeper.setCanClaim(true)
+      await expect(await impactKeeper.canClaim()).to.eq(true)
     })
   })
 
@@ -88,9 +88,9 @@ describe('ImpactKeeper', () => {
     })
 
     it('updates token', async () => {
-      await expect(await impactKeeper.allowedTokens(other.address)).to.eq(false)
+      await expect(await impactKeeper.tokenIsAllowed(other.address)).to.eq(false)
       await impactKeeper.allowToken(other.address)
-      await expect(await impactKeeper.allowedTokens(other.address)).to.eq(true)
+      await expect(await impactKeeper.tokenIsAllowed(other.address)).to.eq(true)
     })
   })
 
@@ -101,7 +101,7 @@ describe('ImpactKeeper', () => {
 
     it('updates token', async () => {
       await impactKeeper.forbidToken(token1.address)
-      await expect(await impactKeeper.allowedTokens(token1.address)).to.eq(false)
+      await expect(await impactKeeper.tokenIsAllowed(token1.address)).to.eq(false)
     })
   })
 

@@ -1,9 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-interface IFarm {
-    function totalUnlocked() external returns (uint);
-}
+import './interfaces/IFarm.sol';
 
 /// @title BalanceKeeper
 /// @author Artemij Artamonov - <array.clean@gmail.com>
@@ -18,22 +16,18 @@ contract BalanceKeeper {
     }
 
     // oracles for changing user balances
-    mapping (address=>bool) public allowedAdders;
-    mapping (address=>bool) public allowedSubtractors;
+    mapping (address=>bool) public canAdd;
+    mapping (address=>bool) public canSubtract;
 
-    // user balances
-    uint public totalUsers;
-    mapping (address => bool) public knownUsers;
-    mapping (uint => address) public userAddresses;
-
+    address[] public users;
+    mapping (address => bool) public userIsKnown;
     mapping (address => uint) public userBalance;
-
     uint public totalBalance;
 
     event AddValue(address indexed adder, address indexed user, uint indexed amount);
     event SubtractValue(address indexed subtractor, address indexed user, uint indexed amount);
-    event ToggleAdder(address indexed owner, address indexed adder, bool indexed newBool);
-    event ToggleSubtractor(address indexed owner, address indexed subtractor, bool indexed newBool);
+    event SetCanAdd(address indexed owner, address indexed adder, bool indexed newBool);
+    event SetCanSubtract(address indexed owner, address indexed subtractor, bool indexed newBool);
     event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner) {
@@ -46,25 +40,28 @@ contract BalanceKeeper {
         emit SetOwner(ownerOld, _owner);
     }
 
+    function totalUsers() public view returns(uint) {
+        return users.length;
+    }
+
     // permit/forbid an oracle to add user balances
-    function toggleAdder(address adder) public isOwner {
-        allowedAdders[adder] = !allowedAdders[adder];
-        emit ToggleAdder(msg.sender, adder, allowedAdders[adder]);
+    function setCanAdd(address adder, bool _canAdd) public isOwner {
+        canAdd[adder] = _canAdd;
+        emit SetCanAdd(msg.sender, adder, canAdd[adder]);
     }
 
     // permit/forbid an oracle to subtract user balances
-    function toggleSubtractor(address subtractor) public isOwner {
-        allowedSubtractors[subtractor] = !allowedSubtractors[subtractor];
-        emit ToggleSubtractor(msg.sender, subtractor, allowedSubtractors[subtractor]);
+    function setCanSubtract(address subtractor, bool _canSubtract) public isOwner {
+        canSubtract[subtractor] = _canSubtract;
+        emit SetCanSubtract(msg.sender, subtractor, canSubtract[subtractor]);
     }
 
     // add user balance
     function addValue(address user, uint value) public {
-        require(allowedAdders[msg.sender],"not allowed to add value");
-        if ( !knownUsers[user]) {
-            knownUsers[user] = true;
-            userAddresses[totalUsers] = user;
-            totalUsers++;
+        require(canAdd[msg.sender],"not allowed to add value");
+        if ( !userIsKnown[user]) {
+            userIsKnown[user] = true;
+            users.push(user);
         }
         userBalance[user] += value;
         totalBalance += value;
@@ -73,10 +70,9 @@ contract BalanceKeeper {
 
     // subtract user balance
     function subtractValue(address user, uint value) public {
-        require(allowedSubtractors[msg.sender],"not allowed to subtract");
+        require(canSubtract[msg.sender],"not allowed to subtract");
         userBalance[user] -= value;
         totalBalance -= value;
         emit SubtractValue(msg.sender, user, value);
     }
-
 }

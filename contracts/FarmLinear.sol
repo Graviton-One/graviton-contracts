@@ -1,14 +1,16 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
+import './interfaces/IFarm.sol';
+
 /// @title FarmLinear
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract FarmLinear {
+contract FarmLinear is IFarm {
 
     address public owner;
 
-    uint public totalUnlocked;
+    uint public override totalUnlocked;
 
     uint public lastClaimedTimestamp;
     uint public startTimestampOffset;

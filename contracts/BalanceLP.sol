@@ -1,23 +1,14 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-interface IFarm {
-    function totalUnlocked() external returns (uint);
-}
-
-interface IBalanceKeeper {
-    function addValue(address user, uint value) external;
-    function userBalance(address user) external returns (uint);
-    function userAddresses(uint id) external returns (address);
-    function subtractValue(address user, uint value) external;
-    function totalBalance() external returns (uint);
-    function totalUsers() external returns (uint);
-}
+import './interfaces/IFarm.sol';
+import './interfaces/IBalanceKeeper.sol';
+import './interfaces/IBalanceLP.sol';
 
 /// @title BalanceLP
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceLP {
+contract BalanceLP is IBalanceLP {
 
     address public owner;
 
@@ -43,15 +34,15 @@ contract BalanceLP {
     mapping (address => uint) public finalValue;
 
     // oracles for changing user lp balances
-    mapping (address=>bool) public allowedAdders;
-    mapping (address=>bool) public allowedSubtractors;
+    mapping (address=>bool) public canAdd;
+    mapping (address=>bool) public canSubtract;
 
-    event ToggleAdder(address indexed owner,
-                           address indexed adder,
-                           bool indexed newBool);
-    event ToggleSubtractor(address indexed owner,
-                                address indexed subtractor,
-                                bool indexed newBool);
+    event SetCanAdd(address indexed owner,
+                    address indexed adder,
+                    bool indexed newBool);
+    event SetCanSubtract(address indexed owner,
+                         address indexed subtractor,
+                         bool indexed newBool);
     event AddTokens(address indexed adder,
                          address indexed lptoken,
                          address indexed user,
@@ -81,21 +72,21 @@ contract BalanceLP {
     }
 
     // permit/forbid an oracle to add user balances
-    function toggleAdder(address adder) public isOwner {
-        allowedAdders[adder] = !allowedAdders[adder];
-        emit ToggleAdder(msg.sender, adder, allowedAdders[adder]);
+    function setCanAdd(address adder, bool _canAdd) public isOwner {
+        canAdd[adder] = _canAdd;
+        emit SetCanAdd(msg.sender, adder, canAdd[adder]);
     }
 
     // permit/forbid an oracle to subtract user balances
-    function toggleSubtractor(address subtractor) public isOwner {
-        allowedSubtractors[subtractor] = !allowedSubtractors[subtractor];
-        emit ToggleSubtractor(msg.sender, subtractor, allowedSubtractors[subtractor]);
+    function setCanSubtract(address subtractor, bool _canSubtract) public isOwner {
+        canSubtract[subtractor] = _canSubtract;
+        emit SetCanSubtract(msg.sender, subtractor, canSubtract[subtractor]);
     }
 
     function addTokens(address lptoken,
                        address user,
-                       uint amount) public {
-        require(allowedAdders[msg.sender],"not allowed to add value");
+                       uint amount) public override {
+        require(canAdd[msg.sender],"not allowed to add value");
         if (!lpTokenIsKnown[lptoken]) {
             lpTokens.push(lptoken);
             lpTokenIsKnown[lptoken] = true;
@@ -111,8 +102,8 @@ contract BalanceLP {
 
     function subtractTokens(address lptoken,
                             address user,
-                            uint amount) public {
-        require(allowedSubtractors[msg.sender],"not allowed to subtract");
+                            uint amount) public override {
+        require(canSubtract[msg.sender],"not allowed to subtract");
         userBalance[lptoken][user] -= amount;
         supply[lptoken] -= amount;
         emit SubtractTokens(msg.sender, lptoken, user, amount);

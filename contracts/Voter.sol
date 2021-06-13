@@ -1,14 +1,13 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-interface Balance {
-    function userBalance(address user) external returns (uint);
-}
+import './interfaces/IBalanceKeeper.sol';
+import './interfaces/IVoter.sol';
 
 /// @title Voter
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract Voter {
+contract Voter is IVoter {
 
     address public owner;
 
@@ -36,11 +35,11 @@ contract Voter {
     mapping(uint => uint) internal _userCountInRound;
     mapping(uint => mapping(uint => uint)) internal _userCountForOption;
 
-    mapping(address => bool) public allowedCheckers;
+    mapping(address => bool) public canCheckVoteBalances;
 
     event CastVotes(address indexed voter, uint indexed roundId);
     event StartRound(address indexed owner, uint roundCount, string name, string[] options);
-    event ToggleVoteBalanceChecker(address indexed owner, address indexed checker, bool indexed newBool);
+    event SetCanCheckVoteBalances(address indexed owner, address indexed checker, bool indexed newBool);
     event CheckVoteBalances(address indexed checker, address indexed user, uint newBalance);
     event FinalizeRound(address indexed owner, uint roundId);
     event SetOwner(address ownerOld, address ownerNew);
@@ -146,7 +145,7 @@ contract Voter {
         for (uint optionId = 0; optionId < votes.length; optionId++) {
             sum += votes[optionId];
         }
-        require(Balance(balanceKeeper).userBalance(msg.sender) >= sum,"balance is smaller than the sum of votes");
+        require(IBalanceKeeper(balanceKeeper).userBalance(msg.sender) >= sum,"balance is smaller than the sum of votes");
 
         // if msg.sender already voted in roundId, erase their previous votes
         if (_votesInRoundByUser[roundId][msg.sender] != 0) {
@@ -189,9 +188,9 @@ contract Voter {
     }
 
     // allow/forbid oracle to check votes
-    function toggleVoteBalanceChecker(address checker) public isOwner {
-        allowedCheckers[checker] = !allowedCheckers[checker];
-        emit ToggleVoteBalanceChecker(msg.sender, checker, allowedCheckers[checker]);
+    function setCanCheckVoteBalances(address checker, bool _canCheckVoteBalances) public isOwner {
+        canCheckVoteBalances[checker] = _canCheckVoteBalances;
+        emit SetCanCheckVoteBalances(msg.sender, checker, canCheckVoteBalances[checker]);
     }
 
     // increase votes proportionally to the increase in balance
@@ -214,8 +213,8 @@ contract Voter {
     }
 
     // increase votes proportionally to the increase in balance
-    function checkVoteBalances(address user, uint newBalance) public {
-        require(allowedCheckers[msg.sender],"sender is not allowed to check balances");
+    function checkVoteBalances(address user, uint newBalance) public override {
+        require(canCheckVoteBalances[msg.sender],"sender is not allowed to check balances");
         for(uint i = 0; i < activeRounds.length; i++) {
             checkVoteBalance(activeRounds[i],user,newBalance);
         }

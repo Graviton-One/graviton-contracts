@@ -1,18 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-interface IFarm {
-    function totalUnlocked() external returns (uint);
-}
-
-interface IBalanceKeeper {
-    function addValue(address user, uint value) external;
-    function userBalance(address user) external returns (uint);
-    function userAddresses(uint id) external returns (address);
-    function subtractValue(address user, uint value) external;
-    function totalBalance() external returns (uint);
-    function totalUsers() external returns (uint);
-}
+import './interfaces/IFarm.sol';
+import './interfaces/IBalanceKeeper.sol';
 
 /// @title BalanceStaking
 /// @author Artemij Artamonov - <array.clean@gmail.com>
@@ -66,7 +56,7 @@ contract BalanceStaking {
         }
 
         for(uint i = fromValue; i < toValue; i++) {
-            address user = balanceKeeper.userAddresses(i);
+            address user = balanceKeeper.users(i);
             increaseUserStakeValue(user);
         }
 

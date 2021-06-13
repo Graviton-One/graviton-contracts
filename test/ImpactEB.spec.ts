@@ -42,31 +42,31 @@ describe('ImpactEB', () => {
   })
 
   it('starting state after deployment', async () => {
-    expect(await impactEB.withdrawIsAllowed()).to.eq(false)
-    expect(await impactEB.attachIsAllowed()).to.eq(true)
+    expect(await impactEB.canWithdraw()).to.eq(false)
+    expect(await impactEB.canAttach()).to.eq(true)
     expect(await impactEB.impact(wallet.address)).to.eq(0)
     expect(await impactEB.impact(other.address)).to.eq(0)
   })
 
-  describe('#setWithdrawIsAllowed', () => {
+  describe('#setCanWithdraw', () => {
     it('fails if caller is not owner', async () => {
-      await expect(impactEB.connect(other).setWithdrawIsAllowed(true)).to.be.reverted
+      await expect(impactEB.connect(other).setCanWithdraw(true)).to.be.reverted
     })
 
     it('updates withdraw permission', async () => {
-      await impactEB.setWithdrawIsAllowed(true)
-      expect(await impactEB.connect(other).withdrawIsAllowed()).to.eq(true)
+      await impactEB.setCanWithdraw(true)
+      expect(await impactEB.connect(other).canWithdraw()).to.eq(true)
     })
   })
 
-  describe('#setAttachIsAllowed', () => {
+  describe('#setCanAttach', () => {
     it('fails if caller is not owner', async () => {
-      expect(impactEB.connect(other).setAttachIsAllowed(false)).to.be.reverted
+      expect(impactEB.connect(other).setCanAttach(false)).to.be.reverted
     })
 
     it('updates attach permission', async () => {
-      await impactEB.setAttachIsAllowed(false)
-      expect(await impactEB.connect(other).attachIsAllowed()).to.eq(false)
+      await impactEB.setCanAttach(false)
+      expect(await impactEB.connect(other).canAttach()).to.eq(false)
     })
   })
 
@@ -78,7 +78,7 @@ describe('ImpactEB', () => {
     })
 
     it('does not emit event if attach is not allowed', async () => {
-      await impactEB.setAttachIsAllowed(false)
+      await impactEB.setCanAttach(false)
       let attachValue = makeValue(token1.address, wallet.address, "1000", "0", "0")
       await expect(impactEB.connect(nebula).attachValue(attachValue))
         .to.not.emit(impactEB, 'Transfer')

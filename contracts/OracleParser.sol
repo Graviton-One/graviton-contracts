@@ -1,16 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-interface IOracleRouter {
-    function routeValue(bytes16 uuid,
-                        string memory chain,
-                        address emiter,
-                        bytes32 topic0,
-                        address token,
-                        address sender,
-                        address receiver,
-                        uint256 amount) external;
-}
+import './interfaces/IOracleRouter.sol';
 
 /// @title OracleParser
 /// @author Artemij Artamonov - <array.clean@gmail.com>

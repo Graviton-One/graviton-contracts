@@ -1,37 +1,29 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-interface IERC20 {
-    function mint(address _to, uint256 _value) external;
-    function allowance(address owner, address spender) external view returns (uint256);
-    function approve(address spender, uint256 amount) external returns (bool);
-    function increaseAllowance(address spender, uint256 addedValue) external returns (bool);
-    function transfer(address _to, uint _value) external returns (bool success);
-    function transferFrom(address _from, address _to, uint _value) external returns (bool success);
-    function balanceOf(address _owner) external view returns (uint balance);
-}
+import './interfaces/IImpactKeeper.sol';
 
 /// @title ImpactKeeper
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-abstract contract ImpactKeeper {
+abstract contract ImpactKeeper is IImpactKeeper {
 
     address public owner;
     address public nebula;
 
     // total locked usd amount
-    uint public totalSupply;
+    uint public override totalSupply;
     // stable coins that are allowed to be processed
-    mapping(address => bool) public allowedTokens;
+    mapping(address => bool) public tokenIsAllowed;
 
-    mapping (address => uint) public impact;
-    mapping (uint => address) public users;
-    uint public userCount;
+    mapping (address => uint) public override impact;
+    mapping (uint => address) public override users;
+    uint public override userCount;
 
     // for processing mass transfers
     uint public finalValue;
 
-    bool public claimIsAllowed = false;
+    bool public canClaim = false;
 
     // processed data array
     mapping (uint => bool) public dataId;
@@ -39,11 +31,11 @@ abstract contract ImpactKeeper {
     event Transfer(address token, address user, uint256 value, uint256 id, uint256 action);
     event SetOwner(address ownerOld, address ownerNew);
 
-    constructor(address _owner, address _nebula, address[] memory _allowedTokens) {
+    constructor(address _owner, address _nebula, address[] memory allowedTokens) {
         owner = _owner;
         nebula = _nebula;
-        for (uint i = 0; i < _allowedTokens.length; i++){
-            allowedTokens[_allowedTokens[i]] = true;
+        for (uint i = 0; i < allowedTokens.length; i++){
+            tokenIsAllowed[allowedTokens[i]] = true;
         }
     }
 
@@ -58,8 +50,8 @@ abstract contract ImpactKeeper {
         emit SetOwner(ownerOld, _owner);
     }
 
-    function setClaimIsAllowed(bool _claimIsAllowed) public isOwner {
-        claimIsAllowed = _claimIsAllowed;
+    function setCanClaim(bool _canClaim) public isOwner {
+        canClaim = _canClaim;
     }
 
     modifier isNebula() {
@@ -72,11 +64,11 @@ abstract contract ImpactKeeper {
     }
 
     function allowToken(address token) public isOwner {
-        allowedTokens[token] = true;
+        tokenIsAllowed[token] = true;
     }
 
     function forbidToken(address token) public isOwner {
-        allowedTokens[token] = false;
+        tokenIsAllowed[token] = false;
     }
 
     function deserializeUint(bytes memory b, uint startPos, uint len) external pure returns (uint) {

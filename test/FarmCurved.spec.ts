@@ -59,7 +59,6 @@ describe('FarmCurved', () => {
       await farm.setOwner(other.address)
       await expect(farm.setOwner(wallet.address)).to.be.reverted
     })
-
   })
 
   describe('#setDeprecated', () => {

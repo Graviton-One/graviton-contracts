@@ -8,23 +8,23 @@ import "./ImpactKeeper.sol";
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract ImpactEB is ImpactKeeper {
 
-    bool public withdrawIsAllowed = false;
-    bool public attachIsAllowed = true;
+    bool public canWithdraw = false;
+    bool public canAttach = true;
 
     constructor(address _owner, address _nebula, address[] memory _allowedTokens)
         ImpactKeeper(_owner, _nebula, _allowedTokens) {}
 
-    function setWithdrawIsAllowed(bool _withdrawIsAllowed) public isOwner {
-        withdrawIsAllowed = _withdrawIsAllowed;
+    function setCanWithdraw(bool _canWithdraw) public isOwner {
+        canWithdraw = _canWithdraw;
     }
 
-    function setAttachIsAllowed(bool _attachIsAllowed) public isOwner {
-        attachIsAllowed = _attachIsAllowed;
+    function setCanAttach(bool _canAttach) public isOwner {
+        canAttach = _canAttach;
     }
 
     // called from gravity to add impact to users
     function attachValue(bytes calldata impactData) external override isNebula {
-        if (!attachIsAllowed) { return; } // do nothing if attach is no longer allowed (early birds is over)
+        if (!canAttach) { return; } // do nothing if attach is no longer allowed (early birds is over)
         address lockTokenAddress = this.deserializeAddress(impactData, 0);
         address depositerAddress = this.deserializeAddress(impactData, 20);
         uint amount = this.deserializeUint(impactData, 40, 32);
@@ -34,7 +34,7 @@ contract ImpactEB is ImpactKeeper {
         dataId[id] = true;
         emit Transfer(lockTokenAddress, depositerAddress, amount, id, action);
 
-        if (!allowedTokens[lockTokenAddress]) { return; } // do nothing if this token is not supported by treasury
+        if (!tokenIsAllowed[lockTokenAddress]) { return; } // do nothing if this token is not supported by treasury
         if (impact[depositerAddress] == 0) {
             users[userCount] = depositerAddress;
             userCount += 1;

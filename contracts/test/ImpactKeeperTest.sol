@@ -5,8 +5,8 @@ import '../ImpactKeeper.sol';
 
 contract ImpactKeeperTest is ImpactKeeper {
 
-    constructor(address _owner, address _nebula, address[] memory _allowedTokens)
-        ImpactKeeper(_owner, _nebula, _allowedTokens) {}
+    constructor(address _owner, address _nebula, address[] memory allowedTokens)
+        ImpactKeeper(_owner, _nebula, allowedTokens) {}
 
     function attachValue(bytes calldata impactData) external override isNebula {}
 }
