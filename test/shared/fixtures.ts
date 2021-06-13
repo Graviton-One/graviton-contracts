@@ -6,6 +6,7 @@ import { MockTimeFarmCurved } from '../../typechain/MockTimeFarmCurved'
 import { ImpactEB } from '../../typechain/ImpactEB'
 import { BalanceKeeper } from '../../typechain/BalanceKeeper'
 import { BalanceEB } from '../../typechain/BalanceEB'
+import { Voter } from '../../typechain/Voter'
 import { makeValue, EARLY_BIRDS_A, EARLY_BIRDS_C } from './utilities'
 
 import { Fixture } from 'ethereum-waffle'
@@ -123,5 +124,23 @@ export const balanceEBFixture: Fixture<BalanceEBFixture> = async function ([wall
       impactEB,
       balanceKeeper,
       balanceEB
+    }
+}
+
+  interface VoterFixture extends BalanceKeeperFixture {
+      voter: Voter
+  }
+
+export const voterFixture: Fixture<VoterFixture> = async function ([wallet, other], provider): Promise<VoterFixture> {
+    const { balanceKeeper } = await balanceKeeperFixture(wallet.address)
+
+    const voterFactory = await ethers.getContractFactory('Voter')
+    const voter = await voterFactory.deploy(
+      wallet.address,
+      balanceKeeper.address
+    ) as Voter
+    return {
+      balanceKeeper,
+      voter
     }
 }

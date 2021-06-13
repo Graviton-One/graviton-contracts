@@ -35,11 +35,11 @@ contract Voter is IVoter {
     mapping(uint => uint) internal _userCountInRound;
     mapping(uint => mapping(uint => uint)) internal _userCountForOption;
 
-    mapping(address => bool) public canCheckVoteBalances;
+    mapping(address => bool) public canCheck;
 
     event CastVotes(address indexed voter, uint indexed roundId);
     event StartRound(address indexed owner, uint roundCount, string name, string[] options);
-    event SetCanCheckVoteBalances(address indexed owner, address indexed checker, bool indexed newBool);
+    event SetCanCheck(address indexed owner, address indexed checker, bool indexed newBool);
     event CheckVoteBalances(address indexed checker, address indexed user, uint newBalance);
     event FinalizeRound(address indexed owner, uint roundId);
     event SetOwner(address ownerOld, address ownerNew);
@@ -65,6 +65,18 @@ contract Voter is IVoter {
     function votesForOptionByUser(uint roundId, address user, uint optionId) public view returns (uint) {
         return _votesForOptionByUser[roundId][user][optionId];
     }
+    function userVotedInRound(uint roundId, address user) public view returns(bool) {
+        return _userVotedInRound[roundId][user];
+    }
+    function userVotedForOption(uint roundId, uint optionId, address user) public view returns(bool) {
+        return _userVotedForOption[roundId][optionId][user];
+    }
+    function userCountInRound(uint roundId) public view returns(uint) {
+        return _userCountInRound[roundId];
+    }
+    function userCountForOption(uint roundId, uint optionId) public view returns(uint) {
+        return _userCountForOption[roundId][optionId];
+    }
 
     // sum of all votes in a round
     function votesInRound(uint roundId) public view returns (uint) {
@@ -79,6 +91,8 @@ contract Voter is IVoter {
     function activeRoundCount() public view returns (uint) {
         return activeRounds.length;
     }
+
+    // number of finalized past rounds
     function pastRoundCount() public view returns (uint) {
         return pastRounds.length;
     }
@@ -90,22 +104,6 @@ contract Voter is IVoter {
             sum ++;
         }
         return sum;
-    }
-
-    function userVotedInRound(uint roundId, address user) public view returns(bool) {
-        return _userVotedInRound[roundId][user];
-    }
-
-    function userVotedForOption(uint roundId, uint optionId, address user) public view returns(bool) {
-        return _userVotedForOption[roundId][optionId][user];
-    }
-
-    function userCountInRound(uint roundId) public view returns(uint) {
-        return _userCountInRound[roundId];
-    }
-
-    function userCountForOption(uint roundId, uint optionId) public view returns(uint) {
-        return _userCountForOption[roundId][optionId];
     }
 
     function setOwner(address _owner) public isOwner {
@@ -135,7 +133,7 @@ contract Voter is IVoter {
     function castVotes(uint roundId, uint[] memory votes) public {
 
         // fail if roundId is not an active vote
-        require(isActiveRound(roundId),"roundId is not an active vote");
+        require(isActiveRound(roundId), "roundId is not an active vote");
 
         // fail if votes doesn't match number of options in roundId
         require(votes.length == _roundOptions[roundId].length, "number of votes doesn't match number of options");
@@ -145,7 +143,7 @@ contract Voter is IVoter {
         for (uint optionId = 0; optionId < votes.length; optionId++) {
             sum += votes[optionId];
         }
-        require(IBalanceKeeper(balanceKeeper).userBalance(msg.sender) >= sum,"balance is smaller than the sum of votes");
+        require(IBalanceKeeper(balanceKeeper).userBalance(msg.sender) >= sum, "balance is smaller than the sum of votes");
 
         // if msg.sender already voted in roundId, erase their previous votes
         if (_votesInRoundByUser[roundId][msg.sender] != 0) {
@@ -188,16 +186,17 @@ contract Voter is IVoter {
     }
 
     // allow/forbid oracle to check votes
-    function setCanCheckVoteBalances(address checker, bool _canCheckVoteBalances) public isOwner {
-        canCheckVoteBalances[checker] = _canCheckVoteBalances;
-        emit SetCanCheckVoteBalances(msg.sender, checker, canCheckVoteBalances[checker]);
+    function setCanCheck(address checker, bool _canCheck) public isOwner {
+        canCheck[checker] = _canCheck;
+        emit SetCanCheck(msg.sender, checker, canCheck[checker]);
     }
 
     // increase votes proportionally to the increase in balance
     function checkVoteBalance(uint roundId, address user, uint newBalance) internal {
         // return if newBalance is lower than the number of votes
         // return if user didn't vote
-        if (newBalance > _votesInRoundByUser[roundId][user] || _votesInRoundByUser[roundId][user] == 0) {
+        if (newBalance > _votesInRoundByUser[roundId][user] ||
+            _votesInRoundByUser[roundId][user] == 0) {
             return;
         }
         uint[] storage oldVotes = _votesForOptionByUser[roundId][user];
@@ -214,7 +213,7 @@ contract Voter is IVoter {
 
     // increase votes proportionally to the increase in balance
     function checkVoteBalances(address user, uint newBalance) public override {
-        require(canCheckVoteBalances[msg.sender],"sender is not allowed to check balances");
+        require(canCheck[msg.sender], "sender is not allowed to check balances");
         for(uint i = 0; i < activeRounds.length; i++) {
             checkVoteBalance(activeRounds[i],user,newBalance);
         }
