@@ -10,50 +10,40 @@ import './interfaces/IBalanceKeeper.sol';
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract BalanceEB {
 
-    address public owner;
-
-    modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
-        _;
-    }
-
     // early birds emission data
-    IFarm public ebFarmContract;
-    IImpactKeeper public ebImpactContract;
+    IFarm public farm;
+    IImpactKeeper public impactEB;
 
     IBalanceKeeper public balanceKeeper;
 
     uint public finalValue;
     uint public totalUsers;
 
-    mapping (address => uint) public sendBalance;
+    mapping (address => uint) public lastPortion;
 
-    event SetOwner(address ownerOld, address ownerNew);
-
-    constructor(address _owner, IFarm _ebFarmContract, IImpactKeeper _ebImpactContract, IBalanceKeeper _balanceKeeper) {
-        owner = _owner;
-        ebFarmContract = _ebFarmContract;
-        ebImpactContract = _ebImpactContract;
+    constructor(IFarm _farm, IImpactKeeper _impactEB, IBalanceKeeper _balanceKeeper) {
+        farm = _farm;
+        impactEB = _impactEB;
         balanceKeeper = _balanceKeeper;
-        totalUsers = ebImpactContract.userCount();
+        totalUsers = impactEB.userCount();
     }
 
-    function increaseUserEbValue(address user) internal {
-        uint newBalance = ebFarmContract.totalUnlocked() * ebImpactContract.impact(user) / ebImpactContract.totalSupply();
-        uint add = newBalance - sendBalance[user];
-        sendBalance[user] = newBalance;
-        balanceKeeper.addValue(user,add);
+    function addValueEB(address user) internal {
+        uint currentPortion = farm.totalUnlocked() * impactEB.impact(user) / impactEB.totalSupply();
+        uint add = currentPortion - lastPortion[user];
+        lastPortion[user] = currentPortion;
+        balanceKeeper.addValue(user, add);
     }
 
     function processBalances(uint step) public {
         uint toValue = finalValue + step;
         uint fromValue = finalValue;
-        if (toValue > totalUsers){
+        if (toValue > totalUsers) {
             toValue = totalUsers;
         }
         for(uint i = fromValue; i < toValue; i++) {
-            address user = ebImpactContract.users(i);
-            increaseUserEbValue(user);
+            address user = impactEB.users(i);
+            addValueEB(user);
         }
         if (toValue == totalUsers) {
             finalValue = 0;

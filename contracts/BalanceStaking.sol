@@ -22,7 +22,7 @@ contract BalanceStaking {
 
     uint public finalValue;
     uint public totalUsers;
-    uint public prevPortion;
+    uint public lastPortion;
     uint public currentPortion;
     uint public totalBalance;
     uint public totalUnlocked;
@@ -45,7 +45,7 @@ contract BalanceStaking {
         if (finalValue == 0) {
             totalUsers = balanceKeeper.totalUsers();
             totalUnlocked = stakingFarmContract.totalUnlocked();
-            currentPortion = totalUnlocked - prevPortion;
+            currentPortion = totalUnlocked - lastPortion;
             totalBalance = balanceKeeper.totalBalance();
         }
         uint toValue = finalValue + step;
@@ -62,7 +62,7 @@ contract BalanceStaking {
 
         if (toValue == totalUsers) {
             finalValue = 0;
-            prevPortion = totalUnlocked;
+            lastPortion = totalUnlocked;
         } else {
             finalValue = toValue;
         }

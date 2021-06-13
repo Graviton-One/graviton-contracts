@@ -18,7 +18,7 @@ describe('BalanceKeeper', () => {
     loadFixture = waffle.createFixtureLoader([wallet, other])
   })
 
-  beforeEach('deploy farm', async () => {
+  beforeEach('deploy test contracts', async () => {
     balanceKeeper = await loadFixture(fixture)
   })
 

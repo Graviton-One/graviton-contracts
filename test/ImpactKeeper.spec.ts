@@ -34,7 +34,6 @@ describe('ImpactKeeper', () => {
     expect(await impactKeeper.totalSupply()).to.eq(0)
     expect(await impactKeeper.userCount()).to.eq(0)
     expect(await impactKeeper.finalValue()).to.eq(0)
-    expect(await impactKeeper.canClaim()).to.eq(false)
   })
 
   describe('#setOwner', () => {
@@ -56,18 +55,6 @@ describe('ImpactKeeper', () => {
     it('cannot be called by original owner', async () => {
       await impactKeeper.setOwner(other.address)
       await expect(impactKeeper.setOwner(wallet.address)).to.be.reverted
-    })
-  })
-
-  describe('#setCanClaim', () => {
-    it('fails if caller is not owner', async () => {
-      await expect(impactKeeper.connect(other).setCanClaim(true)).to.be.reverted
-    })
-
-    it('updates claiming', async () => {
-      await expect(await impactKeeper.canClaim()).to.eq(false)
-      await impactKeeper.setCanClaim(true)
-      await expect(await impactKeeper.canClaim()).to.eq(true)
     })
   })
 

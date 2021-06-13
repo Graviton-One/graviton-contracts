@@ -1,8 +1,8 @@
 import { ethers, waffle } from 'hardhat'
-import { Bytes } from 'ethers'
 import { ImpactEB } from '../typechain/ImpactEB'
 import { TestERC20 } from '../typechain/TestERC20'
 import { impactEBFixture } from './shared/fixtures'
+import { makeValue } from './shared/utilities'
 
 import { expect } from './shared/expect'
 
@@ -19,22 +19,6 @@ describe('ImpactEB', () => {
   let token1: TestERC20
   let token2: TestERC20
   let impactEB: ImpactEB
-  let attachValue: Bytes
-
-  function makeValue(token: string, depositer: string, amount: string, id: string, action: string): Bytes {
-    let lockTokenBytes = ethers.utils.arrayify(token)
-    let depositerBytes = ethers.utils.arrayify(depositer)
-    let amountBytes    = ethers.utils.hexZeroPad(ethers.BigNumber.from(amount).toHexString(), 32)
-    let idBytes        = ethers.utils.hexZeroPad(ethers.BigNumber.from(id).toHexString(), 32)
-    let actionBytes    = ethers.utils.hexZeroPad(ethers.BigNumber.from(action).toHexString(), 32)
-
-    attachValue = ethers.utils.concat([lockTokenBytes,
-                                       depositerBytes,
-                                       amountBytes,
-                                       idBytes,
-                                       actionBytes])
-    return attachValue
-  }
 
   beforeEach('deploy test contracts', async () => {
     ;({ token0, token1, token2, impactEB } = await loadFixture(impactEBFixture))

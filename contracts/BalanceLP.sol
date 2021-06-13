@@ -30,7 +30,7 @@ contract BalanceLP is IBalanceLP {
     mapping (address => mapping (address => uint)) public userBalance;
 
     mapping (address => uint) public currentPortion;
-    mapping (address => uint) public previousPortion;
+    mapping (address => uint) public lastPortion;
     mapping (address => uint) public finalValue;
 
     // oracles for changing user lp balances
@@ -119,7 +119,7 @@ contract BalanceLP is IBalanceLP {
 
         uint toValue = finalValue[lptoken] + step;
         if (finalValue[lptoken] == 0) {
-            currentPortion[lptoken] = farm.totalUnlocked() - previousPortion[lptoken];
+            currentPortion[lptoken] = farm.totalUnlocked() - lastPortion[lptoken];
         }
         uint fromValue = finalValue[lptoken];
         if (toValue > userCount(lptoken)) {
@@ -131,7 +131,7 @@ contract BalanceLP is IBalanceLP {
         }
         if (toValue == userCount(lptoken)) {
             finalValue[lptoken] = 0;
-            previousPortion[lptoken] += currentPortion[lptoken];
+            lastPortion[lptoken] += currentPortion[lptoken];
         } else {
             finalValue[lptoken] = toValue;
         }

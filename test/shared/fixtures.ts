@@ -1,25 +1,14 @@
 import { ethers, waffle } from 'hardhat'
 import { BigNumber } from 'ethers'
-import { MockTimeFarmCurved } from '../../typechain/MockTimeFarmCurved'
-import { ImpactKeeperTest } from '../../typechain/ImpactKeeperTest'
-import { ImpactEB } from '../../typechain/ImpactEB'
 import { TestERC20 } from '../../typechain/TestERC20'
-import { EARLY_BIRDS_A, EARLY_BIRDS_C } from './utilities'
+import { ImpactKeeperTest } from '../../typechain/ImpactKeeperTest'
+import { MockTimeFarmCurved } from '../../typechain/MockTimeFarmCurved'
+import { ImpactEB } from '../../typechain/ImpactEB'
+import { BalanceKeeper } from '../../typechain/BalanceKeeper'
+import { BalanceEB } from '../../typechain/BalanceEB'
+import { makeValue, EARLY_BIRDS_A, EARLY_BIRDS_C } from './utilities'
 
 import { Fixture } from 'ethereum-waffle'
-
-// Monday, October 5, 2020 9:00:00 AM GMT-05:00
-export const TEST_FARM_START_TIME = 1601906400
-
-interface FarmCurvedFixture {
-  farm: MockTimeFarmCurved
-}
-
-async function farmCurvedFixture(owner: string): Promise<FarmCurvedFixture> {
-  const farmFactory = await ethers.getContractFactory('MockTimeFarmCurved')
-  const farm = await farmFactory.deploy(owner, EARLY_BIRDS_A, EARLY_BIRDS_C) as MockTimeFarmCurved
-  return { farm }
-}
 
 interface TokensFixture {
   token0: TestERC20
@@ -80,5 +69,59 @@ export const impactEBFixture: Fixture<ImpactEBFixture> = async function ([wallet
       token1,
       token2,
       impactEB
+    }
+}
+
+// Monday, October 5, 2020 9:00:00 AM GMT-05:00
+export const TEST_FARM_START_TIME = 1601906400
+
+interface FarmCurvedFixture {
+  farm: MockTimeFarmCurved
+}
+
+async function farmCurvedFixture(owner: string): Promise<FarmCurvedFixture> {
+  const farmFactory = await ethers.getContractFactory('MockTimeFarmCurved')
+  const farm = await farmFactory.deploy(owner, EARLY_BIRDS_A, EARLY_BIRDS_C) as MockTimeFarmCurved
+  return { farm }
+}
+
+interface BalanceKeeperFixture {
+  balanceKeeper: BalanceKeeper
+}
+
+async function balanceKeeperFixture(owner: string): Promise<BalanceKeeperFixture> {
+  const balanceKeeperFactory = await ethers.getContractFactory('BalanceKeeper')
+  const balanceKeeper = await balanceKeeperFactory.deploy(owner) as BalanceKeeper
+  return { balanceKeeper }
+}
+
+type FarmAndImpactEBAndBalanceKeeperFixture = FarmCurvedFixture & ImpactEBFixture & BalanceKeeperFixture
+
+  interface BalanceEBFixture extends FarmAndImpactEBAndBalanceKeeperFixture {
+      balanceEB: BalanceEB
+  }
+
+export const balanceEBFixture: Fixture<BalanceEBFixture> = async function ([wallet, other, nebula], provider): Promise<BalanceEBFixture> {
+    const { farm } = await farmCurvedFixture(wallet.address)
+    const { token0, token1, token2, impactEB } = await impactEBFixture([wallet, other, nebula], provider)
+    const { balanceKeeper } = await balanceKeeperFixture(wallet.address)
+
+    await impactEB.connect(nebula).attachValue(makeValue(token1.address, wallet.address, "1000", "0", "0"))
+    await impactEB.connect(nebula).attachValue(makeValue(token2.address, other.address, "1000", "1", "0"))
+
+    const balanceEBFactory = await ethers.getContractFactory('BalanceEB')
+    const balanceEB = await balanceEBFactory.deploy(
+      farm.address,
+      impactEB.address,
+      balanceKeeper.address
+    ) as BalanceEB
+    return {
+      farm,
+      token0,
+      token1,
+      token2,
+      impactEB,
+      balanceKeeper,
+      balanceEB
     }
 }

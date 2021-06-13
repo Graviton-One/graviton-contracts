@@ -23,8 +23,6 @@ abstract contract ImpactKeeper is IImpactKeeper {
     // for processing mass transfers
     uint public finalValue;
 
-    bool public canClaim = false;
-
     // processed data array
     mapping (uint => bool) public dataId;
 
@@ -48,10 +46,6 @@ abstract contract ImpactKeeper is IImpactKeeper {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
-    }
-
-    function setCanClaim(bool _canClaim) public isOwner {
-        canClaim = _canClaim;
     }
 
     modifier isNebula() {
