@@ -6,8 +6,10 @@ import { MockTimeFarmCurved } from "../../typechain/MockTimeFarmCurved";
 import { MockTimeFarmLinear } from "../../typechain/MockTimeFarmLinear";
 import { ImpactEB } from "../../typechain/ImpactEB";
 import { BalanceKeeper } from "../../typechain/BalanceKeeper";
-import { BalanceStaking } from "../../typechain/BalanceStaking";
-import { BalanceEB } from "../../typechain/BalanceEB";
+import { BalanceAdderEB } from "../../typechain/BalanceAdderEB";
+import { BalanceAdderStaking } from "../../typechain/BalanceAdderStaking";
+import { BalanceAdderLP } from "../../typechain/BalanceAdderLP";
+import { BalanceKeeperLP } from "../../typechain/BalanceKeeperLP";
 import { Voter } from "../../typechain/Voter";
 import {
   makeValue,
@@ -141,18 +143,18 @@ async function balanceKeeperFixture(
   return { balanceKeeper };
 }
 
-type FarmAndImpactEBAndBalanceKeeperFixture = FarmCurvedFixture &
+type FarmCurvedAndImpactEBAndBalanceKeeperFixture = FarmCurvedFixture &
   ImpactEBFixture &
   BalanceKeeperFixture;
 
-interface BalanceEBFixture extends FarmAndImpactEBAndBalanceKeeperFixture {
-  balanceEB: BalanceEB;
+interface BalanceAdderEBFixture extends FarmCurvedAndImpactEBAndBalanceKeeperFixture {
+  balanceAdderEB: BalanceAdderEB;
 }
 
-export const balanceEBFixture: Fixture<BalanceEBFixture> = async function (
+export const balanceAdderEBFixture: Fixture<BalanceAdderEBFixture> = async function (
   [wallet, other, nebula],
   provider
-): Promise<BalanceEBFixture> {
+): Promise<BalanceAdderEBFixture> {
   const { farm } = await farmCurvedFixture(wallet.address);
   const { token0, token1, token2, impactEB } = await impactEBFixture(
     [wallet, other, nebula],
@@ -167,12 +169,12 @@ export const balanceEBFixture: Fixture<BalanceEBFixture> = async function (
     .connect(nebula)
     .attachValue(makeValue(token2.address, other.address, "1000", "1", "0"));
 
-  const balanceEBFactory = await ethers.getContractFactory("BalanceEB");
-  const balanceEB = (await balanceEBFactory.deploy(
+  const balanceAdderEBFactory = await ethers.getContractFactory("BalanceAdderEB");
+  const balanceAdderEB = (await balanceAdderEBFactory.deploy(
     farm.address,
     impactEB.address,
     balanceKeeper.address
-  )) as BalanceEB;
+  )) as BalanceAdderEB;
   return {
     farm,
     token0,
@@ -180,7 +182,7 @@ export const balanceEBFixture: Fixture<BalanceEBFixture> = async function (
     token2,
     impactEB,
     balanceKeeper,
-    balanceEB,
+    balanceAdderEB,
   };
 };
 
@@ -205,27 +207,79 @@ export const voterFixture: Fixture<VoterFixture> = async function (
   };
 };
 
-type FarmAndBalanceKeeperFixture = FarmLinearFixture & BalanceKeeperFixture;
+type FarmLinearAndBalanceKeeperFixture = FarmLinearFixture & BalanceKeeperFixture;
 
-interface BalanceStakingFixture extends FarmAndBalanceKeeperFixture {
-  balanceStaking: BalanceStaking;
+interface BalanceAdderStakingFixture extends FarmLinearAndBalanceKeeperFixture {
+  balanceAdderStaking: BalanceAdderStaking;
 }
 
-export const balanceStakingFixture: Fixture<BalanceStakingFixture> =
-  async function ([wallet, other], provider): Promise<BalanceStakingFixture> {
+export const balanceAdderStakingFixture: Fixture<BalanceAdderStakingFixture> =
+  async function ([wallet, other], provider): Promise<BalanceAdderStakingFixture> {
     const { balanceKeeper } = await balanceKeeperFixture(wallet.address);
     const { farm } = await farmLinearFixture(wallet.address);
 
-    const balanceStakingFactory = await ethers.getContractFactory(
-      "BalanceStaking"
+    const balanceAdderStakingFactory = await ethers.getContractFactory(
+      "BalanceAdderStaking"
     );
-    const balanceStaking = (await balanceStakingFactory.deploy(
+    const balanceAdderStaking = (await balanceAdderStakingFactory.deploy(
       farm.address,
       balanceKeeper.address
-    )) as BalanceStaking;
+    )) as BalanceAdderStaking;
     return {
       farm,
       balanceKeeper,
-      balanceStaking,
+      balanceAdderStaking,
+    };
+  };
+
+interface BalanceKeeperLPFixture extends TokensFixture {
+  balanceKeeperLP: BalanceKeeperLP;
+}
+
+export const balanceKeeperLPFixture: Fixture<BalanceKeeperLPFixture> =
+  async function ([wallet, other], provider): Promise<BalanceKeeperLPFixture> {
+    const { token0, token1, token2 } = await tokensFixture();
+    const balanceKeeperLPFactory = await ethers.getContractFactory(
+      "BalanceKeeperLP"
+    );
+    const balanceKeeperLP = (await balanceKeeperLPFactory.deploy(
+      wallet.address
+    )) as BalanceKeeperLP;
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeperLP,
+    };
+  };
+
+type FarmCurvedAndBalanceKeeperAndBalanceKeeperLPFixture = FarmCurvedFixture & BalanceKeeperFixture & BalanceKeeperLPFixture;
+
+interface BalanceAdderLPFixture extends FarmCurvedAndBalanceKeeperAndBalanceKeeperLPFixture {
+  balanceAdderLP: BalanceAdderLP;
+}
+
+export const balanceAdderLPFixture: Fixture<BalanceAdderLPFixture> =
+  async function ([wallet, other], provider): Promise<BalanceAdderLPFixture> {
+    const { balanceKeeper } = await balanceKeeperFixture(wallet.address);
+    const { token0, token1, token2, balanceKeeperLP } = await balanceKeeperLPFixture([wallet, other], provider);
+    const { farm } = await farmCurvedFixture(wallet.address);
+
+    const balanceAdderLPFactory = await ethers.getContractFactory(
+      "BalanceAdderLP"
+    );
+    const balanceAdderLP = (await balanceAdderLPFactory.deploy(
+      farm.address,
+      balanceKeeper.address,
+      balanceKeeperLP.address
+    )) as BalanceAdderLP;
+    return {
+      token0,
+      token1,
+      token2,
+      farm,
+      balanceKeeper,
+      balanceKeeperLP,
+      balanceAdderLP,
     };
   };

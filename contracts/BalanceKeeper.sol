@@ -2,11 +2,12 @@
 pragma solidity >=0.8.0;
 
 import './interfaces/IFarm.sol';
+import './interfaces/IBalanceKeeper.sol';
 
 /// @title BalanceKeeper
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceKeeper {
+contract BalanceKeeper is IBalanceKeeper {
 
     address public owner;
 
@@ -19,10 +20,10 @@ contract BalanceKeeper {
     mapping (address=>bool) public canAdd;
     mapping (address=>bool) public canSubtract;
 
-    address[] public users;
+    address[] public override users;
     mapping (address => bool) public userIsKnown;
-    mapping (address => uint) public userBalance;
-    uint public totalBalance;
+    mapping (address => uint) public override userBalance;
+    uint public override totalBalance;
 
     event AddValue(address indexed adder, address indexed user, uint indexed amount);
     event SubtractValue(address indexed subtractor, address indexed user, uint indexed amount);
@@ -40,7 +41,7 @@ contract BalanceKeeper {
         emit SetOwner(ownerOld, _owner);
     }
 
-    function totalUsers() public view returns (uint) {
+    function totalUsers() public view override returns (uint) {
         return users.length;
     }
 
@@ -57,7 +58,7 @@ contract BalanceKeeper {
     }
 
     // add user balance
-    function addValue(address user, uint value) public {
+    function addValue(address user, uint value) public override {
         require(canAdd[msg.sender], "not allowed to add value");
         if ( !userIsKnown[user]) {
             userIsKnown[user] = true;
@@ -69,7 +70,7 @@ contract BalanceKeeper {
     }
 
     // subtract user balance
-    function subtractValue(address user, uint value) public {
+    function subtractValue(address user, uint value) public override {
         require(canSubtract[msg.sender], "not allowed to subtract");
         userBalance[user] -= value;
         totalBalance -= value;

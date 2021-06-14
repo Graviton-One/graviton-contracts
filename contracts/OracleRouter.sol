@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0;
 
 import './interfaces/IBalanceKeeper.sol';
-import './interfaces/IBalanceLP.sol';
+import './interfaces/IBalanceKeeperLP.sol';
 import './interfaces/IOracleRouter.sol';
 
 /// @title OracleRouter
@@ -18,7 +18,7 @@ contract OracleRouter is IOracleRouter {
     }
 
     IBalanceKeeper public balanceKeeper;
-    IBalanceLP public balanceLP;
+    IBalanceKeeperLP public balanceKeeperLP;
     bytes32 public gtonAddTopic;
     bytes32 public gtonSubTopic;
     bytes32 public lp__AddTopic;
@@ -61,7 +61,7 @@ contract OracleRouter is IOracleRouter {
 
     constructor(address _owner,
                 IBalanceKeeper _balanceKeeper,
-                IBalanceLP _balanceLP,
+                IBalanceKeeperLP _balanceKeeperLP,
                 bytes32 _gtonAddTopic,
                 bytes32 _gtonSubTopic,
                 bytes32 _lp__AddTopic,
@@ -69,7 +69,7 @@ contract OracleRouter is IOracleRouter {
                 ) {
         owner = _owner;
         balanceKeeper = _balanceKeeper;
-        balanceLP = _balanceLP;
+        balanceKeeperLP = _balanceKeeperLP;
         gtonAddTopic = _gtonAddTopic;
         gtonSubTopic = _gtonSubTopic;
         lp__AddTopic = _lp__AddTopic;
@@ -115,11 +115,11 @@ contract OracleRouter is IOracleRouter {
             emit GTONSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(lp__AddTopic))) {
-            balanceLP.addTokens(token, receiver, amount);
+            balanceKeeperLP.addLPToken(token, receiver, amount);
             emit LP__Add(uuid, chain, emiter, token, sender, receiver, amount);
         }
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(lp__SubTopic))) {
-            balanceLP.subtractTokens(token, sender, amount);
+            balanceKeeperLP.subtractLPToken(token, sender, amount);
             emit LP__Sub(uuid, chain, emiter, token, sender, receiver, amount);
         }
     }

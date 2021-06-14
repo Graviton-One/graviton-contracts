@@ -4,11 +4,12 @@ pragma solidity >=0.8.0;
 import './interfaces/IFarm.sol';
 import './interfaces/IImpactKeeper.sol';
 import './interfaces/IBalanceKeeper.sol';
+import './interfaces/IBalanceAdder.sol';
 
-/// @title BalanceEB
+/// @title BalanceAdderEB
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceEB {
+contract BalanceAdderEB is IBalanceAdder {
 
     // early birds emission data
     IFarm public farm;
@@ -35,7 +36,7 @@ contract BalanceEB {
         balanceKeeper.addValue(user, add);
     }
 
-    function processBalances(uint step) public {
+    function processBalances(uint step) public override {
         uint toValue = finalValue + step;
         uint fromValue = finalValue;
         if (toValue > totalUsers) {

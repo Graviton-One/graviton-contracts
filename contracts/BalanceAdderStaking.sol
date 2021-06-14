@@ -3,11 +3,12 @@ pragma solidity >=0.8.0;
 
 import './interfaces/IFarm.sol';
 import './interfaces/IBalanceKeeper.sol';
+import './interfaces/IBalanceAdder.sol';
 
-/// @title BalanceStaking
+/// @title BalanceAdderStaking
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceStaking {
+contract BalanceAdderStaking is IBalanceAdder {
 
     // early birds emission data
     IFarm public farm;
@@ -32,7 +33,7 @@ contract BalanceStaking {
         balanceKeeper.addValue(user, add);
     }
 
-    function processBalances(uint step) public {
+    function processBalances(uint step) public override {
         if (finalValue == 0) {
             totalUsers = balanceKeeper.totalUsers();
             totalUnlocked = farm.totalUnlocked();
