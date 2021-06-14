@@ -104,7 +104,7 @@ contract OracleRouter is IOracleRouter {
                         address sender,
                         address receiver,
                         uint256 amount) external override {
-        require(canParse[msg.sender],"not allowed to route value");
+        require(canParse[msg.sender], "not allowed to route value");
 
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(gtonAddTopic))) {
             balanceKeeper.addValue(receiver, amount);

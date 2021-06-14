@@ -65,16 +65,16 @@ contract Voter is IVoter {
     function votesForOptionByUser(uint roundId, address user, uint optionId) public view returns (uint) {
         return _votesForOptionByUser[roundId][user][optionId];
     }
-    function userVotedInRound(uint roundId, address user) public view returns(bool) {
+    function userVotedInRound(uint roundId, address user) public view returns (bool) {
         return _userVotedInRound[roundId][user];
     }
-    function userVotedForOption(uint roundId, uint optionId, address user) public view returns(bool) {
+    function userVotedForOption(uint roundId, uint optionId, address user) public view returns (bool) {
         return _userVotedForOption[roundId][optionId][user];
     }
-    function userCountInRound(uint roundId) public view returns(uint) {
+    function userCountInRound(uint roundId) public view returns (uint) {
         return _userCountInRound[roundId];
     }
-    function userCountForOption(uint roundId, uint optionId) public view returns(uint) {
+    function userCountForOption(uint roundId, uint optionId) public view returns (uint) {
         return _userCountForOption[roundId][optionId];
     }
 
@@ -98,7 +98,7 @@ contract Voter is IVoter {
     }
 
     // number of options in a round
-    function roundOptionCount(uint roundId) public view returns(uint) {
+    function roundOptionCount(uint roundId) public view returns (uint) {
         uint sum;
         for (uint i = 0; i < _roundOptions[roundId].length; i++) {
             sum ++;
@@ -191,9 +191,9 @@ contract Voter is IVoter {
         emit SetCanCheck(msg.sender, checker, canCheck[checker]);
     }
 
-    // increase votes proportionally to the increase in balance
+    // decrease votes when the balance is depleted, preserve proportions
     function checkVoteBalance(uint roundId, address user, uint newBalance) internal {
-        // return if newBalance is lower than the number of votes
+        // return if newBalance is still larger than the number of votes
         // return if user didn't vote
         if (newBalance > _votesInRoundByUser[roundId][user] ||
             _votesInRoundByUser[roundId][user] == 0) {
@@ -211,11 +211,12 @@ contract Voter is IVoter {
         _votesInRoundByUser[roundId][user] = newSum;
     }
 
-    // increase votes proportionally to the increase in balance
-    function checkVoteBalances(address user, uint newBalance) public override {
+    // decrease votes when the balance is depleted, preserve proportions
+    function checkVoteBalances(address user) public override {
         require(canCheck[msg.sender], "sender is not allowed to check balances");
+        uint newBalance = IBalanceKeeper(balanceKeeper).userBalance(msg.sender);
         for(uint i = 0; i < activeRounds.length; i++) {
-            checkVoteBalance(activeRounds[i],user,newBalance);
+            checkVoteBalance(activeRounds[i], user, newBalance);
         }
         emit CheckVoteBalances(msg.sender, user, newBalance);
     }

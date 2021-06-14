@@ -67,7 +67,7 @@ contract BalanceLP is IBalanceLP {
         return lpTokens.length;
     }
 
-    function userCount(address lptoken) public view returns(uint) {
+    function userCount(address lptoken) public view returns (uint) {
         return users[lptoken].length;
     }
 
@@ -86,7 +86,7 @@ contract BalanceLP is IBalanceLP {
     function addTokens(address lptoken,
                        address user,
                        uint amount) public override {
-        require(canAdd[msg.sender],"not allowed to add value");
+        require(canAdd[msg.sender], "not allowed to add value");
         if (!lpTokenIsKnown[lptoken]) {
             lpTokens.push(lptoken);
             lpTokenIsKnown[lptoken] = true;
@@ -103,7 +103,7 @@ contract BalanceLP is IBalanceLP {
     function subtractTokens(address lptoken,
                             address user,
                             uint amount) public override {
-        require(canSubtract[msg.sender],"not allowed to subtract");
+        require(canSubtract[msg.sender], "not allowed to subtract");
         userBalance[lptoken][user] -= amount;
         supply[lptoken] -= amount;
         emit SubtractTokens(msg.sender, lptoken, user, amount);

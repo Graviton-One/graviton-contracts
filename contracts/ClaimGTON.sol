@@ -90,7 +90,7 @@ contract ClaimGTON {
         }
         balanceKeeper.subtractValue(msg.sender, amount);
         for (uint i = 0; i < voteContracts.length; i++) {
-            voteContracts[i].checkVoteBalances(msg.sender, balanceKeeper.userBalance(msg.sender));
+            voteContracts[i].checkVoteBalances(msg.sender);
         }
         if (limitActivated) {
             limitMax[msg.sender] = max - amount;

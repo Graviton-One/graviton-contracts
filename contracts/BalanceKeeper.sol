@@ -40,7 +40,7 @@ contract BalanceKeeper {
         emit SetOwner(ownerOld, _owner);
     }
 
-    function totalUsers() public view returns(uint) {
+    function totalUsers() public view returns (uint) {
         return users.length;
     }
 
@@ -58,7 +58,7 @@ contract BalanceKeeper {
 
     // add user balance
     function addValue(address user, uint value) public {
-        require(canAdd[msg.sender],"not allowed to add value");
+        require(canAdd[msg.sender], "not allowed to add value");
         if ( !userIsKnown[user]) {
             userIsKnown[user] = true;
             users.push(user);
@@ -70,7 +70,7 @@ contract BalanceKeeper {
 
     // subtract user balance
     function subtractValue(address user, uint value) public {
-        require(canSubtract[msg.sender],"not allowed to subtract");
+        require(canSubtract[msg.sender], "not allowed to subtract");
         userBalance[user] -= value;
         totalBalance -= value;
         emit SubtractValue(msg.sender, user, value);
