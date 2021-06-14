@@ -55,18 +55,21 @@ contract BalanceKeeper {
     
     function openAddress(string memory chainName, string memory addr) public returns (uint) {
         require(canOpen[msg.sender],"not allowed to add value");
-        string storage curChain = chainName;
-        if (!internalAddress[chain][addr]) {
-            chain[userMaxId] = chain;
+        if (internalAddress[chainName][addr] != 0) {
+            chain[userMaxId] = chainName;
             userAddress[userMaxId] = addr;
-            internalAddress[chain][addr] = userMaxId;
+            internalAddress[chainName][addr] = userMaxId;
             userMaxId++;
         }
-        return internalAddress[chain][addr];
+        return internalAddress[chainName][addr];
     }
     
     function getFamiliarAddress (uint userId) public view returns (string memory, string memory) {
         return (chain[userId],userAddress[userId]);
+    }
+    
+    function getUserId (string memory chainName, string memory addr) public view returns (uint) {
+        return (internalAddress[chainName][addr]);
     }
 
     function setCanOpen(address adder, bool _canAdd) public isOwner {
