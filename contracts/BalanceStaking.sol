@@ -9,15 +9,8 @@ import './interfaces/IBalanceKeeper.sol';
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract BalanceStaking {
 
-    address public owner;
-
-    modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
-        _;
-    }
-
     // early birds emission data
-    IFarm public stakingFarmContract;
+    IFarm public farm;
     IBalanceKeeper public balanceKeeper;
 
     uint public finalValue;
@@ -27,15 +20,13 @@ contract BalanceStaking {
     uint public totalBalance;
     uint public totalUnlocked;
 
-    event SetOwner(address ownerOld, address ownerNew);
-
-    constructor(address _owner, IFarm _farmStaking, IBalanceKeeper _balanceKeeper) {
-        owner = _owner;
-        stakingFarmContract = _farmStaking;
+    constructor(IFarm _farm, IBalanceKeeper _balanceKeeper) {
+        farm = _farm;
         balanceKeeper = _balanceKeeper;
     }
 
     function increaseUserStakeValue(address user) internal {
+        require(totalBalance > 0, "there is no balance available for staking");
         uint prevBalance = balanceKeeper.userBalance(user);
         uint add = currentPortion * prevBalance / totalBalance;
         balanceKeeper.addValue(user, add);
@@ -44,7 +35,7 @@ contract BalanceStaking {
     function processBalances(uint step) public {
         if (finalValue == 0) {
             totalUsers = balanceKeeper.totalUsers();
-            totalUnlocked = stakingFarmContract.totalUnlocked();
+            totalUnlocked = farm.totalUnlocked();
             currentPortion = totalUnlocked - lastPortion;
             totalBalance = balanceKeeper.totalBalance();
         }

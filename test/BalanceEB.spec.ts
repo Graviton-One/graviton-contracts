@@ -44,6 +44,7 @@ describe('BalanceEB', () => {
     expect(await balanceEB.lastPortion(wallet.address)).to.eq(0)
     expect(await balanceEB.lastPortion(other.address)).to.eq(0)
   })
+
   describe('#processBalances', () => {
     it('fails if not allowed to add value', async () => {
       await expect(balanceEB.processBalances(1)).to.be.reverted
