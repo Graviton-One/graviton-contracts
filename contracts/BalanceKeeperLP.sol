@@ -17,7 +17,7 @@ contract BalanceKeeperLP is IBalanceKeeperLP {
 
     address[] public override lpTokens;
     mapping (address => bool) public lpTokenIsKnown;
-    mapping (address => uint) public override supply;
+    mapping (address => uint) public override totalBalance;
 
     mapping (address => address[]) public override users;
     mapping (address => mapping (address => bool)) public userIsKnown;
@@ -87,7 +87,7 @@ contract BalanceKeeperLP is IBalanceKeeperLP {
             userIsKnown[lptoken][user] = true;
         }
         userBalance[lptoken][user] += amount;
-        supply[lptoken] += amount;
+        totalBalance[lptoken] += amount;
         emit AddLPToken(msg.sender, lptoken, user, amount);
     }
 
@@ -96,7 +96,7 @@ contract BalanceKeeperLP is IBalanceKeeperLP {
                             uint amount) public override {
         require(canSubtract[msg.sender], "not allowed to subtract");
         userBalance[lptoken][user] -= amount;
-        supply[lptoken] -= amount;
+        totalBalance[lptoken] -= amount;
         emit SubtractLPToken(msg.sender, lptoken, user, amount);
     }
 

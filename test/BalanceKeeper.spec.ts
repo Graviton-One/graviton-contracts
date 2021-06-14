@@ -59,13 +59,13 @@ describe('BalanceKeeper', () => {
     })
   })
 
-  describe('totalUsers', () => {
+  describe('#totalUsers', () => {
     it('returns the number of users', async () => {
       expect(await balanceKeeper.totalUsers()).to.eq(0)
     })
   })
 
-  describe('setCanAdd', () => {
+  describe('#setCanAdd', () => {
     it('fails if caller is not owner', async () => {
       await expect(balanceKeeper.connect(other).setCanAdd(wallet.address, true)).to.be.reverted
     })
@@ -101,7 +101,7 @@ describe('BalanceKeeper', () => {
     })
   })
 
-  describe('setCanSubtract', () => {
+  describe('#setCanSubtract', () => {
     it('fails if caller is not owner', async () => {
       await expect(balanceKeeper.connect(other).setCanSubtract(wallet.address, true)).to.be.reverted
     })
@@ -124,7 +124,7 @@ describe('BalanceKeeper', () => {
     })
 
     it('sets permission to false idempotent', async () => {
-      await balanceKeeper.setCanSubtract(wallet.address, true)
+      await balanceKeeper.setCanSubtract(wallet.address, false)
       await balanceKeeper.setCanSubtract(wallet.address, false)
       expect(await balanceKeeper.canSubtract(wallet.address)).to.eq(false)
     })
@@ -136,7 +136,7 @@ describe('BalanceKeeper', () => {
     })
   })
 
-  describe('addValue', () => {
+  describe('#addValue', () => {
     it('fails if caller is not allowed to add', async () => {
       await expect(balanceKeeper.addValue(other.address, 1)).to.be.reverted
     })
@@ -182,7 +182,7 @@ describe('BalanceKeeper', () => {
     })
   })
 
-  describe('subtractValue', () => {
+  describe('#subtractValue', () => {
     it('fails if caller is not allowed to subtract', async () => {
       await balanceKeeper.setCanAdd(wallet.address, true)
       await balanceKeeper.addValue(other.address, 1)

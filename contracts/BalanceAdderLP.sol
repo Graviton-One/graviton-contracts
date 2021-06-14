@@ -26,7 +26,7 @@ contract BalanceAdderLP is IBalanceAdder {
     }
 
     function addUserBalance(address lptoken, address user) internal {
-        uint amount = currentPortion[lptoken] * balanceKeeperLP.userBalance(lptoken, user) / balanceKeeperLP.supply(lptoken);
+        uint amount = currentPortion[lptoken] * balanceKeeperLP.userBalance(lptoken, user) / balanceKeeperLP.totalBalance(lptoken);
         balanceKeeper.addValue(user, amount);
     }
 
@@ -55,7 +55,7 @@ contract BalanceAdderLP is IBalanceAdder {
     function processBalances(uint step) public override {
         for(uint i = 0; i < balanceKeeperLP.lpTokenCount(); i++) {
             address lptoken = balanceKeeperLP.lpTokens(i);
-            if (balanceKeeperLP.supply(lptoken) <= 0) { continue; } // skip if no supply for lptoken
+            if (balanceKeeperLP.totalBalance(lptoken) <= 0) { continue; } // skip if no totalBalance for lptoken
             processBalancesForToken(lptoken, step);
             while (finalValue[lptoken] != 0) {
               processBalancesForToken(lptoken, step);
