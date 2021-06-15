@@ -2,7 +2,7 @@ import { ethers, waffle } from 'hardhat'
 import { ImpactEB } from '../typechain/ImpactEB'
 import { TestERC20 } from '../typechain/TestERC20'
 import { impactEBFixture } from './shared/fixtures'
-import { makeValue } from './shared/utilities'
+import { makeValueImpact } from './shared/utilities'
 
 import { expect } from './shared/expect'
 
@@ -57,33 +57,33 @@ describe('ImpactEB', () => {
   describe('#attachValue', () => {
 
     it('fails if caller is not nebula', async () => {
-      let attachValue = makeValue(token1.address, wallet.address, "1000", "0", "0")
+      let attachValue = makeValueImpact(token1.address, wallet.address, "1000", "0", "0")
       await expect(impactEB.attachValue(attachValue)).to.be.reverted
     })
 
     it('does not emit event if attach is not allowed', async () => {
       await impactEB.setCanAttach(false)
-      let attachValue = makeValue(token1.address, wallet.address, "1000", "0", "0")
+      let attachValue = makeValueImpact(token1.address, wallet.address, "1000", "0", "0")
       await expect(impactEB.connect(nebula).attachValue(attachValue))
         .to.not.emit(impactEB, 'Transfer')
     })
 
     it('does not emit event if id has already been processed', async () => {
-      let attachValue = makeValue(token1.address, wallet.address, "1000", "0", "0")
+      let attachValue = makeValueImpact(token1.address, wallet.address, "1000", "0", "0")
       await impactEB.connect(nebula).attachValue(attachValue)
       await expect(impactEB.connect(nebula).attachValue(attachValue))
         .to.not.emit(impactEB, 'Transfer')
     })
 
     it('emits event', async () => {
-      let attachValue = makeValue(token1.address, wallet.address, "1000", "0", "0")
+      let attachValue = makeValueImpact(token1.address, wallet.address, "1000", "0", "0")
       await expect(impactEB.connect(nebula).attachValue(attachValue))
         .to.emit(impactEB, 'Transfer')
         .withArgs(token1.address, wallet.address, 1000, 0, 0)
     })
 
     it('does not register data if token is not allowed', async () => {
-      let attachValue = makeValue(token0.address, wallet.address, "1000", "0", "0")
+      let attachValue = makeValueImpact(token0.address, wallet.address, "1000", "0", "0")
       await impactEB.connect(nebula).attachValue(attachValue)
       expect(await impactEB.userCount()).to.eq(0)
       expect(await impactEB.impact(wallet.address)).to.eq(0)
@@ -91,27 +91,27 @@ describe('ImpactEB', () => {
     })
 
     it('increments user count for a new user', async () => {
-      let attachValue = makeValue(token1.address, wallet.address, "1000", "0", "0")
+      let attachValue = makeValueImpact(token1.address, wallet.address, "1000", "0", "0")
       await impactEB.connect(nebula).attachValue(attachValue)
       expect(await impactEB.userCount()).to.eq(1)
     })
 
     it('does not increment user count for a known user', async () => {
-      let attachValue1 = makeValue(token1.address, wallet.address, "1000", "0", "0")
+      let attachValue1 = makeValueImpact(token1.address, wallet.address, "1000", "0", "0")
       await impactEB.connect(nebula).attachValue(attachValue1)
-      let attachValue2 = makeValue(token1.address, wallet.address, "1000", "1", "0")
+      let attachValue2 = makeValueImpact(token1.address, wallet.address, "1000", "1", "0")
       await impactEB.connect(nebula).attachValue(attachValue2)
       expect(await impactEB.userCount()).to.eq(1)
     })
 
     it('adds impact', async () => {
-      let attachValue = makeValue(token1.address, wallet.address, "1000", "0", "0")
+      let attachValue = makeValueImpact(token1.address, wallet.address, "1000", "0", "0")
       await impactEB.connect(nebula).attachValue(attachValue)
       expect(await impactEB.impact(wallet.address)).to.eq(1000)
     })
 
     it('adds total supply', async () => {
-      let attachValue = makeValue(token1.address, wallet.address, "1000", "0", "0")
+      let attachValue = makeValueImpact(token1.address, wallet.address, "1000", "0", "0")
       await impactEB.connect(nebula).attachValue(attachValue)
       expect(await impactEB.totalSupply()).to.eq(1000)
     })

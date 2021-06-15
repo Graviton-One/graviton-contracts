@@ -24,7 +24,7 @@ contract OracleParser {
 
     IOracleRouter public oracleRouter;
 
-    mapping (bytes17 => bool) public uuidIsProcessed;
+    mapping (bytes16 => bool) public uuidIsProcessed;
 
     event AttachValue(address nebula,
                       bytes16 uuid,
@@ -36,6 +36,7 @@ contract OracleParser {
                       address receiver,
                       uint256 amount);
     event SetOwner(address ownerOld, address ownerNew);
+    event SetNebula(address nebulaOld, address nebulaNew);
 
     constructor(address _owner, IOracleRouter _router, address _nebula) {
         owner = _owner;
@@ -43,15 +44,23 @@ contract OracleParser {
         nebula = _nebula;
     }
 
-    function setRouterContract(IOracleRouter newRouterContract) public isOwner {
-        oracleRouter = newRouterContract;
+    function setOwner(address _owner) public isOwner {
+        address ownerOld = owner;
+        owner = _owner;
+        emit SetOwner(ownerOld, _owner);
     }
 
-    function setNebula(address newNebulaAddress) public isOwner {
-        nebula = newNebulaAddress;
+    function setNebula(address _nebula) public isOwner {
+        address nebulaOld = nebula;
+        nebula = _nebula;
+        emit SetNebula(nebulaOld, _nebula);
     }
 
-    function deserializeUint(bytes memory b, uint startPos, uint len) internal pure returns (uint) {
+    function setOracleRouter(IOracleRouter _oracleRouter) public isOwner {
+        oracleRouter = _oracleRouter;
+    }
+
+    function deserializeUint(bytes memory b, uint startPos, uint len) public pure returns (uint) {
         uint v = 0;
         for (uint p = startPos; p < startPos + len; p++) {
             v = v * 256 + uint(uint8(b[p]));
@@ -59,11 +68,11 @@ contract OracleParser {
         return v;
     }
 
-    function deserializeAddress(bytes memory b, uint startPos) internal pure returns (address) {
+    function deserializeAddress(bytes memory b, uint startPos) public pure returns (address) {
         return address(uint160(deserializeUint(b, startPos, 20)));
     }
 
-    function bytesToBytes32(bytes memory b, uint offset) private pure returns (bytes32) {
+    function bytesToBytes32(bytes memory b, uint offset) public pure returns (bytes32) {
         bytes32 out;
         for (uint i = 0; i < 32; i++) {
           out |= bytes32(b[offset + i]) >> (i * 8);
@@ -71,7 +80,7 @@ contract OracleParser {
         return out;
     }
 
-    function bytesToBytes16(bytes memory b, uint offset) private pure returns (bytes16) {
+    function bytesToBytes16(bytes memory b, uint offset) public pure returns (bytes16) {
         bytes16 out;
         for (uint i = 0; i < 16; i++) {
           out |= bytes16(b[offset + i]) >> (i * 8);
@@ -84,7 +93,6 @@ contract OracleParser {
         if (impactData.length != 200) { return; }  // ignore data with unexpected length
 
         bytes16 uuid = bytesToBytes16(impactData, 0);                      // [  0: 16]
-        // TODO: check if uuid already tested
         if (uuidIsProcessed[uuid]) { return; } // parse data only once
         uuidIsProcessed[uuid] = true;
         string memory chain = string(abi.encodePacked(impactData[16:19])); // [ 16: 19]
@@ -94,11 +102,11 @@ contract OracleParser {
             keccak256(abi.encodePacked(bytes1(abi.encodePacked(uint(4))[31])))) {
             return;
         }
-        bytes32 topic0 = bytesToBytes32(impactData, 40);                   // [ 40: 72]
-        address token = deserializeAddress(impactData[72:], 12);           // [ 72:104][12:32]
-        address sender = deserializeAddress(impactData[104:], 12);         // [104:136][12:32]
+        bytes32 topic0   = bytesToBytes32(impactData, 40);                 // [ 40: 72]
+        address token    = deserializeAddress(impactData[72:], 12);        // [ 72:104][12:32]
+        address sender   = deserializeAddress(impactData[104:], 12);       // [104:136][12:32]
         address receiver = deserializeAddress(impactData[136:], 12);       // [136:168][12:32]
-        uint256 amount = deserializeUint(impactData, 168, 32);             // [168:200]
+        uint256 amount   = deserializeUint(impactData, 168, 32);           // [168:200]
 
         oracleRouter.routeValue(uuid,
                                 chain,
@@ -110,13 +118,13 @@ contract OracleParser {
                                 amount);
 
         emit AttachValue(msg.sender,
-                              uuid,
-                              chain,
-                              emiter,
-                              topic0,
-                              token,
-                              sender,
-                              receiver,
-                              amount);
+                         uuid,
+                         chain,
+                         emiter,
+                         topic0,
+                         token,
+                         sender,
+                         receiver,
+                         amount);
     }
 }

@@ -6,17 +6,23 @@ import { MockTimeFarmCurved } from "../../typechain/MockTimeFarmCurved";
 import { MockTimeFarmLinear } from "../../typechain/MockTimeFarmLinear";
 import { ImpactEB } from "../../typechain/ImpactEB";
 import { BalanceKeeper } from "../../typechain/BalanceKeeper";
+import { Voter } from "../../typechain/Voter";
 import { BalanceAdderEB } from "../../typechain/BalanceAdderEB";
 import { BalanceAdderStaking } from "../../typechain/BalanceAdderStaking";
 import { BalanceAdderLP } from "../../typechain/BalanceAdderLP";
 import { BalanceKeeperLP } from "../../typechain/BalanceKeeperLP";
-import { Voter } from "../../typechain/Voter";
+import { OracleRouter } from "../../typechain/OracleRouter";
+import { OracleParser } from "../../typechain/OracleParser";
 import {
-  makeValue,
+  makeValueImpact,
   EARLY_BIRDS_A,
   EARLY_BIRDS_C,
   STAKING_AMOUNT,
   STAKING_PERIOD,
+  GTON_ADD_TOPIC,
+  GTON_SUB_TOPIC,
+  __LP_ADD_TOPIC,
+  __LP_SUB_TOPIC
 } from "./utilities";
 
 import { Fixture } from "ethereum-waffle";
@@ -164,10 +170,10 @@ export const balanceAdderEBFixture: Fixture<BalanceAdderEBFixture> = async funct
 
   await impactEB
     .connect(nebula)
-    .attachValue(makeValue(token1.address, wallet.address, "1000", "0", "0"));
+    .attachValue(makeValueImpact(token1.address, wallet.address, "1000", "0", "0"));
   await impactEB
     .connect(nebula)
-    .attachValue(makeValue(token2.address, other.address, "1000", "1", "0"));
+    .attachValue(makeValueImpact(token2.address, other.address, "1000", "1", "0"));
 
   const balanceAdderEBFactory = await ethers.getContractFactory("BalanceAdderEB");
   const balanceAdderEB = (await balanceAdderEBFactory.deploy(
@@ -281,5 +287,61 @@ export const balanceAdderLPFixture: Fixture<BalanceAdderLPFixture> =
       balanceKeeper,
       balanceKeeperLP,
       balanceAdderLP,
+    };
+  };
+
+type BalanceKeeperAndBalanceKeeperLPFixture = BalanceKeeperFixture & BalanceKeeperLPFixture
+
+interface OracleRouterFixture extends BalanceKeeperAndBalanceKeeperLPFixture {
+  oracleRouter: OracleRouter;
+}
+
+export const oracleRouterFixture: Fixture<OracleRouterFixture> =
+  async function ([wallet, other], provider): Promise<OracleRouterFixture> {
+    const { balanceKeeper } = await balanceKeeperFixture(wallet.address);
+    const { token0, token1, token2, balanceKeeperLP } = await balanceKeeperLPFixture([wallet, other], provider);
+
+    const oracleRouterFactory = await ethers.getContractFactory("OracleRouter");
+    const oracleRouter = (await oracleRouterFactory.deploy(
+      wallet.address,
+      balanceKeeper.address,
+      balanceKeeperLP.address,
+      GTON_ADD_TOPIC,
+      GTON_SUB_TOPIC,
+      __LP_ADD_TOPIC,
+      __LP_SUB_TOPIC
+    )) as OracleRouter;
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeper,
+      balanceKeeperLP,
+      oracleRouter
+    };
+  };
+
+interface OracleParserFixture extends OracleRouterFixture {
+  oracleParser: OracleParser;
+}
+
+export const oracleParserFixture: Fixture<OracleParserFixture> =
+  async function ([wallet, other, nebula], provider): Promise<OracleParserFixture> {
+    const { token0, token1, token2, balanceKeeper, balanceKeeperLP, oracleRouter } = await oracleRouterFixture([wallet, other], provider);
+
+    const oracleParserFactory = await ethers.getContractFactory("OracleParser");
+    const oracleParser = (await oracleParserFactory.deploy(
+      wallet.address,
+      oracleRouter.address,
+      nebula.address
+    )) as OracleParser;
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeper,
+      balanceKeeperLP,
+      oracleRouter,
+      oracleParser
     };
   };

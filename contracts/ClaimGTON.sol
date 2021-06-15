@@ -31,7 +31,11 @@ contract ClaimGTON {
     event Claim(address indexed sender, address indexed receiver, uint amount);
     event SetOwner(address ownerOld, address ownerNew);
 
-    constructor(address _owner, IERC20 _governanceToken, address _wallet, IBalanceKeeper balance, IVoter[] memory votes) {
+    constructor(address _owner,
+                IERC20 _governanceToken,
+                address _wallet,
+                IBalanceKeeper balance,
+                IVoter[] memory votes) {
         owner = _owner;
         governanceToken = _governanceToken;
         wallet = _wallet;

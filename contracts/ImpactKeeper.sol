@@ -28,6 +28,7 @@ abstract contract ImpactKeeper is IImpactKeeper {
 
     event Transfer(address token, address user, uint256 value, uint256 id, uint256 action);
     event SetOwner(address ownerOld, address ownerNew);
+    event SetNebula(address nebulaOld, address nebulaNew);
 
     constructor(address _owner, address _nebula, address[] memory allowedTokens) {
         owner = _owner;
@@ -54,7 +55,9 @@ abstract contract ImpactKeeper is IImpactKeeper {
     }
 
     function setNebula(address _nebula) public isOwner {
+        address nebulaOld = nebula;
         nebula = _nebula;
+        emit SetNebula(nebulaOld, _nebula);
     }
 
     function allowToken(address token) public isOwner {

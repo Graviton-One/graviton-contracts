@@ -63,6 +63,12 @@ describe('ImpactKeeper', () => {
       await expect(impactKeeper.connect(other).setNebula(other.address)).to.be.reverted
     })
 
+    it('emits a SetNebula event', async () => {
+      expect(await impactKeeper.setNebula(other.address))
+        .to.emit(impactKeeper, 'SetNebula')
+        .withArgs(nebula.address, other.address)
+    })
+
     it('updates nebula', async () => {
       await impactKeeper.setNebula(other.address)
       await expect(await impactKeeper.nebula()).to.eq(other.address)

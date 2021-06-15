@@ -21,12 +21,12 @@ contract OracleRouter is IOracleRouter {
     IBalanceKeeperLP public balanceKeeperLP;
     bytes32 public gtonAddTopic;
     bytes32 public gtonSubTopic;
-    bytes32 public lp__AddTopic;
-    bytes32 public lp__SubTopic;
+    bytes32 public __lpAddTopic;
+    bytes32 public __lpSubTopic;
 
-    mapping (address=>bool) public canParse;
+    mapping (address=>bool) public canRoute;
 
-    event SetCanParse(address indexed owner,
+    event SetCanRoute(address indexed owner,
                       address indexed parser,
                       bool indexed newBool);
     event GTONAdd(bytes16 uuid,
@@ -43,14 +43,14 @@ contract OracleRouter is IOracleRouter {
                   address sender,
                   address receiver,
                   uint256 amount);
-    event LP__Add(bytes16 uuid,
+    event __LPAdd(bytes16 uuid,
                   string chain,
                   address emiter,
                   address token,
                   address sender,
                   address receiver,
                   uint256 amount);
-    event LP__Sub(bytes16 uuid,
+    event __LPSub(bytes16 uuid,
                   string chain,
                   address emiter,
                   address token,
@@ -64,16 +64,16 @@ contract OracleRouter is IOracleRouter {
                 IBalanceKeeperLP _balanceKeeperLP,
                 bytes32 _gtonAddTopic,
                 bytes32 _gtonSubTopic,
-                bytes32 _lp__AddTopic,
-                bytes32 _lp__SubTopic
+                bytes32 ___lpAddTopic,
+                bytes32 ___lpSubTopic
                 ) {
         owner = _owner;
         balanceKeeper = _balanceKeeper;
         balanceKeeperLP = _balanceKeeperLP;
         gtonAddTopic = _gtonAddTopic;
         gtonSubTopic = _gtonSubTopic;
-        lp__AddTopic = _lp__AddTopic;
-        lp__SubTopic = _lp__SubTopic;
+        __lpAddTopic = ___lpAddTopic;
+        __lpSubTopic = ___lpSubTopic;
     }
 
     function setGTONAddTopic(bytes32 newTopic) public isOwner {
@@ -82,20 +82,19 @@ contract OracleRouter is IOracleRouter {
     function setGTONSubTopic(bytes32 newTopic) public isOwner {
         gtonSubTopic = newTopic;
     }
-    function setLP__AddTopic(bytes32 newTopic) public isOwner {
-        lp__AddTopic = newTopic;
+    function __setLPAddTopic(bytes32 newTopic) public isOwner {
+        __lpAddTopic = newTopic;
     }
-    function setLP__SubTopic(bytes32 newTopic) public isOwner {
-        lp__SubTopic = newTopic;
+    function __setLPSubTopic(bytes32 newTopic) public isOwner {
+        __lpSubTopic = newTopic;
     }
 
     // permit/forbid a parser to send data to router
-    function setCanParse(address parser, bool _canParse) public isOwner {
-        canParse[parser] = _canParse;
-        emit SetCanParse(msg.sender, parser, canParse[parser]);
+    function setCanRoute(address parser, bool _canRoute) public isOwner {
+        canRoute[parser] = _canRoute;
+        emit SetCanRoute(msg.sender, parser, canRoute[parser]);
     }
 
-    // add access control
     function routeValue(bytes16 uuid,
                         string memory chain,
                         address emiter,
@@ -104,7 +103,7 @@ contract OracleRouter is IOracleRouter {
                         address sender,
                         address receiver,
                         uint256 amount) external override {
-        require(canParse[msg.sender], "not allowed to route value");
+        require(canRoute[msg.sender], "not allowed to route value");
 
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(gtonAddTopic))) {
             balanceKeeper.addValue(receiver, amount);
@@ -114,13 +113,13 @@ contract OracleRouter is IOracleRouter {
             balanceKeeper.subtractValue(sender, amount);
             emit GTONSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
-        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(lp__AddTopic))) {
+        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(__lpAddTopic))) {
             balanceKeeperLP.addLPToken(token, receiver, amount);
-            emit LP__Add(uuid, chain, emiter, token, sender, receiver, amount);
+            emit __LPAdd(uuid, chain, emiter, token, sender, receiver, amount);
         }
-        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(lp__SubTopic))) {
+        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(__lpSubTopic))) {
             balanceKeeperLP.subtractLPToken(token, sender, amount);
-            emit LP__Sub(uuid, chain, emiter, token, sender, receiver, amount);
+            emit __LPSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
     }
 }

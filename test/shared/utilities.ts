@@ -5,12 +5,24 @@ export const EARLY_BIRDS_A = BigNumber.from('26499999999995')
 export const EARLY_BIRDS_C = BigNumber.from('2100000')
 export const STAKING_AMOUNT = BigNumber.from('1000')
 export const STAKING_PERIOD = BigNumber.from('86400')
+export const GTON_ADD_TOPIC = "0x0000000000000000000000000000000000000000000000000000000000000001"
+export const GTON_SUB_TOPIC = "0x0000000000000000000000000000000000000000000000000000000000000002"
+export const __LP_ADD_TOPIC = "0x0000000000000000000000000000000000000000000000000000000000000003"
+export const __LP_SUB_TOPIC = "0x0000000000000000000000000000000000000000000000000000000000000004"
+export const OTHER_TOPIC = "0x0000000000000000000000000000000000000000000000000000000000000005"
+export const MOCK_UUID = "0x5ae47235f0844e55b26703b7cf385294";
+export const MOCK_CHAIN = "ETH";
+
 
 export function expandTo18Decimals(n: number): BigNumber {
   return BigNumber.from(n).mul(BigNumber.from(10).pow(18))
 }
 
-export function makeValue(token: string, depositer: string, amount: string, id: string, action: string): Bytes {
+export function makeValueImpact(token: string,
+                                depositer: string,
+                                amount: string,
+                                id: string,
+                                action: string): Bytes {
     let lockTokenBytes = ethers.utils.arrayify(token)
     let depositerBytes = ethers.utils.arrayify(depositer)
     let amountBytes    = ethers.utils.hexZeroPad(BigNumber.from(amount).toHexString(), 32)
@@ -22,4 +34,31 @@ export function makeValue(token: string, depositer: string, amount: string, id: 
                                 amountBytes,
                                 idBytes,
                                 actionBytes])
+  }
+
+export function makeValueParser(uuid: string,
+                                chain: string,
+                                emiter: string,
+                                topics: string,
+                                topic0: string,
+                                token: string,
+                                sender: string,
+                                receiver: string,
+                                amount: string): Bytes {
+
+    let chainBytes  = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(chain))
+    let token32     = ethers.utils.hexZeroPad(token, 32)
+    let sender32    = ethers.utils.hexZeroPad(sender, 32)
+    let receiver32  = ethers.utils.hexZeroPad(receiver, 32)
+    let amount32    = ethers.utils.hexZeroPad(BigNumber.from(amount).toHexString(), 32)
+
+    return ethers.utils.concat([ethers.utils.arrayify(uuid)
+                               ,ethers.utils.arrayify(chainBytes)
+                               ,ethers.utils.arrayify(emiter)
+                               ,ethers.utils.arrayify(topics)
+                               ,ethers.utils.arrayify(topic0)
+                               ,ethers.utils.arrayify(token32)
+                               ,ethers.utils.arrayify(sender32)
+                               ,ethers.utils.arrayify(receiver32)
+                               ,ethers.utils.arrayify(amount32)]);
   }
