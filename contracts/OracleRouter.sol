@@ -106,19 +106,19 @@ contract OracleRouter is IOracleRouter {
         require(canRoute[msg.sender], "not allowed to route value");
 
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(gtonAddTopic))) {
-            balanceKeeper.addValue(receiver, amount);
+            balanceKeeper.add(receiver, amount);
             emit GTONAdd(uuid, chain, emiter, token, sender, receiver, amount);
         }
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(gtonSubTopic))) {
-            balanceKeeper.subtractValue(sender, amount);
+            balanceKeeper.subtract(sender, amount);
             emit GTONSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(__lpAddTopic))) {
-            balanceKeeperLP.addLPToken(token, receiver, amount);
+            balanceKeeperLP.add(token, receiver, amount);
             emit __LPAdd(uuid, chain, emiter, token, sender, receiver, amount);
         }
         if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(__lpSubTopic))) {
-            balanceKeeperLP.subtractLPToken(token, sender, amount);
+            balanceKeeperLP.subtract(token, sender, amount);
             emit __LPSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
     }

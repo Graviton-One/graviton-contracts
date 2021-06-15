@@ -85,23 +85,23 @@ describe('ImpactEB', () => {
     it('does not register data if token is not allowed', async () => {
       let attachValue = makeValueImpact(token0.address, wallet.address, "1000", "0", "0")
       await impactEB.connect(nebula).attachValue(attachValue)
-      expect(await impactEB.userCount()).to.eq(0)
+      expect(await impactEB.totalUsers()).to.eq(0)
       expect(await impactEB.impact(wallet.address)).to.eq(0)
       expect(await impactEB.totalSupply()).to.eq(0)
     })
 
-    it('increments user count for a new user', async () => {
+    it('increments the number of users if the user is new', async () => {
       let attachValue = makeValueImpact(token1.address, wallet.address, "1000", "0", "0")
       await impactEB.connect(nebula).attachValue(attachValue)
-      expect(await impactEB.userCount()).to.eq(1)
+      expect(await impactEB.totalUsers()).to.eq(1)
     })
 
-    it('does not increment user count for a known user', async () => {
+    it('does not increment the number of users if the user is known', async () => {
       let attachValue1 = makeValueImpact(token1.address, wallet.address, "1000", "0", "0")
       await impactEB.connect(nebula).attachValue(attachValue1)
       let attachValue2 = makeValueImpact(token1.address, wallet.address, "1000", "1", "0")
       await impactEB.connect(nebula).attachValue(attachValue2)
-      expect(await impactEB.userCount()).to.eq(1)
+      expect(await impactEB.totalUsers()).to.eq(1)
     })
 
     it('adds impact', async () => {

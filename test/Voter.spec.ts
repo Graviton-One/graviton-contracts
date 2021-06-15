@@ -19,7 +19,7 @@ describe('Voter', () => {
   beforeEach('deploy test contracts', async () => {
     ;({ balanceKeeper, voter } = await loadFixture(voterFixture))
     await balanceKeeper.setCanAdd(wallet.address, true)
-    await balanceKeeper.addValue(wallet.address, "100")
+    await balanceKeeper.add(wallet.address, "100")
   })
 
   it('constructor initializes variables', async () => {
@@ -28,7 +28,7 @@ describe('Voter', () => {
   })
 
   it('starting state after deployment', async () => {
-    expect(await voter.roundCount()).to.eq(0)
+    expect(await voter.totalRounds()).to.eq(0)
     await expect(voter.activeRounds(0)).to.be.reverted
     await expect(voter.pastRounds(0)).to.be.reverted
     expect(await voter.roundName(0)).to.eq("")
@@ -55,9 +55,9 @@ describe('Voter', () => {
     expect(await voter.userVotedForOption(1, 0, other.address)).to.eq(false)
     expect(await voter.userVotedForOption(1, 1, wallet.address)).to.eq(false)
     expect(await voter.userVotedForOption(1, 1, other.address)).to.eq(false)
-    expect(await voter.userCountInRound(0)).to.eq(0)
-    expect(await voter.userCountInRound(0)).to.eq(0)
-    expect(await voter.userCountForOption(0, 0)).to.eq(0)
+    expect(await voter.totalUsersInRound(0)).to.eq(0)
+    expect(await voter.totalUsersInRound(0)).to.eq(0)
+    expect(await voter.totalUsersForOption(0, 0)).to.eq(0)
     expect(await voter.canCheck(wallet.address)).to.eq(false)
     expect(await voter.canCheck(other.address)).to.eq(false)
   })
@@ -108,12 +108,12 @@ describe('Voter', () => {
     it('appends active rounds', async () => {
       await voter.startRound("name", ["option1", "option2"])
       expect(await voter.activeRounds(0)).to.eq(0)
-      expect(await voter.activeRoundCount()).to.eq(1)
+      expect(await voter.totalActiveRounds()).to.eq(1)
     })
 
-    it('increments round count', async () => {
+    it('increments the number of rounds', async () => {
       await voter.startRound("name", ["option1", "option2"])
-      expect(await voter.roundCount()).to.eq(1)
+      expect(await voter.totalRounds()).to.eq(1)
     })
 
     it('emits event', async () => {
@@ -133,7 +133,7 @@ describe('Voter', () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.finalizeRound(0)
       await expect(voter.activeRounds(0)).to.be.reverted
-      expect(await voter.activeRoundCount()).to.eq(0)
+      expect(await voter.totalActiveRounds()).to.eq(0)
     })
 
     it('removes round from active rounds', async () => {
@@ -141,14 +141,14 @@ describe('Voter', () => {
       await voter.startRound("name2", ["option1", "option2"])
       await voter.finalizeRound(1)
       await expect(voter.activeRounds(1)).to.be.reverted
-      expect(await voter.activeRoundCount()).to.eq(1)
+      expect(await voter.totalActiveRounds()).to.eq(1)
     })
 
     it('adds round to past rounds', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.finalizeRound(0)
       expect(await voter.pastRounds(0)).to.eq(0)
-      expect(await voter.pastRoundCount()).to.eq(1)
+      expect(await voter.totalPastRounds()).to.eq(1)
     })
 
     it('emits event', async () => {
@@ -219,30 +219,30 @@ describe('Voter', () => {
       expect(await voter.userVotedInRound(0, wallet.address)).to.eq(false)
     })
 
-    it('increments user count for the option', async () => {
+    it('increments the number of users for the option', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.castVotes(0, [20,40])
-      expect(await voter.userCountForOption(0, 0)).to.eq(1)
-      expect(await voter.userCountForOption(0, 1)).to.eq(1)
+      expect(await voter.totalUsersForOption(0, 0)).to.eq(1)
+      expect(await voter.totalUsersForOption(0, 1)).to.eq(1)
     })
 
-    it('increments user count in the round', async () => {
+    it('increments the number of users in the round', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.castVotes(0, [20,40])
-      expect(await voter.userCountInRound(0)).to.eq(1)
+      expect(await voter.totalUsersInRound(0)).to.eq(1)
     })
 
-    it('does not increment user count for the option if the user vote is 0', async () => {
+    it('does not increment the number of users for the option if the user vote is 0', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.castVotes(0, [0,60])
-      expect(await voter.userCountForOption(0, 0)).to.eq(0)
-      expect(await voter.userCountForOption(0, 1)).to.eq(1)
+      expect(await voter.totalUsersForOption(0, 0)).to.eq(0)
+      expect(await voter.totalUsersForOption(0, 1)).to.eq(1)
     })
 
-    it('does not increment user count in the round if the sum of votes is 0', async () => {
+    it('does not increment the number of users in the round if the sum of votes is 0', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.castVotes(0, [0,0])
-      expect(await voter.userCountInRound(0)).to.eq(0)
+      expect(await voter.totalUsersInRound(0)).to.eq(0)
     })
 
     it('overwrites previous votes', async () => {
@@ -255,20 +255,20 @@ describe('Voter', () => {
       expect(await voter.votesForOptionByUser(0, wallet.address, 1)).to.eq(30)
     })
 
-    it('decrements user count for the option if the new user vote is 0', async () => {
+    it('decrements the number of users for the option if the new user vote is 0', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.castVotes(0, [20,40])
-      expect(await voter.userCountForOption(0, 0)).to.eq(1)
+      expect(await voter.totalUsersForOption(0, 0)).to.eq(1)
       await voter.castVotes(0, [0,60])
-      expect(await voter.userCountForOption(0, 0)).to.eq(0)
+      expect(await voter.totalUsersForOption(0, 0)).to.eq(0)
     })
 
-    it('decrements user count in the round if the new sum of votes is 0', async () => {
+    it('decrements the number of users in the round if the new sum of votes is 0', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.castVotes(0, [20,40])
-      expect(await voter.userCountInRound(0)).to.eq(1)
+      expect(await voter.totalUsersInRound(0)).to.eq(1)
       await voter.castVotes(0, [0,0])
-      expect(await voter.userCountInRound(0)).to.eq(0)
+      expect(await voter.totalUsersInRound(0)).to.eq(0)
     })
 
     it('emits event', async () => {
@@ -319,37 +319,37 @@ describe('Voter', () => {
     })
   })
 
-  describe('#activeRoundCount', () => {
+  describe('#totalActiveRounds', () => {
     it('returns 0 if there are no active rounds', async () => {
-      expect(await voter.activeRoundCount()).to.eq(0)
+      expect(await voter.totalActiveRounds()).to.eq(0)
     })
 
     it('returns the number of active rounds', async () => {
       await voter.startRound("name", ["option1", "option2"])
-      expect(await voter.activeRoundCount()).to.eq(1)
+      expect(await voter.totalActiveRounds()).to.eq(1)
     })
   })
 
-  describe('#pastRoundCount', () => {
+  describe('#totalPastRounds', () => {
     it('returns 0 if there are no past rounds', async () => {
-      expect(await voter.pastRoundCount()).to.eq(0)
+      expect(await voter.totalPastRounds()).to.eq(0)
     })
 
     it('returns the number of past rounds', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.finalizeRound(0)
-      expect(await voter.pastRoundCount()).to.eq(1)
+      expect(await voter.totalPastRounds()).to.eq(1)
     })
   })
 
-  describe('#roundOptionCount', () => {
+  describe('#totalRoundOptions', () => {
     it('returns 0 if the round has not been started', async () => {
-      expect(await voter.roundOptionCount(0)).to.eq(0)
+      expect(await voter.totalRoundOptions(0)).to.eq(0)
     })
 
     it('returns the number of options in the round', async () => {
       await voter.startRound("name", ["option1", "option2"])
-      expect(await voter.roundOptionCount(0)).to.eq(2)
+      expect(await voter.totalRoundOptions(0)).to.eq(2)
     })
   })
 
@@ -383,7 +383,7 @@ describe('Voter', () => {
       expect(await voter.votesInRoundByUser(0, wallet.address)).to.eq(60)
       expect(await balanceKeeper.userBalance(wallet.address)).to.eq(100)
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper.subtractValue(wallet.address, 30)
+      await balanceKeeper.subtract(wallet.address, 30)
       expect(await balanceKeeper.userBalance(wallet.address)).to.eq(70)
       await voter.setCanCheck(wallet.address, true)
       await voter.checkVoteBalances(wallet.address)
@@ -400,7 +400,7 @@ describe('Voter', () => {
       expect(await voter.votesInRoundByUser(0, wallet.address)).to.eq(60)
       expect(await balanceKeeper.userBalance(wallet.address)).to.eq(100)
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper.subtractValue(wallet.address, 70)
+      await balanceKeeper.subtract(wallet.address, 70)
       expect(await balanceKeeper.userBalance(wallet.address)).to.eq(30)
       await voter.setCanCheck(wallet.address, true)
       await voter.checkVoteBalances(wallet.address)
@@ -414,7 +414,7 @@ describe('Voter', () => {
       await voter.castVotes(0, [20,40])
       expect(await balanceKeeper.userBalance(wallet.address)).to.eq(100)
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper.subtractValue(wallet.address, 30)
+      await balanceKeeper.subtract(wallet.address, 30)
       expect(await balanceKeeper.userBalance(wallet.address)).to.eq(70)
       await voter.setCanCheck(wallet.address, true)
       await voter.checkVoteBalances(wallet.address)

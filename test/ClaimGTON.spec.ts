@@ -144,7 +144,7 @@ describe('ClaimGTON', () => {
   describe('#claim', () => {
     it('fails if claim has not been activated', async () => {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
       await expect(claimGTON.claim(100, other.address)).to.be.reverted
@@ -152,7 +152,7 @@ describe('ClaimGTON', () => {
 
     it('fails if balance is smaller than claim amount', async () => {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await claimGTON.setClaimActivated(true)
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
@@ -161,7 +161,7 @@ describe('ClaimGTON', () => {
 
     it("fails if claimGTON is not allowed to subtract", async function () {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await claimGTON.setClaimActivated(true)
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
@@ -170,7 +170,7 @@ describe('ClaimGTON', () => {
 
     it("fails if claimGTON is not allowed to check balances", async function () {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await claimGTON.setClaimActivated(true)
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
@@ -179,7 +179,7 @@ describe('ClaimGTON', () => {
 
     it("fails if claimGTON is not allowed to transfer token", async function () {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await claimGTON.setClaimActivated(true)
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
       await voter.setCanCheck(claimGTON.address, true)
@@ -188,7 +188,7 @@ describe('ClaimGTON', () => {
 
     it("transfers 100% if limit is not activated", async function () {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await claimGTON.setClaimActivated(true)
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
       await voter.setCanCheck(claimGTON.address, true)
@@ -199,7 +199,7 @@ describe('ClaimGTON', () => {
 
     it("transfers less then 50% if limit is activated", async function () {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await claimGTON.setClaimActivated(true)
       await claimGTON.setLimitActivated(true)
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
@@ -211,7 +211,7 @@ describe('ClaimGTON', () => {
 
     it("does not transfer more than 50% at once if limit is activated", async function () {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await claimGTON.setClaimActivated(true)
       await claimGTON.setLimitActivated(true)
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
@@ -222,7 +222,7 @@ describe('ClaimGTON', () => {
 
     it("does not transfer more than 50% over the course of a day if limit is activated", async function () {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await claimGTON.setClaimActivated(true)
       await claimGTON.setLimitActivated(true)
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
@@ -234,7 +234,7 @@ describe('ClaimGTON', () => {
 
     it("transfers less than 75% of initial balance over the course of two days if limit is activated", async function () {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await claimGTON.setClaimActivated(true)
       await claimGTON.setLimitActivated(true)
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
@@ -248,7 +248,7 @@ describe('ClaimGTON', () => {
 
     it("updates limit variables if limit is activated", async function () {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await claimGTON.setClaimActivated(true)
       await claimGTON.setLimitActivated(true)
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
@@ -261,7 +261,7 @@ describe('ClaimGTON', () => {
 
     it("emits event", async function () {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await claimGTON.setClaimActivated(true)
       await claimGTON.setLimitActivated(true)
       await balanceKeeper.setCanSubtract(claimGTON.address, true)

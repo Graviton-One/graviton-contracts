@@ -32,8 +32,7 @@ describe('ImpactKeeper', () => {
 
   it('starting state after deployment', async () => {
     expect(await impactKeeper.totalSupply()).to.eq(0)
-    expect(await impactKeeper.userCount()).to.eq(0)
-    expect(await impactKeeper.finalValue()).to.eq(0)
+    expect(await impactKeeper.totalUsers()).to.eq(0)
   })
 
   describe('#setOwner', () => {

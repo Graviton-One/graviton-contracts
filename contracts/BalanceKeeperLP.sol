@@ -16,7 +16,7 @@ contract BalanceKeeperLP is IBalanceKeeperLP {
     }
 
     address[] public override lpTokens;
-    mapping (address => bool) public lpTokenIsKnown;
+    mapping (address => bool) public isKnownLPToken;
     mapping (address => uint) public override totalBalance;
 
     mapping (address => address[]) public override users;
@@ -34,14 +34,14 @@ contract BalanceKeeperLP is IBalanceKeeperLP {
     event SetCanSubtract(address indexed owner,
                          address indexed subtractor,
                          bool indexed newBool);
-    event AddLPToken(address indexed adder,
-                     address indexed lptoken,
-                     address indexed user,
-                     uint amount);
-    event SubtractLPToken(address indexed subtractor,
-                          address indexed lptoken,
-                          address indexed user,
-                          uint amount);
+    event Add(address indexed adder,
+              address indexed lptoken,
+              address indexed user,
+              uint amount);
+    event Subtract(address indexed subtractor,
+                   address indexed lptoken,
+                   address indexed user,
+                   uint amount);
     event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner) {
@@ -54,11 +54,11 @@ contract BalanceKeeperLP is IBalanceKeeperLP {
         emit SetOwner(ownerOld, _owner);
     }
 
-    function lpTokenCount() public view override returns (uint) {
+    function totalLPTokens() public view override returns (uint) {
         return lpTokens.length;
     }
 
-    function userCount(address lptoken) public view override returns (uint) {
+    function totalUsers(address lptoken) public view override returns (uint) {
         return users[lptoken].length;
     }
 
@@ -74,13 +74,13 @@ contract BalanceKeeperLP is IBalanceKeeperLP {
         emit SetCanSubtract(msg.sender, subtractor, canSubtract[subtractor]);
     }
 
-    function addLPToken(address lptoken,
-                       address user,
-                       uint amount) public override {
-        require(canAdd[msg.sender], "not allowed to add value");
-        if (!lpTokenIsKnown[lptoken]) {
+    function add(address lptoken,
+                 address user,
+                 uint amount) public override {
+        require(canAdd[msg.sender], "not allowed to add");
+        if (!isKnownLPToken[lptoken]) {
             lpTokens.push(lptoken);
-            lpTokenIsKnown[lptoken] = true;
+            isKnownLPToken[lptoken] = true;
         }
         if (!userIsKnown[lptoken][user]) {
             users[lptoken].push(user);
@@ -88,16 +88,16 @@ contract BalanceKeeperLP is IBalanceKeeperLP {
         }
         userBalance[lptoken][user] += amount;
         totalBalance[lptoken] += amount;
-        emit AddLPToken(msg.sender, lptoken, user, amount);
+        emit Add(msg.sender, lptoken, user, amount);
     }
 
-    function subtractLPToken(address lptoken,
-                            address user,
-                            uint amount) public override {
+    function subtract(address lptoken,
+                      address user,
+                      uint amount) public override {
         require(canSubtract[msg.sender], "not allowed to subtract");
         userBalance[lptoken][user] -= amount;
         totalBalance[lptoken] -= amount;
-        emit SubtractLPToken(msg.sender, lptoken, user, amount);
+        emit Subtract(msg.sender, lptoken, user, amount);
     }
 
 }

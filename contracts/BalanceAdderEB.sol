@@ -17,7 +17,7 @@ contract BalanceAdderEB is IBalanceAdder {
 
     IBalanceKeeper public balanceKeeper;
 
-    uint public finalValue;
+    uint public counter;
     uint public totalUsers;
 
     mapping (address => uint) public lastPortion;
@@ -26,30 +26,33 @@ contract BalanceAdderEB is IBalanceAdder {
         farm = _farm;
         impactEB = _impactEB;
         balanceKeeper = _balanceKeeper;
-        totalUsers = impactEB.userCount();
+        totalUsers = impactEB.totalUsers();
     }
 
-    function addValueEB(address user) internal {
+    function addEB(address user) internal {
         uint currentPortion = farm.totalUnlocked() * impactEB.impact(user) / impactEB.totalSupply();
         uint add = currentPortion - lastPortion[user];
         lastPortion[user] = currentPortion;
-        balanceKeeper.addValue(user, add);
+        balanceKeeper.add(user, add);
     }
 
     function processBalances(uint step) public override {
-        uint toValue = finalValue + step;
-        uint fromValue = finalValue;
-        if (toValue > totalUsers) {
-            toValue = totalUsers;
+        uint max = counter + step;
+        uint min = counter;
+
+        if (max > totalUsers) {
+            max = totalUsers;
         }
-        for(uint i = fromValue; i < toValue; i++) {
+
+        for(uint i = min; i < max; i++) {
             address user = impactEB.users(i);
-            addValueEB(user);
+            addEB(user);
         }
-        if (toValue == totalUsers) {
-            finalValue = 0;
+
+        if (max == totalUsers) {
+            counter = 0;
         } else {
-            finalValue = toValue;
+            counter = max;
         }
     }
 }

@@ -18,10 +18,7 @@ abstract contract ImpactKeeper is IImpactKeeper {
 
     mapping (address => uint) public override impact;
     mapping (uint => address) public override users;
-    uint public override userCount;
-
-    // for processing mass transfers
-    uint public finalValue;
+    uint public override totalUsers;
 
     // processed data array
     mapping (uint => bool) public dataId;

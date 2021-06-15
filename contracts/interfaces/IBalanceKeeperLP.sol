@@ -2,12 +2,12 @@
 pragma solidity >=0.8.0;
 
 interface IBalanceKeeperLP {
-    function addLPToken(address lptoken, address user, uint value) external;
-    function subtractLPToken(address lptoken, address user, uint value) external;
+    function add(address lptoken, address user, uint amount) external;
+    function subtract(address lptoken, address user, uint amount) external;
     function userBalance(address lptoken, address user) external returns (uint);
     function totalBalance(address lptoken) external returns (uint);
-    function userCount(address lptoken) external returns (uint);
+    function totalUsers(address lptoken) external returns (uint);
     function users(address lptoken, uint userId) external returns (address);
-    function lpTokenCount() external returns (uint);
+    function totalLPTokens() external returns (uint);
     function lpTokens(uint tokenId) external returns (address);
 }

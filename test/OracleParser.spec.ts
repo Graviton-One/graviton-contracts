@@ -207,7 +207,7 @@ describe('OracleParser', () => {
     it('parses to the router to subtract gton', async () => {
       await oracleRouter.setCanRoute(oracleParser.address, true)
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 1000)
+      await balanceKeeper.add(wallet.address, 1000)
       await balanceKeeper.setCanSubtract(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
       await oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
@@ -229,7 +229,7 @@ describe('OracleParser', () => {
     it('parses to the router to subtract lp', async () => {
       await oracleRouter.setCanRoute(oracleParser.address, true)
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, wallet.address, 1000)
+      await balanceKeeperLP.add(token1.address, wallet.address, 1000)
       await balanceKeeperLP.setCanSubtract(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
       await oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
