@@ -1,10 +1,12 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
+import "./interfaces/IBalanceKeeper.sol";
+
 /// @title BalanceKeeperV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceKeeperV2 {
+contract BalanceKeeperV2 is IBalanceKeeperV2 {
 
     address public owner;
 
@@ -23,9 +25,9 @@ contract BalanceKeeperV2 {
     mapping (uint => string) public chainByUserId;
     mapping (uint => string) public addressByUserId;
 
-    uint public totalUsers;
-    mapping (uint => uint) public userBalance;
-    uint public totalBalance;
+    uint public override totalUsers;
+    mapping (uint => uint) public override userBalance;
+    uint public override totalBalance;
 
     event AddValue(address indexed adder, uint indexed userId, uint indexed amount);
     event SubtractValue(address indexed subtractor, uint indexed userId, uint indexed amount);
@@ -61,7 +63,7 @@ contract BalanceKeeperV2 {
         emit SetCanSubtract(msg.sender, subtractor, canSubtract[subtractor]);
     }
 
-    function openAddress(string memory chain, string memory addr) public returns (uint) {
+    function openAddress(string memory chain, string memory addr) public override returns (uint) {
         require(canOpen[msg.sender], "not allowed to open addresses");
         if (_userIdByChainAndAddress[chain][addr] != 0) {
             chainByUserId[totalUsers] = chain;
@@ -72,16 +74,16 @@ contract BalanceKeeperV2 {
         return _userIdByChainAndAddress[chain][addr];
     }
 
-    function chainAndAddressByUserId(uint userId) public view returns (string memory, string memory) {
+    function chainAndAddressByUserId(uint userId) public view override returns (string memory, string memory) {
         return (chainByUserId[userId], addressByUserId[userId]);
     }
 
-    function userIdByChainAndAddress(string memory chain, string memory addr) public view returns (uint) {
+    function userIdByChainAndAddress(string memory chain, string memory addr) public view override returns (uint) {
         return _userIdByChainAndAddress[chain][addr];
     }
 
     // add user balance
-    function addValue(uint userId, uint value) public {
+    function addValue(uint userId, uint value) public override {
         require(canAdd[msg.sender], "not allowed to add value");
         require(userId < totalUsers, "not a valid Id");
         userBalance[userId] += value;
@@ -90,7 +92,7 @@ contract BalanceKeeperV2 {
     }
 
     // subtract user balance
-    function subtractValue(uint userId, uint value) public {
+    function subtractValue(uint userId, uint value) public override {
         require(canSubtract[msg.sender], "not allowed to subtract");
         require(userId < totalUsers, "not a valid Id");
         userBalance[userId] -= value;
