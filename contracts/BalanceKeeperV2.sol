@@ -18,14 +18,12 @@ contract BalanceKeeperV2 {
     mapping (address => bool) public canSubtract;
     mapping (address => bool) public canOpen;
 
-    address[] public users;
-
     // chain code => in chain address => user id;
-    mapping (string => mapping (string => uint)) public internalAddress;
-    mapping (uint => string) public chain;
-    mapping (uint => string) public userAddress;
+    mapping (string => mapping (string => uint)) public _userIdByChainAndAddress;
+    mapping (uint => string) public chainByUserId;
+    mapping (uint => string) public addressByUserId;
 
-    uint public userMaxId;
+    uint public totalUsers;
     mapping (uint => uint) public userBalance;
     uint public totalBalance;
 
@@ -46,32 +44,9 @@ contract BalanceKeeperV2 {
         emit SetOwner(ownerOld, _owner);
     }
 
-    function totalUsers() public view returns (uint) {
-        return users.length;
-    }
-
-    function openAddress(string memory chainName, string memory addr) public returns (uint) {
-        require(canOpen[msg.sender], "not allowed to add value");
-        if (internalAddress[chainName][addr] != 0) {
-            chain[userMaxId] = chainName;
-            userAddress[userMaxId] = addr;
-            internalAddress[chainName][addr] = userMaxId;
-            userMaxId++;
-        }
-        return internalAddress[chainName][addr];
-    }
-
-    function getFamiliarAddress (uint userId) public view returns (string memory, string memory) {
-        return (chain[userId],userAddress[userId]);
-    }
-
-    function getUserId (string memory chainName, string memory addr) public view returns (uint) {
-        return (internalAddress[chainName][addr]);
-    }
-
-    function setCanOpen(address adder, bool _canAdd) public isOwner {
-        canAdd[adder] = _canAdd;
-        emit SetCanOpen(msg.sender, adder, canAdd[adder]);
+    function setCanOpen(address opener, bool _canOpen) public isOwner {
+        canOpen[opener] = _canOpen;
+        emit SetCanOpen(msg.sender, opener, canOpen[opener]);
     }
 
     // permit/forbid an oracle to add user balances
@@ -86,10 +61,29 @@ contract BalanceKeeperV2 {
         emit SetCanSubtract(msg.sender, subtractor, canSubtract[subtractor]);
     }
 
+    function openAddress(string memory chain, string memory addr) public returns (uint) {
+        require(canOpen[msg.sender], "not allowed to open addresses");
+        if (_userIdByChainAndAddress[chain][addr] != 0) {
+            chainByUserId[totalUsers] = chain;
+            addressByUserId[totalUsers] = addr;
+            _userIdByChainAndAddress[chain][addr] = totalUsers;
+            totalUsers++;
+        }
+        return _userIdByChainAndAddress[chain][addr];
+    }
+
+    function chainAndAddressByUserId(uint userId) public view returns (string memory, string memory) {
+        return (chainByUserId[userId], addressByUserId[userId]);
+    }
+
+    function userIdByChainAndAddress(string memory chain, string memory addr) public view returns (uint) {
+        return _userIdByChainAndAddress[chain][addr];
+    }
+
     // add user balance
     function addValue(uint userId, uint value) public {
         require(canAdd[msg.sender], "not allowed to add value");
-        require(userId < userMaxId, "not a valid Id");
+        require(userId < totalUsers, "not a valid Id");
         userBalance[userId] += value;
         totalBalance += value;
         emit AddValue(msg.sender, userId, value);
@@ -98,7 +92,7 @@ contract BalanceKeeperV2 {
     // subtract user balance
     function subtractValue(uint userId, uint value) public {
         require(canSubtract[msg.sender], "not allowed to subtract");
-        require(userId < userMaxId, "not a valid Id");
+        require(userId < totalUsers, "not a valid Id");
         userBalance[userId] -= value;
         totalBalance -= value;
         emit SubtractValue(msg.sender, userId, value);
