@@ -13,6 +13,7 @@ import { BalanceAdderLP } from "../../typechain/BalanceAdderLP";
 import { BalanceKeeperLP } from "../../typechain/BalanceKeeperLP";
 import { OracleRouter } from "../../typechain/OracleRouter";
 import { OracleParser } from "../../typechain/OracleParser";
+import { MockTimeClaimGTON } from "../../typechain/MockTimeClaimGTON";
 import {
   makeValueImpact,
   EARLY_BIRDS_A,
@@ -26,6 +27,9 @@ import {
 } from "./utilities";
 
 import { Fixture } from "ethereum-waffle";
+
+// Monday, October 5, 2020 9:00:00 AM GMT-05:00
+export const TEST_START_TIME = 1601906400;
 
 interface TokensFixture {
   token0: TestERC20;
@@ -103,9 +107,6 @@ export const impactEBFixture: Fixture<ImpactEBFixture> = async function (
     impactEB,
   };
 };
-
-// Monday, October 5, 2020 9:00:00 AM GMT-05:00
-export const TEST_FARM_START_TIME = 1601906400;
 
 interface FarmCurvedFixture {
   farm: MockTimeFarmCurved;
@@ -343,5 +344,34 @@ export const oracleParserFixture: Fixture<OracleParserFixture> =
       balanceKeeperLP,
       oracleRouter,
       oracleParser
+    };
+  };
+
+type TokensAndVoterFixture = TokensFixture & VoterFixture
+
+interface ClaimGTONFixture extends TokensAndVoterFixture {
+  claimGTON: MockTimeClaimGTON;
+}
+
+export const claimGTONFixture: Fixture<ClaimGTONFixture> =
+  async function ([wallet, other], provider): Promise<ClaimGTONFixture> {
+    const { token0, token1, token2 } = await tokensFixture();
+    const { balanceKeeper, voter } = await voterFixture([wallet, other], provider)
+
+    const claimGTONFactory = await ethers.getContractFactory("MockTimeClaimGTON");
+    const claimGTON = (await claimGTONFactory.deploy(
+      wallet.address,
+      token0.address,
+      wallet.address,
+      balanceKeeper.address,
+      voter.address
+    )) as MockTimeClaimGTON;
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeper,
+      voter,
+      claimGTON
     };
   };

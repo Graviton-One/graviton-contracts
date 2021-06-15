@@ -19,13 +19,10 @@ contract ClaimGTON {
 
     IERC20 public governanceToken;
     IBalanceKeeper public balanceKeeper;
-    IVoter[] public voteContracts;
+    IVoter public voter;
     address public wallet;
-    bool public canClaim = false;
 
-    mapping (address => uint) public lastClaimTimestamp;
-    mapping (address => uint) public limitMax;
-    mapping (address => uint) public limitWithdrawn;
+    bool public claimActivated = false;
     bool public limitActivated = false;
 
     event Claim(address indexed sender, address indexed receiver, uint amount);
@@ -34,13 +31,13 @@ contract ClaimGTON {
     constructor(address _owner,
                 IERC20 _governanceToken,
                 address _wallet,
-                IBalanceKeeper balance,
-                IVoter[] memory votes) {
+                IBalanceKeeper _balanceKeeper,
+                IVoter _voter) {
         owner = _owner;
         governanceToken = _governanceToken;
         wallet = _wallet;
-        balanceKeeper = balance;
-        voteContracts = votes;
+        balanceKeeper = _balanceKeeper;
+        voter = _voter;
     }
 
     function setOwner(address _owner) public isOwner {
@@ -53,54 +50,48 @@ contract ClaimGTON {
         wallet = _wallet;
     }
 
-    function setVoteContracts(IVoter[] calldata newVotes) public isOwner {
-        voteContracts = newVotes;
+    function setVoter(IVoter _voter) public isOwner {
+        voter = _voter;
     }
 
     function setGovernanceToken(IERC20 _governanceToken) public isOwner {
         governanceToken = _governanceToken;
     }
 
-    function setBalanceContract(IBalanceKeeper newBalance) public isOwner {
-        balanceKeeper = newBalance;
+    function setBalanceKeeper(IBalanceKeeper _balanceKeeper) public isOwner {
+        balanceKeeper = _balanceKeeper;
     }
 
-    function setCanClaim(bool _canClaim) public isOwner {
-        canClaim = _canClaim;
+    function setClaimActivated(bool _claimActivated) public isOwner {
+        claimActivated = _claimActivated;
     }
 
     function setLimitActivated(bool _limitActivated) public isOwner {
         limitActivated = _limitActivated;
     }
 
+    /// @dev Returns the block timestamp. This method is overridden in tests.
+    function _blockTimestamp() internal view virtual returns (uint) {
+        return block.timestamp;
+    }
+
+    mapping (address => uint) public lastLimitTimestamp;
+    mapping (address => uint) public limitMax;
+
     function claim(uint amount, address to) public {
-        require(canClaim, "can't claim");
+        require(claimActivated, "can't claim");
         uint balance = balanceKeeper.userBalance(msg.sender);
         require(balance >= amount, "not enough money");
-        uint max;
-        uint withdrawn;
-        uint timestamp;
         if (limitActivated) {
-            if ((block.timestamp - lastClaimTimestamp[msg.sender]) > 86400) {
-                max = balance / 2;
-                withdrawn = 0;
-                timestamp = block.timestamp;
-            } else {
-                max = limitMax[msg.sender];
-                withdrawn = limitWithdrawn[msg.sender];
-                timestamp = lastClaimTimestamp[msg.sender];
-            }
-            require((amount + withdrawn) <= max, "exceeded daily limit");
+          if ((_blockTimestamp() - lastLimitTimestamp[msg.sender]) > 86400) {
+            lastLimitTimestamp[msg.sender] = _blockTimestamp();
+            limitMax[msg.sender] = balance / 2;
+          }
+          require(amount <= limitMax[msg.sender], "exceeded daily limit");
+          limitMax[msg.sender] -= amount;
         }
         balanceKeeper.subtractValue(msg.sender, amount);
-        for (uint i = 0; i < voteContracts.length; i++) {
-            voteContracts[i].checkVoteBalances(msg.sender);
-        }
-        if (limitActivated) {
-            limitMax[msg.sender] = max - amount;
-            limitWithdrawn[msg.sender] = withdrawn + amount;
-            lastClaimTimestamp[msg.sender] = timestamp;
-        }
+        voter.checkVoteBalances(msg.sender);
         governanceToken.transferFrom(wallet, to, amount);
         emit Claim(msg.sender, to, amount);
     }

@@ -13,7 +13,6 @@ export const OTHER_TOPIC = "0x00000000000000000000000000000000000000000000000000
 export const MOCK_UUID = "0x5ae47235f0844e55b26703b7cf385294";
 export const MOCK_CHAIN = "ETH";
 
-
 export function expandTo18Decimals(n: number): BigNumber {
   return BigNumber.from(n).mul(BigNumber.from(10).pow(18))
 }

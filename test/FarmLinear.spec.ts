@@ -2,7 +2,7 @@ import { ethers, waffle } from 'hardhat'
 import { MockTimeFarmLinear } from '../typechain/MockTimeFarmLinear'
 import { expect } from './shared/expect'
 import { expandTo18Decimals, STAKING_AMOUNT, STAKING_PERIOD } from './shared/utilities'
-import { TEST_FARM_START_TIME } from './shared/fixtures'
+import { TEST_START_TIME } from './shared/fixtures'
 
 const createFixtureLoader = waffle.createFixtureLoader
 
@@ -80,13 +80,13 @@ describe('FarmLinear', () => {
     it('sets starting timestamp', async () => {
       await farm.startFarming()
       farm.advanceTime(1)
-      await expect(await farm.startTimestampOffset()).to.be.eq(TEST_FARM_START_TIME)
+      await expect(await farm.startTimestampOffset()).to.be.eq(TEST_START_TIME)
     })
 
     it('fails last claimed timestamp', async () => {
       await farm.startFarming()
       farm.advanceTime(1)
-      await expect(await farm.lastClaimedTimestamp()).to.be.eq(TEST_FARM_START_TIME)
+      await expect(await farm.lastClaimedTimestamp()).to.be.eq(TEST_START_TIME)
     })
   })
 
