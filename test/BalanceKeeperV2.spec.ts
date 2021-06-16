@@ -28,12 +28,20 @@ describe('BalanceKeeperV2', () => {
 
   it('starting state after deployment', async () => {
     expect(await balanceKeeper.totalBalance()).to.eq(0)
-    expect(await balanceKeeper.userBalance(wallet.address)).to.eq(0)
-    expect(await balanceKeeper.userBalance(other.address)).to.eq(0)
+    expect(await balanceKeeper.totalUsers()).to.eq(0)
+    expect(await balanceKeeper.balanceById(0)).to.eq(0)
+    expect(await balanceKeeper.balanceById(1)).to.eq(0)
+    expect(await balanceKeeper.idByChainAddress("ETH", wallet.address)).to.eq(0)
+    expect(await balanceKeeper.idByChainAddress("ETH", other.address)).to.eq(0)
+    // expect(await balanceKeeper.chainAddressById(0)).to.eq(['',''])
+    expect(await balanceKeeper.chainById(0)).to.eq("")
+    expect(await balanceKeeper.addressById(0)).to.eq("")
     expect(await balanceKeeper.canAdd(wallet.address)).to.eq(false)
     expect(await balanceKeeper.canAdd(other.address)).to.eq(false)
     expect(await balanceKeeper.canSubtract(wallet.address)).to.eq(false)
     expect(await balanceKeeper.canSubtract(other.address)).to.eq(false)
+    expect(await balanceKeeper.canOpen(wallet.address)).to.eq(false)
+    expect(await balanceKeeper.canOpen(other.address)).to.eq(false)
   })
 
   describe('#setOwner', () => {
@@ -170,82 +178,4 @@ describe('BalanceKeeperV2', () => {
     })
   })
 
-  describe('#openAddress', () => {
-  })
-
-  describe('#addValue', () => {
-    it('fails if caller is not allowed to add', async () => {
-      await expect(balanceKeeper.addValue(other.address, 1)).to.be.reverted
-    })
-
-    it('records a new user', async () => {
-    })
-
-    it('does not record a known user', async () => {
-    })
-
-    it('adds to user balance', async () => {
-      await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 1)
-      expect(await balanceKeeper.userBalance(wallet.address)).to.eq(1)
-    })
-
-    it('adds to total balance', async () => {
-      await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 1)
-      expect(await balanceKeeper.totalBalance()).to.eq(1)
-    })
-
-    it('adds each value to total balance', async () => {
-      await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 1)
-      await balanceKeeper.addValue(other.address, 1)
-      expect(await balanceKeeper.totalBalance()).to.eq(2)
-    })
-
-    it('emits event', async () => {
-      await balanceKeeper.setCanAdd(wallet.address, true)
-      await expect(balanceKeeper.addValue(other.address, 1))
-        .to.emit(balanceKeeper, 'AddValue')
-        .withArgs(wallet.address, other.address, 1)
-    })
-  })
-
-  describe('#subtractValue', () => {
-    it('fails if caller is not allowed to subtract', async () => {
-      await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(other.address, 1)
-      await expect(balanceKeeper.subtractValue(other.address, 1)).to.be.reverted
-    })
-
-    it('fails if there is nothing to subtract', async () => {
-      await balanceKeeper.setCanSubtract(wallet.address, true)
-      await expect(balanceKeeper.subtractValue(other.address, 1)).to.be.reverted
-    })
-
-    it('subtracts from user balance', async () => {
-      await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(other.address, 2)
-      await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper.subtractValue(other.address, 1)
-      expect(await balanceKeeper.userBalance(other.address)).to.eq(1)
-    })
-
-    it('subtracts from total balance', async () => {
-      await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(other.address, 2)
-      await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper.subtractValue(other.address, 1)
-      expect(await balanceKeeper.totalBalance()).to.eq(1)
-    })
-
-    it('emits event', async () => {
-      await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(other.address, 2)
-      await balanceKeeper.setCanSubtract(wallet.address, true)
-      await expect(balanceKeeper.subtractValue(other.address, 1))
-        .to.emit(balanceKeeper, 'SubtractValue')
-        .withArgs(wallet.address, other.address, 1)
-    })
-  })
 })

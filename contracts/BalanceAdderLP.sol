@@ -17,7 +17,7 @@ contract BalanceAdderLP is IBalanceAdder {
 
     mapping (address => uint) public currentPortion;
     mapping (address => uint) public lastPortion;
-    mapping (address => uint) public finalValue;
+    mapping (address => uint) public counter;
 
     constructor(IFarm _farm, IBalanceKeeper _balanceKeeper, IBalanceKeeperLP _balanceKeeperLP) {
         farm = _farm;
@@ -27,37 +27,37 @@ contract BalanceAdderLP is IBalanceAdder {
 
     function addUserBalance(address lptoken, address user) internal {
         uint amount = currentPortion[lptoken] * balanceKeeperLP.userBalance(lptoken, user) / balanceKeeperLP.totalBalance(lptoken);
-        balanceKeeper.addValue(user, amount);
+        balanceKeeper.add(user, amount);
     }
 
     function processBalancesForToken(address lptoken, uint step) public {
 
-        uint toValue = finalValue[lptoken] + step;
-        if (finalValue[lptoken] == 0) {
+        uint max = counter[lptoken] + step;
+        if (counter[lptoken] == 0) {
             currentPortion[lptoken] = farm.totalUnlocked() - lastPortion[lptoken];
         }
-        uint fromValue = finalValue[lptoken];
-        if (toValue > balanceKeeperLP.userCount(lptoken)) {
-            toValue = balanceKeeperLP.userCount(lptoken);
+        uint min = counter[lptoken];
+        if (max > balanceKeeperLP.totalUsers(lptoken)) {
+            max = balanceKeeperLP.totalUsers(lptoken);
         }
-        for(uint i = fromValue; i < toValue; i++) {
+        for(uint i = min; i < max; i++) {
             address user = balanceKeeperLP.users(lptoken, i);
             addUserBalance(lptoken, user);
         }
-        if (toValue == balanceKeeperLP.userCount(lptoken)) {
-            finalValue[lptoken] = 0;
+        if (max == balanceKeeperLP.totalUsers(lptoken)) {
+            counter[lptoken] = 0;
             lastPortion[lptoken] += currentPortion[lptoken];
         } else {
-            finalValue[lptoken] = toValue;
+            counter[lptoken] = max;
         }
     }
 
     function processBalances(uint step) public override {
-        for(uint i = 0; i < balanceKeeperLP.lpTokenCount(); i++) {
+        for(uint i = 0; i < balanceKeeperLP.totalLPTokens(); i++) {
             address lptoken = balanceKeeperLP.lpTokens(i);
             if (balanceKeeperLP.totalBalance(lptoken) <= 0) { continue; } // skip if no totalBalance for lptoken
             processBalancesForToken(lptoken, step);
-            while (finalValue[lptoken] != 0) {
+            while (counter[lptoken] != 0) {
               processBalancesForToken(lptoken, step);
             }
         }

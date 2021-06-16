@@ -90,7 +90,7 @@ contract ClaimGTON {
           require(amount <= limitMax[msg.sender], "exceeded daily limit");
           limitMax[msg.sender] -= amount;
         }
-        balanceKeeper.subtractValue(msg.sender, amount);
+        balanceKeeper.subtract(msg.sender, amount);
         voter.checkVoteBalances(msg.sender);
         governanceToken.transferFrom(wallet, to, amount);
         emit Claim(msg.sender, to, amount);

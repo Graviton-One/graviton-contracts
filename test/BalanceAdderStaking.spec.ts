@@ -30,8 +30,8 @@ describe('BalanceAdderStaking', () => {
 
   async function give100ToEach() {
     await balanceKeeper.setCanAdd(wallet.address, true)
-    await balanceKeeper.addValue(wallet.address, 100)
-    await balanceKeeper.addValue(other.address, 100)
+    await balanceKeeper.add(wallet.address, 100)
+    await balanceKeeper.add(other.address, 100)
   }
 
   it('constructor initializes variables', async () => {
@@ -40,7 +40,7 @@ describe('BalanceAdderStaking', () => {
   })
 
   it('starting state after deployment', async () => {
-    expect(await balanceAdderStaking.finalValue()).to.eq(0)
+    expect(await balanceAdderStaking.counter()).to.eq(0)
     expect(await balanceAdderStaking.totalUsers()).to.eq(0)
     expect(await balanceAdderStaking.lastPortion()).to.eq(0)
     expect(await balanceAdderStaking.currentPortion()).to.eq(0)
@@ -75,7 +75,7 @@ describe('BalanceAdderStaking', () => {
 
     it('does not update balances if the farming has not started', async () => {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await balanceKeeper.setCanAdd(balanceAdderStaking.address, true)
       await balanceAdderStaking.processBalances(1)
       expect(await balanceAdderStaking.lastPortion()).to.eq(0)
@@ -85,9 +85,9 @@ describe('BalanceAdderStaking', () => {
     it('fails if all funds have been withdrawn from the balance keeper', async () => {
       await farmForAWeek()
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper.addValue(wallet.address, 100)
+      await balanceKeeper.add(wallet.address, 100)
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper.subtractValue(wallet.address, 100)
+      await balanceKeeper.subtract(wallet.address, 100)
       await balanceKeeper.setCanAdd(balanceAdderStaking.address, true)
       await expect(balanceAdderStaking.processBalances(1)).to.be.reverted
     })
@@ -97,7 +97,7 @@ describe('BalanceAdderStaking', () => {
       await give100ToEach()
       await balanceKeeper.setCanAdd(balanceAdderStaking.address, true)
       await balanceAdderStaking.processBalances(1)
-      expect(await balanceAdderStaking.finalValue()).to.eq(1)
+      expect(await balanceAdderStaking.counter()).to.eq(1)
     })
 
     it('does not change final value if step is zero', async () => {
@@ -106,7 +106,7 @@ describe('BalanceAdderStaking', () => {
       await balanceKeeper.setCanAdd(balanceAdderStaking.address, true)
       await balanceAdderStaking.processBalances(1)
       await balanceAdderStaking.processBalances(0)
-      expect(await balanceAdderStaking.finalValue()).to.eq(1)
+      expect(await balanceAdderStaking.counter()).to.eq(1)
     })
 
     it('does not update balances if step is zero', async () => {
@@ -123,7 +123,7 @@ describe('BalanceAdderStaking', () => {
       await give100ToEach()
       await balanceKeeper.setCanAdd(balanceAdderStaking.address, true)
       await balanceAdderStaking.processBalances(2)
-      expect(await balanceAdderStaking.finalValue()).to.eq(0)
+      expect(await balanceAdderStaking.counter()).to.eq(0)
     })
 
     it('sets final value to zero when step is larger than total users', async () => {
@@ -131,7 +131,7 @@ describe('BalanceAdderStaking', () => {
       await give100ToEach()
       await balanceKeeper.setCanAdd(balanceAdderStaking.address, true)
       await balanceAdderStaking.processBalances(3)
-      expect(await balanceAdderStaking.finalValue()).to.eq(0)
+      expect(await balanceAdderStaking.counter()).to.eq(0)
     })
 
     it('adds value to users if caled once', async () => {

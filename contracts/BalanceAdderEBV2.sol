@@ -3,7 +3,7 @@ pragma solidity >=0.8.0;
 
 import './interfaces/IFarm.sol';
 import './interfaces/IImpactKeeper.sol';
-import './interfaces/IBalanceKeeper.sol';
+import './interfaces/IBalanceKeeperV2.sol';
 import './interfaces/IBalanceAdder.sol';
 
 /// @title BalanceAdderEB
@@ -15,14 +15,14 @@ contract BalanceAdderEB is IBalanceAdder {
     IFarm public farm;
     IImpactKeeper public impactEB;
 
-    IBalanceKeeper public balanceKeeper;
+    IBalanceKeeperV2 public balanceKeeper;
 
     uint public counter;
     uint public totalUsers;
 
     mapping (address => uint) public lastPortion;
 
-    constructor(IFarm _farm, IImpactKeeper _impactEB, IBalanceKeeper _balanceKeeper) {
+    constructor(IFarm _farm, IImpactKeeper _impactEB, IBalanceKeeperV2 _balanceKeeper) {
         farm = _farm;
         impactEB = _impactEB;
         balanceKeeper = _balanceKeeper;
@@ -33,7 +33,7 @@ contract BalanceAdderEB is IBalanceAdder {
         uint currentPortion = farm.totalUnlocked() * impactEB.impact(user) / impactEB.totalSupply();
         uint add = currentPortion - lastPortion[user];
         lastPortion[user] = currentPortion;
-        balanceKeeper.add(user, add);
+        balanceKeeper.addByChainAddress("EVM", abi.encodePacked(user), add);
     }
 
     function processBalances(uint step) public override {

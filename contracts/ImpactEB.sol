@@ -36,8 +36,8 @@ contract ImpactEB is ImpactKeeper {
 
         if (!tokenIsAllowed[lockTokenAddress]) { return; } // do nothing if this token is not supported by treasury
         if (impact[depositerAddress] == 0) {
-            users[userCount] = depositerAddress;
-            userCount += 1;
+            users[totalUsers] = depositerAddress;
+            totalUsers += 1;
         }
         impact[depositerAddress] += amount;
         totalSupply += amount;

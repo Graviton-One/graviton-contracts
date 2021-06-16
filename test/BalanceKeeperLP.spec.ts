@@ -30,8 +30,8 @@ describe('BalanceKeeperLP', () => {
 
   it('starting state after deployment', async () => {
     await expect(balanceKeeperLP.lpTokens(0)).to.be.reverted
-    expect(await balanceKeeperLP.lpTokenIsKnown(token1.address)).to.eq(false)
-    expect(await balanceKeeperLP.lpTokenIsKnown(token2.address)).to.eq(false)
+    expect(await balanceKeeperLP.isKnownLPToken(token1.address)).to.eq(false)
+    expect(await balanceKeeperLP.isKnownLPToken(token2.address)).to.eq(false)
     expect(await balanceKeeperLP.totalBalance(token1.address)).to.eq(0)
     expect(await balanceKeeperLP.totalBalance(token2.address)).to.eq(0)
     await expect(balanceKeeperLP.users(token1.address, 0)).to.be.reverted
@@ -143,119 +143,119 @@ describe('BalanceKeeperLP', () => {
     })
   })
 
-  describe('#addLPToken', () => {
+  describe('#add', () => {
     it('fails if caller is not allowed to add', async () => {
-      await expect(balanceKeeperLP.addLPToken(token1.address, other.address, 1)).to.be.reverted
+      await expect(balanceKeeperLP.add(token1.address, other.address, 1)).to.be.reverted
     })
 
     it('records a new user', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, other.address, 1)
+      await balanceKeeperLP.add(token1.address, other.address, 1)
       expect(await balanceKeeperLP.userIsKnown(token1.address, other.address)).to.eq(true)
       expect(await balanceKeeperLP.users(token1.address, 0)).to.eq(other.address)
-      expect(await balanceKeeperLP.userCount(token1.address)).to.eq(1)
+      expect(await balanceKeeperLP.totalUsers(token1.address)).to.eq(1)
     })
 
     it('does not record a known user', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, other.address, 1)
-      await balanceKeeperLP.addLPToken(token1.address, other.address, 1)
+      await balanceKeeperLP.add(token1.address, other.address, 1)
+      await balanceKeeperLP.add(token1.address, other.address, 1)
       await expect(balanceKeeperLP.users(token1.address, 1)).to.be.reverted
-      expect(await balanceKeeperLP.userCount(token1.address)).to.eq(1)
+      expect(await balanceKeeperLP.totalUsers(token1.address)).to.eq(1)
     })
 
     it('adds to user balance', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, wallet.address, 1)
+      await balanceKeeperLP.add(token1.address, wallet.address, 1)
       expect(await balanceKeeperLP.userBalance(token1.address, wallet.address)).to.eq(1)
     })
 
     it('adds to total balance', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, wallet.address, 1)
+      await balanceKeeperLP.add(token1.address, wallet.address, 1)
       expect(await balanceKeeperLP.totalBalance(token1.address)).to.eq(1)
     })
 
     it('adds each value to total balance', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, wallet.address, 1)
-      await balanceKeeperLP.addLPToken(token1.address, other.address, 1)
+      await balanceKeeperLP.add(token1.address, wallet.address, 1)
+      await balanceKeeperLP.add(token1.address, other.address, 1)
       expect(await balanceKeeperLP.totalBalance(token1.address)).to.eq(2)
     })
 
     it('emits event', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await expect(balanceKeeperLP.addLPToken(token1.address, other.address, 1))
-        .to.emit(balanceKeeperLP, 'AddLPToken')
+      await expect(balanceKeeperLP.add(token1.address, other.address, 1))
+        .to.emit(balanceKeeperLP, 'Add')
         .withArgs(wallet.address, token1.address, other.address, 1)
     })
   })
 
-  describe('#subtractLPToken', () => {
+  describe('#subtract', () => {
     it('fails if caller is not allowed to subtract', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, other.address, 1)
-      await expect(balanceKeeperLP.subtractLPToken(token1.address, other.address, 1)).to.be.reverted
+      await balanceKeeperLP.add(token1.address, other.address, 1)
+      await expect(balanceKeeperLP.subtract(token1.address, other.address, 1)).to.be.reverted
     })
 
     it('fails if there is nothing to subtract', async () => {
       await balanceKeeperLP.setCanSubtract(wallet.address, true)
-      await expect(balanceKeeperLP.subtractLPToken(token1.address, other.address, 1)).to.be.reverted
+      await expect(balanceKeeperLP.subtract(token1.address, other.address, 1)).to.be.reverted
     })
 
     it('subtracts from user balance', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, other.address, 2)
+      await balanceKeeperLP.add(token1.address, other.address, 2)
       await balanceKeeperLP.setCanSubtract(wallet.address, true)
-      await balanceKeeperLP.subtractLPToken(token1.address, other.address, 1)
+      await balanceKeeperLP.subtract(token1.address, other.address, 1)
       expect(await balanceKeeperLP.userBalance(token1.address, other.address)).to.eq(1)
     })
 
     it('subtracts from total balance', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, other.address, 2)
+      await balanceKeeperLP.add(token1.address, other.address, 2)
       await balanceKeeperLP.setCanSubtract(wallet.address, true)
-      await balanceKeeperLP.subtractLPToken(token1.address, other.address, 1)
+      await balanceKeeperLP.subtract(token1.address, other.address, 1)
       expect(await balanceKeeperLP.totalBalance(token1.address)).to.eq(1)
     })
 
     it('emits event', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, other.address, 2)
+      await balanceKeeperLP.add(token1.address, other.address, 2)
       await balanceKeeperLP.setCanSubtract(wallet.address, true)
-      await expect(balanceKeeperLP.subtractLPToken(token1.address, other.address, 1))
-        .to.emit(balanceKeeperLP, 'SubtractLPToken')
+      await expect(balanceKeeperLP.subtract(token1.address, other.address, 1))
+        .to.emit(balanceKeeperLP, 'Subtract')
         .withArgs(wallet.address, token1.address, other.address, 1)
     })
   })
 
-  describe('#lpTokenCount', () => {
+  describe('#totalLPTokens', () => {
     it('returns the number of LP tokens', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, wallet.address, 1)
-      expect(await balanceKeeperLP.lpTokenCount()).to.eq(1)
+      await balanceKeeperLP.add(token1.address, wallet.address, 1)
+      expect(await balanceKeeperLP.totalLPTokens()).to.eq(1)
     })
 
     it('returns the number of LP tokens', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, wallet.address, 1)
-      await balanceKeeperLP.addLPToken(token2.address, wallet.address, 1)
-      expect(await balanceKeeperLP.lpTokenCount()).to.eq(2)
+      await balanceKeeperLP.add(token1.address, wallet.address, 1)
+      await balanceKeeperLP.add(token2.address, wallet.address, 1)
+      expect(await balanceKeeperLP.totalLPTokens()).to.eq(2)
     })
   })
 
-  describe('#userCount', () => {
+  describe('#totalUsers', () => {
     it('returns the number of users for an LP token', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, wallet.address, 1)
-      expect(await balanceKeeperLP.userCount(token1.address)).to.eq(1)
+      await balanceKeeperLP.add(token1.address, wallet.address, 1)
+      expect(await balanceKeeperLP.totalUsers(token1.address)).to.eq(1)
     })
 
     it('returns the number of users for an LP token', async () => {
       await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.addLPToken(token1.address, wallet.address, 1)
-      await balanceKeeperLP.addLPToken(token1.address, other.address, 1)
-      expect(await balanceKeeperLP.userCount(token1.address)).to.eq(2)
+      await balanceKeeperLP.add(token1.address, wallet.address, 1)
+      await balanceKeeperLP.add(token1.address, other.address, 1)
+      expect(await balanceKeeperLP.totalUsers(token1.address)).to.eq(2)
     })
   })
 

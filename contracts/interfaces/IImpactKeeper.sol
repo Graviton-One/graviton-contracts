@@ -5,5 +5,5 @@ interface IImpactKeeper {
     function impact(address user) external returns (uint);
     function totalSupply() external returns (uint);
     function users(uint id) external returns (address);
-    function userCount() external returns (uint);
+    function totalUsers() external returns (uint);
 }

@@ -20,12 +20,12 @@ contract BalanceKeeper is IBalanceKeeper {
     mapping (address=>bool) public canSubtract;
 
     address[] public override users;
-    mapping (address => bool) public userIsKnown;
+    mapping (address => bool) public isKnownUser;
     mapping (address => uint) public override userBalance;
     uint public override totalBalance;
 
-    event AddValue(address indexed adder, address indexed user, uint indexed amount);
-    event SubtractValue(address indexed subtractor, address indexed user, uint indexed amount);
+    event Add(address indexed adder, address indexed user, uint indexed amount);
+    event Subtract(address indexed subtractor, address indexed user, uint indexed amount);
     event SetCanAdd(address indexed owner, address indexed adder, bool indexed newBool);
     event SetCanSubtract(address indexed owner, address indexed subtractor, bool indexed newBool);
     event SetOwner(address ownerOld, address ownerNew);
@@ -57,22 +57,22 @@ contract BalanceKeeper is IBalanceKeeper {
     }
 
     // add user balance
-    function addValue(address user, uint value) public override {
-        require(canAdd[msg.sender], "not allowed to add value");
-        if ( !userIsKnown[user]) {
-            userIsKnown[user] = true;
+    function add(address user, uint amount) public override {
+        require(canAdd[msg.sender], "not allowed to add");
+        if ( !isKnownUser[user]) {
+            isKnownUser[user] = true;
             users.push(user);
         }
-        userBalance[user] += value;
-        totalBalance += value;
-        emit AddValue(msg.sender, user, value);
+        userBalance[user] += amount;
+        totalBalance += amount;
+        emit Add(msg.sender, user, amount);
     }
 
     // subtract user balance
-    function subtractValue(address user, uint value) public override {
+    function subtract(address user, uint amount) public override {
         require(canSubtract[msg.sender], "not allowed to subtract");
-        userBalance[user] -= value;
-        totalBalance -= value;
-        emit SubtractValue(msg.sender, user, value);
+        userBalance[user] -= amount;
+        totalBalance -= amount;
+        emit Subtract(msg.sender, user, amount);
     }
 }

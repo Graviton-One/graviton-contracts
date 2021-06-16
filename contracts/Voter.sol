@@ -18,7 +18,7 @@ contract Voter is IVoter {
 
     address public balanceKeeper;
 
-    uint public roundCount;
+    uint public totalRounds;
     uint[] public activeRounds;
     uint[] public pastRounds;
     mapping(uint => string) internal _roundName;
@@ -32,13 +32,13 @@ contract Voter is IVoter {
     mapping(uint => mapping(address => bool)) internal _userVotedInRound;
     mapping(uint => mapping(uint => mapping(address => bool))) internal _userVotedForOption;
 
-    mapping(uint => uint) internal _userCountInRound;
-    mapping(uint => mapping(uint => uint)) internal _userCountForOption;
+    mapping(uint => uint) internal _totalUsersInRound;
+    mapping(uint => mapping(uint => uint)) internal _totalUsersForOption;
 
     mapping(address => bool) public canCheck;
 
     event CastVotes(address indexed voter, uint indexed roundId);
-    event StartRound(address indexed owner, uint roundCount, string name, string[] options);
+    event StartRound(address indexed owner, uint totalRounds, string name, string[] options);
     event SetCanCheck(address indexed owner, address indexed checker, bool indexed newBool);
     event CheckVoteBalances(address indexed checker, address indexed user, uint newBalance);
     event FinalizeRound(address indexed owner, uint roundId);
@@ -71,11 +71,11 @@ contract Voter is IVoter {
     function userVotedForOption(uint roundId, uint optionId, address user) public view returns (bool) {
         return _userVotedForOption[roundId][optionId][user];
     }
-    function userCountInRound(uint roundId) public view returns (uint) {
-        return _userCountInRound[roundId];
+    function totalUsersInRound(uint roundId) public view returns (uint) {
+        return _totalUsersInRound[roundId];
     }
-    function userCountForOption(uint roundId, uint optionId) public view returns (uint) {
-        return _userCountForOption[roundId][optionId];
+    function totalUsersForOption(uint roundId, uint optionId) public view returns (uint) {
+        return _totalUsersForOption[roundId][optionId];
     }
 
     // sum of all votes in a round
@@ -88,17 +88,17 @@ contract Voter is IVoter {
     }
 
     // number of сurrently active rounds
-    function activeRoundCount() public view returns (uint) {
+    function totalActiveRounds() public view returns (uint) {
         return activeRounds.length;
     }
 
     // number of finalized past rounds
-    function pastRoundCount() public view returns (uint) {
+    function totalPastRounds() public view returns (uint) {
         return pastRounds.length;
     }
 
     // number of options in a round
-    function roundOptionCount(uint roundId) public view returns (uint) {
+    function totalRoundOptions(uint roundId) public view returns (uint) {
         uint sum;
         for (uint i = 0; i < _roundOptions[roundId].length; i++) {
             sum ++;
@@ -113,17 +113,26 @@ contract Voter is IVoter {
     }
 
     function startRound(string memory name, string[] memory options) public isOwner {
-        _roundName[roundCount] = name;
-        _roundOptions[roundCount] = options;
-        _votesForOption[roundCount] = new uint[](options.length);
-        activeRounds.push(roundCount);
-        roundCount++;
-        emit StartRound(msg.sender, roundCount, name, options);
+        _roundName[totalRounds] = name;
+        _roundOptions[totalRounds] = options;
+        _votesForOption[totalRounds] = new uint[](options.length);
+        activeRounds.push(totalRounds);
+        totalRounds++;
+        emit StartRound(msg.sender, totalRounds, name, options);
     }
 
     function isActiveRound(uint roundId) public view returns (bool) {
         for(uint i = 0; i < activeRounds.length; i++) {
             if (activeRounds[i] == roundId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function isPastRound(uint roundId) public view returns (bool) {
+        for(uint i = 0; i < pastRounds.length; i++) {
+            if (pastRounds[i] == roundId) {
                 return true;
             }
         }
@@ -160,12 +169,12 @@ contract Voter is IVoter {
 
             if (!_userVotedForOption[roundId][optionId][msg.sender] && votes[optionId] != 0) {
                 _userVotedForOption[roundId][optionId][msg.sender] = true;
-                _userCountForOption[roundId][optionId]++;
+                _totalUsersForOption[roundId][optionId]++;
             }
 
             if (_userVotedForOption[roundId][optionId][msg.sender] && votes[optionId] == 0) {
                 _userVotedForOption[roundId][optionId][msg.sender] = false;
-                _userCountForOption[roundId][optionId]--;
+                _totalUsersForOption[roundId][optionId]--;
             }
 
             _votesForOption[roundId][optionId] += votes[optionId];
@@ -175,11 +184,11 @@ contract Voter is IVoter {
 
         if (!_userVotedInRound[roundId][msg.sender] && sum != 0) {
             _userVotedInRound[roundId][msg.sender] = true;
-            _userCountInRound[roundId]++;
+            _totalUsersInRound[roundId]++;
         }
         if (_userVotedInRound[roundId][msg.sender] && sum == 0) {
             _userVotedInRound[roundId][msg.sender] = false;
-            _userCountInRound[roundId]--;
+            _totalUsersInRound[roundId]--;
         }
 
         emit CastVotes(msg.sender, roundId);

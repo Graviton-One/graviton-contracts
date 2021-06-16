@@ -2,96 +2,97 @@
 pragma solidity >=0.8.0;
 
 import './interfaces/IFarm.sol';
-import './interfaces/IImpactKeeper.sol';
-import './interfaces/IBalanceKeeper.sol';
-import './interfaces/IBalanceAdder.sol';
-
-/// @title BalanceAdderEB
-/// @author Artemij Artamonov - <array.clean@gmail.com>
-/// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceAdder {
-
-    // early birds emission data
-    IFarm public farm;
-    IImpactKeeper public impactEB;
-
-    IBalanceKeeperV2 public balanceKeeper;
-
-    uint public finalValue;
-    uint public totalUsers;
-
-    mapping (uint => uint) public lastPortion;
-
-    constructor(IFarm _farm, IImpactKeeper _impactEB, IBalanceKeeperV2 _balanceKeeper) {
-        farm = _farm;
-        impactEB = _impactEB;
-        balanceKeeper = _balanceKeeper;
-        totalUsers = impactEB.userCount();
-    }
-
-    function addValueEB(uint user) internal {
-        uint currentPortion = farm.totalUnlocked() * impactEB.impact(user) / impactEB.totalSupply();
-        uint add = currentPortion - lastPortion[user];
-        lastPortion[user] = currentPortion;
-        balanceKeeper.addValue(user, add);
-    }
-
-    function processBalances(uint step) public override {
-        uint toValue = finalValue + step;
-        uint fromValue = finalValue;
-        if (toValue > totalUsers) {
-            toValue = totalUsers;
-        }
-        for(uint i = fromValue; i < toValue; i++) {
-            address user = impactEB.users(i);
-            addValueEB(user);
-        }
-        if (toValue == totalUsers) {
-            finalValue = 0;
-        } else {
-            finalValue = toValue;
-        }
-    }
-}
-
-import './interfaces/IFarm.sol';
-import './interfaces/IBalanceKeeper.sol';
+import './interfaces/IBalanceKeeperV2.sol';
 import './interfaces/IBalanceAdder.sol';
 
 /// @title BalanceAdderStaking
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract BalanceAdderStaking is IBalanceAdder {
+    
+    // these are addresses of contracts that keeps users shares
+    IBalanceAdderShares[] public shares;
+    IFarm[] public farms;
+    uint[] public lastPortions;
 
-    // early birds emission data
-    IFarm public farm;
-    IBalanceKeeper public balanceKeeper;
+    IBalanceKeeperV2 public balanceKeeper;
 
+    uint public totalUnlocked;
     uint public finalValue;
     uint public totalUsers;
-    uint public lastPortion;
     uint public currentPortion;
-    uint public totalBalance;
-    uint public totalUnlocked;
+    uint public currentIndex;
+    
+    address public owner;
+    
+    modifier isOwner() {
+        require(msg.sender == owner, "Caller is not owner");
+        _;
+    }
+    
+    function setOwner(address _owner) public isOwner {
+        owner = _owner;
+    }
 
-    constructor(IFarm _farm, IBalanceKeeper _balanceKeeper) {
-        farm = _farm;
+    constructor(IBalanceKeeperV2 _balanceKeeper, address _owner) {
         balanceKeeper = _balanceKeeper;
+        owner = _owner;
+    }
+    
+    function addNewFarm(IBalanceAdderShares _share, IFarm _farm) public isOwner {
+        shares.push(_share);
+        farms.push(_farm);
+        lastPortions.push(0);
+    }
+    
+    function removeFarm(uint farmId) public isOwner {
+        require(currentIndex != farmId, "index is currently in process");
+        // removing from array by index
+        IBalanceAdderShares[] memory newShares = new IBalanceAdderShares[](shares.length-1);
+        uint j = 0;
+        for (uint i = 0; i < shares.length; i++) {
+            if (i == farmId) {
+                continue;
+            }
+            newShares[j] = shares[i];
+            j++;
+        }
+        shares = newShares;
+        
+        IFarm[] memory newFarms = new IFarm[](farms.length-1);
+        j = 0;
+        for (uint i = 0; i < farms.length; i++) {
+            if (i == farmId) {
+                continue;
+            }
+            newFarms[j] = farms[i];
+            j++;
+        }
+        farms = newFarms;
+        
+        uint[] memory newLastPortions = new uint[](lastPortions.length-1);
+        j = 0;
+        for (uint i = 0; i < lastPortions.length; i++) {
+            if (i == farmId) {
+                continue;
+            }
+            newLastPortions[j] = lastPortions[i];
+            j++;
+        }
+        lastPortions = newLastPortions;
     }
 
-    function increaseUserStakeValue(address user) internal {
-        require(totalBalance > 0, "there is no balance available for staking");
-        uint prevBalance = balanceKeeper.userBalance(user);
-        uint add = currentPortion * prevBalance / totalBalance;
-        balanceKeeper.addValue(user, add);
-    }
-
+    // it iterates over all users but afer all are processed it forwards the index of array of current farm
     function processBalances(uint step) public override {
         if (finalValue == 0) {
+            if (currentIndex >= shares.length) {
+                currentIndex = 0;
+            } else {
+                currentIndex++;
+            }
             totalUsers = balanceKeeper.totalUsers();
-            totalUnlocked = farm.totalUnlocked();
-            currentPortion = totalUnlocked - lastPortion;
-            totalBalance = balanceKeeper.totalBalance();
+            totalUnlocked = farms[currentIndex].totalUnlocked();
+            currentPortion = totalUnlocked - lastPortions[currentIndex];
         }
         uint toValue = finalValue + step;
         uint fromValue = finalValue;
@@ -101,13 +102,14 @@ contract BalanceAdderStaking is IBalanceAdder {
         }
 
         for(uint i = fromValue; i < toValue; i++) {
-            address user = balanceKeeper.users(i);
-            increaseUserStakeValue(user);
+            //require(shares[currentIndex].getTotal() > 0, "there is no balance available for staking");
+            uint add = shares[currentIndex].getShareById(i) * currentPortion / shares[currentIndex].getTotal();
+            balanceKeeper.addById(i, add);
         }
 
         if (toValue == totalUsers) {
             finalValue = 0;
-            lastPortion = totalUnlocked;
+            lastPortions[currentIndex] = totalUnlocked;
         } else {
             finalValue = toValue;
         }
