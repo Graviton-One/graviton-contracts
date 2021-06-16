@@ -1,5 +1,6 @@
 import { ethers, waffle } from "hardhat";
 import { BigNumber } from "ethers";
+
 import { TestERC20 } from "../../typechain/TestERC20";
 import { ImpactKeeperTest } from "../../typechain/ImpactKeeperTest";
 import { MockTimeFarmCurved } from "../../typechain/MockTimeFarmCurved";
@@ -14,6 +15,10 @@ import { BalanceKeeperLP } from "../../typechain/BalanceKeeperLP";
 import { OracleRouter } from "../../typechain/OracleRouter";
 import { OracleParser } from "../../typechain/OracleParser";
 import { MockTimeClaimGTON } from "../../typechain/MockTimeClaimGTON";
+
+import { BalanceKeeperV2 } from "../../typechain/BalanceKeeperV2";
+import { VoterV2 } from "../../typechain/VoterV2";
+
 import {
   makeValueImpact,
   EARLY_BIRDS_A,
@@ -375,3 +380,38 @@ export const claimGTONFixture: Fixture<ClaimGTONFixture> =
       claimGTON
     };
   };
+
+interface BalanceKeeperV2Fixture {
+  balanceKeeper: BalanceKeeperV2;
+}
+
+async function balanceKeeperV2Fixture(
+  owner: string
+): Promise<BalanceKeeperV2Fixture> {
+  const balanceKeeperFactory = await ethers.getContractFactory("BalanceKeeperV2");
+  const balanceKeeper = (await balanceKeeperFactory.deploy(
+    owner
+  )) as BalanceKeeperV2;
+  return { balanceKeeper };
+}
+
+interface VoterV2Fixture extends BalanceKeeperV2Fixture {
+  voter: VoterV2;
+}
+
+export const voterV2Fixture: Fixture<VoterV2Fixture> = async function (
+  [wallet, other],
+  provider
+): Promise<VoterV2Fixture> {
+  const { balanceKeeper } = await balanceKeeperV2Fixture(wallet.address);
+
+  const voterFactory = await ethers.getContractFactory("VoterV2");
+  const voter = (await voterFactory.deploy(
+    wallet.address,
+    balanceKeeper.address
+  )) as VoterV2;
+  return {
+    balanceKeeper,
+    voter,
+  };
+};

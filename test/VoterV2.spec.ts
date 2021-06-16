@@ -1,10 +1,10 @@
 import { ethers, waffle } from 'hardhat'
-import { BalanceKeeper } from '../typechain/BalanceKeeper'
-import { Voter } from '../typechain/Voter'
-import { voterFixture } from './shared/fixtures'
+import { BalanceKeeperV2 } from '../typechain/BalanceKeeperV2'
+import { VoterV2 } from '../typechain/VoterV2'
+import { voterV2Fixture } from './shared/fixtures'
 import { expect } from './shared/expect'
 
-describe('Voter', () => {
+describe('VoterV2', () => {
   const [wallet, other] = waffle.provider.getWallets()
 
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
@@ -13,13 +13,15 @@ describe('Voter', () => {
     loadFixture = waffle.createFixtureLoader([wallet, other])
   })
 
-  let voter: Voter
-  let balanceKeeper: BalanceKeeper
+  let voter: VoterV2
+  let balanceKeeper: BalanceKeeperV2
 
   beforeEach('deploy test contracts', async () => {
-    ;({ balanceKeeper, voter } = await loadFixture(voterFixture))
+    ;({ balanceKeeper, voter } = await loadFixture(voterV2Fixture))
+    await balanceKeeper.setCanOpen(wallet.address, true)
+    await balanceKeeper.openId("EVM", wallet.address)
     await balanceKeeper.setCanAdd(wallet.address, true)
-    await balanceKeeper.add(wallet.address, "100")
+    await balanceKeeper.addByChainAddress("EVM", wallet.address, "100")
   })
 
   it('constructor initializes variables', async () => {
@@ -406,10 +408,10 @@ describe('Voter', () => {
       expect(await voter.votesForOptionByUser(0, wallet.address, 0)).to.eq(20)
       expect(await voter.votesForOptionByUser(0, wallet.address, 1)).to.eq(40)
       expect(await voter.votesInRoundByUser(0, wallet.address)).to.eq(60)
-      expect(await balanceKeeper.userBalance(wallet.address)).to.eq(100)
+      expect(await balanceKeeper.balanceByChainAddress("EVM", wallet.address)).to.eq(100)
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper.subtract(wallet.address, 30)
-      expect(await balanceKeeper.userBalance(wallet.address)).to.eq(70)
+      await balanceKeeper.subtractByChainAddress("EVM", wallet.address, 30)
+      expect(await balanceKeeper.balanceByChainAddress("EVM", wallet.address)).to.eq(70)
       await voter.setCanCheck(wallet.address, true)
       await voter.checkVoteBalances(wallet.address)
       expect(await voter.votesForOptionByUser(0, wallet.address, 0)).to.eq(20)
@@ -423,10 +425,10 @@ describe('Voter', () => {
       expect(await voter.votesForOptionByUser(0, wallet.address, 0)).to.eq(20)
       expect(await voter.votesForOptionByUser(0, wallet.address, 1)).to.eq(40)
       expect(await voter.votesInRoundByUser(0, wallet.address)).to.eq(60)
-      expect(await balanceKeeper.userBalance(wallet.address)).to.eq(100)
+      expect(await balanceKeeper.balanceByChainAddress("EVM", wallet.address)).to.eq(100)
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper.subtract(wallet.address, 70)
-      expect(await balanceKeeper.userBalance(wallet.address)).to.eq(30)
+      await balanceKeeper.subtractByChainAddress("EVM", wallet.address, 70)
+      expect(await balanceKeeper.balanceByChainAddress("EVM", wallet.address)).to.eq(30)
       await voter.setCanCheck(wallet.address, true)
       await voter.checkVoteBalances(wallet.address)
       expect(await voter.votesForOptionByUser(0, wallet.address, 0)).to.eq(10)
@@ -437,10 +439,10 @@ describe('Voter', () => {
     it('emits event', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.castVotes(0, [20,40])
-      expect(await balanceKeeper.userBalance(wallet.address)).to.eq(100)
+      expect(await balanceKeeper.balanceByChainAddress("EVM", wallet.address)).to.eq(100)
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper.subtract(wallet.address, 30)
-      expect(await balanceKeeper.userBalance(wallet.address)).to.eq(70)
+      await balanceKeeper.subtractByChainAddress("EVM", wallet.address, 30)
+      expect(await balanceKeeper.balanceByChainAddress("EVM", wallet.address)).to.eq(70)
       await voter.setCanCheck(wallet.address, true)
       await voter.checkVoteBalances(wallet.address)
       await expect(voter.checkVoteBalances(wallet.address))
