@@ -71,11 +71,11 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         emit SetCanSubtract(msg.sender, subtractor, canSubtract[subtractor]);
     }
 
-    function isKnownId(uint id) public view returns (bool) {
+    function isKnownId(uint id) public view override returns (bool) {
         return (id > 0 && id <= totalUsers);
     }
 
-    function isKnownChainAddress(string memory chain, bytes memory addr) public view returns (bool) {
+    function isKnownChainAddress(string memory chain, bytes memory addr) public view override returns (bool) {
         return (_idByChainAddress[chain][addr] != 0);
     }
 
@@ -87,7 +87,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         return _idByChainAddress[chain][addr];
     }
 
-    function openId(string memory chain, bytes memory addr) public returns (uint) {
+    function openId(string memory chain, bytes memory addr) public override returns (uint) {
         require(canOpen[msg.sender], "not allowed to open");
         if (_idByChainAddress[chain][addr] == 0) {
             uint id = totalUsers + 1;
