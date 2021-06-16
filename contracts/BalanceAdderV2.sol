@@ -5,10 +5,10 @@ import './interfaces/IFarm.sol';
 import './interfaces/IBalanceKeeperV2.sol';
 import './interfaces/IBalanceAdder.sol';
 
-/// @title BalanceAdderStaking
+/// @title BalanceAdderV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceAdderStaking is IBalanceAdder {
+contract BalanceAdderV2 is IBalanceAdder {
     
     // these are addresses of contracts that keeps users shares
     IBalanceAdderShares[] public shares;
@@ -18,10 +18,10 @@ contract BalanceAdderStaking is IBalanceAdder {
     IBalanceKeeperV2 public balanceKeeper;
 
     uint public totalUnlocked;
-    uint public finalValue;
+    uint public lastUser;
     uint public totalUsers;
     uint public currentPortion;
-    uint public currentIndex;
+    uint public lastFarm;
     
     address public owner;
     
@@ -44,9 +44,9 @@ contract BalanceAdderStaking is IBalanceAdder {
         farms.push(_farm);
         lastPortions.push(0);
     }
-    
+
     function removeFarm(uint farmId) public isOwner {
-        require(currentIndex != farmId, "index is currently in process");
+        require(lastFarm != farmId, "index is currently in process");
         // removing from array by index
         IBalanceAdderShares[] memory newShares = new IBalanceAdderShares[](shares.length-1);
         uint j = 0;
@@ -84,34 +84,34 @@ contract BalanceAdderStaking is IBalanceAdder {
 
     // it iterates over all users but afer all are processed it forwards the index of array of current farm
     function processBalances(uint step) public override {
-        if (finalValue == 0) {
-            if (currentIndex >= shares.length) {
-                currentIndex = 0;
+        if (lastUser == 0) {
+            if (lastFarm >= shares.length) {
+                lastFarm = 0;
             } else {
-                currentIndex++;
+                lastFarm++;
             }
             totalUsers = balanceKeeper.totalUsers();
-            totalUnlocked = farms[currentIndex].totalUnlocked();
-            currentPortion = totalUnlocked - lastPortions[currentIndex];
+            totalUnlocked = farms[lastFarm].totalUnlocked();
+            currentPortion = totalUnlocked - lastPortions[lastFarm];
         }
-        uint toValue = finalValue + step;
-        uint fromValue = finalValue;
+        uint toUser = lastUser + step;
+        uint fromUser = lastUser;
 
-        if (toValue > totalUsers) {
-            toValue = totalUsers;
+        if (toUser > totalUsers) {
+            toUser = totalUsers;
         }
 
-        for(uint i = fromValue; i < toValue; i++) {
-            //require(shares[currentIndex].getTotal() > 0, "there is no balance available for staking");
-            uint add = shares[currentIndex].getShareById(i) * currentPortion / shares[currentIndex].getTotal();
+        for(uint i = fromUser; i < toUser; i++) {
+            //require(shares[lastFarm].getTotal() > 0, "there is no balance available for staking");
+            uint add = shares[lastFarm].getShareById(i) * currentPortion / shares[lastFarm].getTotal();
             balanceKeeper.addById(i, add);
         }
 
-        if (toValue == totalUsers) {
-            finalValue = 0;
-            lastPortions[currentIndex] = totalUnlocked;
+        if (toUser == totalUsers) {
+            lastUser = 0;
+            lastPortions[lastFarm] = totalUnlocked;
         } else {
-            finalValue = toValue;
+            lastUser = toUser;
         }
     }
 }
