@@ -27,21 +27,23 @@ describe('BalanceKeeperV2', () => {
   })
 
   it('starting state after deployment', async () => {
-    expect(await balanceKeeper.totalBalance()).to.eq(0)
-    expect(await balanceKeeper.totalUsers()).to.eq(0)
-    expect(await balanceKeeper.balanceById(0)).to.eq(0)
-    expect(await balanceKeeper.balanceById(1)).to.eq(0)
-    expect(await balanceKeeper.idByChainAddress("ETH", wallet.address)).to.eq(0)
-    expect(await balanceKeeper.idByChainAddress("ETH", other.address)).to.eq(0)
-    // expect(await balanceKeeper.chainAddressById(0)).to.eq(['',''])
-    expect(await balanceKeeper.chainById(0)).to.eq("")
-    expect(await balanceKeeper.addressById(0)).to.eq("")
     expect(await balanceKeeper.canAdd(wallet.address)).to.eq(false)
     expect(await balanceKeeper.canAdd(other.address)).to.eq(false)
     expect(await balanceKeeper.canSubtract(wallet.address)).to.eq(false)
     expect(await balanceKeeper.canSubtract(other.address)).to.eq(false)
     expect(await balanceKeeper.canOpen(wallet.address)).to.eq(false)
     expect(await balanceKeeper.canOpen(other.address)).to.eq(false)
+    expect(await balanceKeeper.totalUsers()).to.eq(0)
+    expect(await balanceKeeper.totalBalance()).to.eq(0)
+    expect(await balanceKeeper.balanceById(0)).to.eq(0)
+    expect(await balanceKeeper.balanceById(1)).to.eq(0)
+    expect(await balanceKeeper.balanceByChainAddress("EVM", wallet.address)).to.eq(0)
+    expect(await balanceKeeper.balanceByChainAddress("EVM", other.address)).to.eq(0)
+    await expect(balanceKeeper.idByChainAddress("EVM", wallet.address)).to.be.reverted
+    await expect(balanceKeeper.idByChainAddress("EVM", other.address)).to.be.reverted
+    await expect(balanceKeeper.chainById(0)).to.be.reverted
+    await expect(balanceKeeper.addressById(0)).to.be.reverted
+    await expect(balanceKeeper.chainAddressById(0)).to.be.reverted
   })
 
   describe('#setOwner', () => {
@@ -63,12 +65,6 @@ describe('BalanceKeeperV2', () => {
     it('cannot be called by original owner', async () => {
       await balanceKeeper.setOwner(other.address)
       await expect(balanceKeeper.setOwner(wallet.address)).to.be.reverted
-    })
-  })
-
-  describe('#totalUsers', () => {
-    it('returns the number of users', async () => {
-      expect(await balanceKeeper.totalUsers()).to.eq(0)
     })
   })
 
@@ -178,4 +174,148 @@ describe('BalanceKeeperV2', () => {
     })
   })
 
+  describe('#isKnownId', () => {
+    it('returns false for the user that is not known', async () => {
+      expect(await balanceKeeper.isKnownId(0)).to.eq(false)
+    })
+
+    it('returns true for the known user', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      expect(await balanceKeeper.isKnownId(0)).to.eq(true)
+    })
+  })
+
+  describe('#isKnownChainAddress', () => {
+    it('returns false for the user that is not known', async () => {
+      expect(await balanceKeeper.isKnownChainAddress("EVM", wallet.address)).to.eq(false)
+    })
+
+    it('returns true for the known user', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      expect(await balanceKeeper.isKnownChainAddress("EVM", wallet.address)).to.eq(true)
+    })
+  })
+
+  describe('#chainById', () => {
+    it('fails for the user that is not known', async () => {
+      await expect(balanceKeeper.chainById(0)).to.be.reverted
+    })
+
+    it('returns chain for the known user', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      expect(await balanceKeeper.chainById(0)).to.eq("EVM")
+    })
+  })
+
+  describe('#addressById', () => {
+    it('fails for the user that is not known', async () => {
+      await expect(balanceKeeper.addressById(0)).to.be.reverted
+    })
+
+    it('returns address for the known user', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      expect(await balanceKeeper.addressById(0)).to.eq(wallet.address.toLowerCase())
+    })
+  })
+
+  describe('#chainAddressById', () => {
+    it('fails for the user that is not known', async () => {
+      await expect(balanceKeeper.chainById(0)).to.be.reverted
+    })
+
+    it('returns chain and address for the known user', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      let chainAddress = await balanceKeeper.chainAddressById(0)
+      expect(chainAddress[0]).to.eq("EVM")
+      expect(chainAddress[1]).to.eq(wallet.address.toLowerCase())
+    })
+  })
+
+  describe('#idByChainAddress', () => {
+    it('fails for the user that is not known', async () => {
+      await expect(balanceKeeper.idByChainAddress("EVM", wallet.address)).to.be.reverted
+    })
+
+    it('returns id for the known user', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      expect(await balanceKeeper.idByChainAddress("EVM", wallet.address)).to.eq(0)
+    })
+  })
+
+  describe('#balanceById', () => {
+    it('returns 0 for the user that is not known', async () => {
+      expect(await balanceKeeper.balanceById(0)).to.eq(0)
+    })
+
+    it('returns 0 when the balance is empty', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      expect(await balanceKeeper.balanceById(0)).to.eq(0)
+    })
+
+    it('returns balance for the known user', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addByChainAddress("EVM", wallet.address, 100)
+      expect(await balanceKeeper.balanceById(0)).to.eq(100)
+    })
+  })
+
+  describe('#balanceByChainAddress', () => {
+    it('returns 0 for the user that is not known', async () => {
+      expect(await balanceKeeper.balanceByChainAddress("EVM", wallet.address)).to.eq(0)
+    })
+
+    it('returns 0 when the balance is empty', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      expect(await balanceKeeper.balanceByChainAddress("EVM", wallet.address)).to.eq(0)
+    })
+
+    it('returns balance for the known user', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addByChainAddress("EVM", wallet.address, 100)
+      expect(await balanceKeeper.balanceByChainAddress("EVM", wallet.address)).to.eq(100)
+    })
+  })
+
+  describe('#openId', () => {
+    it('fails if caller is not opener', async () => {
+    })
+
+    it('sets chain for id', async () => {
+    })
+
+    it('sets address for id', async () => {
+    })
+
+    it('sets id for chain and address', async () => {
+    })
+
+    it('increments the number of users for the id that is not known', async () => {
+    })
+
+    it('does not increment the number of users for the known id', async () => {
+    })
+
+    it('returns opened id', async () => {
+    })
+  })
+
+  describe('#addById', () => {})
+
+  describe('#addByChainAddress', () => {})
+
+  describe('#subtractById', () => {})
+
+  describe('#subtractByChainAddress', () => {})
 })
