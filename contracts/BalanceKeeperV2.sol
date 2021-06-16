@@ -25,6 +25,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IBalanceAdderShares {
     mapping (uint => string) internal _chainById;
     mapping (uint => bytes) internal _addressById;
     mapping (string => mapping (bytes => uint)) internal _idByChainAddress;
+    mapping (string => mapping (bytes => bool)) internal _isKnownChainAddress;
 
     uint public override totalUsers;
     uint public override totalBalance;
@@ -73,26 +74,30 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IBalanceAdderShares {
     }
 
     function isKnownId(uint id) public view override returns (bool) {
-        return (id > 0 && id <= totalUsers);
+        return _isKnownChainAddress[_chainById[id]][_addressById[id]];
     }
 
     function isKnownChainAddress(string memory chain, bytes memory addr) public view override returns (bool) {
-        return (_idByChainAddress[chain][addr] != 0);
+        return _isKnownChainAddress[chain][addr];
     }
 
     function chainById(uint id) public view returns (string memory) {
+        require(isKnownId(id), "user is not known");
         return _chainById[id];
     }
 
     function addressById(uint id) public view returns (bytes memory) {
+        require(isKnownId(id), "user is not known");
         return _addressById[id];
     }
 
     function chainAddressById(uint id) public view returns (string memory, bytes memory) {
+        require(isKnownId(id), "user is not known");
         return (_chainById[id], _addressById[id]);
     }
 
     function idByChainAddress(string memory chain, bytes memory addr) public view returns (uint) {
+        require(isKnownChainAddress(chain, addr), "user is not known");
         return _idByChainAddress[chain][addr];
     }
 
@@ -104,16 +109,16 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IBalanceAdderShares {
         return _balanceById[_idByChainAddress[chain][addr]];
     }
 
-    function openId(string memory chain, bytes memory addr) public override returns (uint) {
+    function openId(string memory chain, bytes memory addr) public override {
         require(canOpen[msg.sender], "not allowed to open");
         if (_idByChainAddress[chain][addr] == 0) {
-            uint id = totalUsers + 1;
+            uint id = totalUsers;
             _chainById[id] = chain;
             _addressById[id] = addr;
             _idByChainAddress[chain][addr] = id;
+            _isKnownChainAddress[chain][addr] = true;
             totalUsers++;
         }
-        return _idByChainAddress[chain][addr];
     }
 
     // add user balance
@@ -132,11 +137,13 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IBalanceAdderShares {
     // subtract user balance
     function subtractById(uint id, uint amount) public override {
         require(canSubtract[msg.sender], "not allowed to subtract");
+        require(isKnownId(id), "user is not known");
         _subtract(id, amount);
     }
 
     function subtractByChainAddress(string memory chain, bytes memory addr, uint amount) public override {
         require(canSubtract[msg.sender], "not allowed to subtract");
+        require(isKnownChainAddress(chain, addr), "user is not known");
         _subtract(_idByChainAddress[chain][addr], amount);
     }
 

@@ -6,10 +6,10 @@ import './interfaces/IImpactKeeper.sol';
 import './interfaces/IBalanceKeeperV2.sol';
 import './interfaces/IBalanceAdder.sol';
 
-/// @title BalanceAdderEB
+/// @title BalanceAdderEBV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceAdderEB is IBalanceAdder {
+contract BalanceAdderEBV2 is IBalanceAdder {
 
     // early birds emission data
     IFarm public farm;
