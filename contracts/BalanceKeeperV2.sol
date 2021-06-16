@@ -22,13 +22,13 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IBalanceAdderShares {
     mapping (address => bool) public canOpen;
 
     // chain code => in chain address => user id;
-    mapping (uint => string) public chainById;
-    mapping (uint => bytes) public addressById;
-    mapping (string => mapping (bytes => uint)) public _idByChainAddress;
+    mapping (uint => string) internal _chainById;
+    mapping (uint => bytes) internal _addressById;
+    mapping (string => mapping (bytes => uint)) internal _idByChainAddress;
 
     uint public override totalUsers;
     uint public override totalBalance;
-    mapping (uint => uint) public override balanceById;
+    mapping (uint => uint) internal _balanceById;
 
     event Add(address indexed adder,
               uint indexed id,
@@ -72,28 +72,44 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IBalanceAdderShares {
         emit SetCanSubtract(msg.sender, subtractor, canSubtract[subtractor]);
     }
 
-    function isKnownId(uint id) public view returns (bool) {
+    function isKnownId(uint id) public view override returns (bool) {
         return (id > 0 && id <= totalUsers);
     }
 
-    function isKnownChainAddress(string memory chain, bytes memory addr) public view returns (bool) {
+    function isKnownChainAddress(string memory chain, bytes memory addr) public view override returns (bool) {
         return (_idByChainAddress[chain][addr] != 0);
     }
 
+    function chainById(uint id) public view returns (string memory) {
+        return _chainById[id];
+    }
+
+    function addressById(uint id) public view returns (bytes memory) {
+        return _addressById[id];
+    }
+
     function chainAddressById(uint id) public view returns (string memory, bytes memory) {
-        return (chainById[id], addressById[id]);
+        return (_chainById[id], _addressById[id]);
     }
 
     function idByChainAddress(string memory chain, bytes memory addr) public view returns (uint) {
         return _idByChainAddress[chain][addr];
     }
 
-    function openId(string memory chain, bytes memory addr) public returns (uint) {
+    function balanceById(uint id) public view override returns (uint) {
+        return _balanceById[id];
+    }
+
+    function balanceByChainAddress(string memory chain, bytes memory addr) public view override returns (uint) {
+        return _balanceById[_idByChainAddress[chain][addr]];
+    }
+
+    function openId(string memory chain, bytes memory addr) public override returns (uint) {
         require(canOpen[msg.sender], "not allowed to open");
         if (_idByChainAddress[chain][addr] == 0) {
             uint id = totalUsers + 1;
-            chainById[id] = chain;
-            addressById[id] = addr;
+            _chainById[id] = chain;
+            _addressById[id] = addr;
             _idByChainAddress[chain][addr] = id;
             totalUsers++;
         }
@@ -125,20 +141,20 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IBalanceAdderShares {
     }
 
     function _add(uint id, uint amount) internal {
-        balanceById[id] += amount;
+        _balanceById[id] += amount;
         totalBalance += amount;
-        emit Add(msg.sender, id, chainById[id], addressById[id], amount);
+        emit Add(msg.sender, id, _chainById[id], _addressById[id], amount);
     }
 
     function _subtract(uint id, uint amount) internal {
-        balanceById[id] -= amount;
+        _balanceById[id] -= amount;
         totalBalance -= amount;
-        emit Subtract(msg.sender, id, chainById[id], addressById[id], amount);
+        emit Subtract(msg.sender, id, _chainById[id], _addressById[id], amount);
     }
     
     // implement of share interface 
     function getShareById(uint id) public view override returns (uint) {
-        return balanceById[id];
+        return _balanceById[id];
     }
     function getTotal() public view override returns (uint) {
         return totalBalance;
