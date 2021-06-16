@@ -10,6 +10,7 @@ interface IBalanceKeeperV2 {
     function isKnownId(uint id) external returns (bool);
     function openId(string memory chain, bytes memory addr) external returns (uint);
     function balanceById(uint id) external returns (uint);
+    function balanceByChainAddress(string memory chain, bytes memory addr) external returns (uint);
     function totalBalance() external returns (uint);
     function totalUsers() external returns (uint);
 }
