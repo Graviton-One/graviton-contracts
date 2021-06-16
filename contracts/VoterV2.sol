@@ -152,7 +152,7 @@ contract VoterV2 is IVoter {
         for (uint optionId = 0; optionId < votes.length; optionId++) {
             sum += votes[optionId];
         }
-        require(IBalanceKeeperV2(balanceKeeper).balanceByChainAddress("EVM", abi.encodePacked(msg.sender)) >= sum, "balance is smaller than the sum of votes");
+        require(IBalanceKeeperV2(balanceKeeper).balance("EVM", abi.encodePacked(msg.sender)) >= sum, "balance is smaller than the sum of votes");
 
         // if msg.sender already voted in roundId, erase their previous votes
         if (_votesInRoundByUser[roundId][msg.sender] != 0) {
@@ -223,7 +223,7 @@ contract VoterV2 is IVoter {
     // decrease votes when the balance is depleted, preserve proportions
     function checkVoteBalances(address user) public override {
         require(canCheck[msg.sender], "sender is not allowed to check balances");
-        uint newBalance = IBalanceKeeperV2(balanceKeeper).balanceByChainAddress("EVM", abi.encodePacked(msg.sender));
+        uint newBalance = IBalanceKeeperV2(balanceKeeper).balance("EVM", abi.encodePacked(msg.sender));
         for(uint i = 0; i < activeRounds.length; i++) {
             checkVoteBalance(activeRounds[i], user, newBalance);
         }

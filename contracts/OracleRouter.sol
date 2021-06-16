@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0;
 
 import './interfaces/IBalanceKeeper.sol';
-import './interfaces/IBalanceKeeperLP.sol';
+import './interfaces/ILPKeeper.sol';
 import './interfaces/IOracleRouter.sol';
 
 /// @title OracleRouter
@@ -18,7 +18,7 @@ contract OracleRouter is IOracleRouter {
     }
 
     IBalanceKeeper public balanceKeeper;
-    IBalanceKeeperLP public balanceKeeperLP;
+    ILPKeeper public lpKeeper;
     bytes32 public gtonAddTopic;
     bytes32 public gtonSubTopic;
     bytes32 public __lpAddTopic;
@@ -61,7 +61,7 @@ contract OracleRouter is IOracleRouter {
 
     constructor(address _owner,
                 IBalanceKeeper _balanceKeeper,
-                IBalanceKeeperLP _balanceKeeperLP,
+                ILPKeeper _lpKeeper,
                 bytes32 _gtonAddTopic,
                 bytes32 _gtonSubTopic,
                 bytes32 ___lpAddTopic,
@@ -69,7 +69,7 @@ contract OracleRouter is IOracleRouter {
                 ) {
         owner = _owner;
         balanceKeeper = _balanceKeeper;
-        balanceKeeperLP = _balanceKeeperLP;
+        lpKeeper = _lpKeeper;
         gtonAddTopic = _gtonAddTopic;
         gtonSubTopic = _gtonSubTopic;
         __lpAddTopic = ___lpAddTopic;
@@ -95,6 +95,10 @@ contract OracleRouter is IOracleRouter {
         emit SetCanRoute(msg.sender, parser, canRoute[parser]);
     }
 
+    function equal(bytes32 a, bytes32 b) internal pure returns (bool) {
+        return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
+    }
+
     function routeValue(bytes16 uuid,
                         string memory chain,
                         address emiter,
@@ -105,20 +109,20 @@ contract OracleRouter is IOracleRouter {
                         uint256 amount) external override {
         require(canRoute[msg.sender], "not allowed to route value");
 
-        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(gtonAddTopic))) {
+        if (equal(topic0, gtonAddTopic)) {
             balanceKeeper.add(receiver, amount);
             emit GTONAdd(uuid, chain, emiter, token, sender, receiver, amount);
         }
-        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(gtonSubTopic))) {
+        if (equal(topic0, gtonSubTopic)) {
             balanceKeeper.subtract(sender, amount);
             emit GTONSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
-        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(__lpAddTopic))) {
-            balanceKeeperLP.add(token, receiver, amount);
+        if (equal(topic0, __lpAddTopic)) {
+            lpKeeper.add(token, receiver, amount);
             emit __LPAdd(uuid, chain, emiter, token, sender, receiver, amount);
         }
-        if (keccak256(abi.encodePacked(topic0)) == keccak256(abi.encodePacked(__lpSubTopic))) {
-            balanceKeeperLP.subtract(token, sender, amount);
+        if (equal(topic0, __lpSubTopic)) {
+            lpKeeper.subtract(token, sender, amount);
             emit __LPSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
     }

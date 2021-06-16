@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-interface IBalanceKeeperLP {
+interface ILPKeeper {
     function add(address lptoken, address user, uint amount) external;
     function subtract(address lptoken, address user, uint amount) external;
     function userBalance(address lptoken, address user) external returns (uint);

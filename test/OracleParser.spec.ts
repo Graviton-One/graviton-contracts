@@ -1,7 +1,7 @@
 import { ethers, waffle } from 'hardhat'
 import { TestERC20 } from '../typechain/TestERC20'
 import { BalanceKeeper } from '../typechain/BalanceKeeper'
-import { BalanceKeeperLP } from '../typechain/BalanceKeeperLP'
+import { LPKeeper } from '../typechain/LPKeeper'
 import { OracleRouter } from '../typechain/OracleRouter'
 import { OracleParser } from '../typechain/OracleParser'
 import { oracleParserFixture } from './shared/fixtures'
@@ -28,12 +28,12 @@ describe('OracleParser', () => {
   let token1: TestERC20
   let token2: TestERC20
   let balanceKeeper: BalanceKeeper
-  let balanceKeeperLP: BalanceKeeperLP
+  let lpKeeper: LPKeeper
   let oracleRouter: OracleRouter
   let oracleParser: OracleParser
 
   beforeEach('deploy test contracts', async () => {
-    ;({ token0, token1, token2, balanceKeeper, balanceKeeperLP, oracleRouter, oracleParser } = await loadFixture(oracleParserFixture))
+    ;({ token0, token1, token2, balanceKeeper, lpKeeper, oracleRouter, oracleParser } = await loadFixture(oracleParserFixture))
   })
 
   it('constructor initializes variables', async () => {
@@ -218,24 +218,24 @@ describe('OracleParser', () => {
 
     it('parses to the router to add lp', async () => {
       await oracleRouter.setCanRoute(oracleParser.address, true)
-      await balanceKeeperLP.setCanAdd(oracleRouter.address, true)
+      await lpKeeper.setCanAdd(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
       await oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
                                                     ,"0x04", __LP_ADD_TOPIC, token1.address
                                                     ,wallet.address, wallet.address, "1000"))
-      expect(await balanceKeeperLP.userBalance(token1.address, wallet.address)).to.eq(1000)
+      expect(await lpKeeper.userBalance(token1.address, wallet.address)).to.eq(1000)
     })
 
     it('parses to the router to subtract lp', async () => {
       await oracleRouter.setCanRoute(oracleParser.address, true)
-      await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.add(token1.address, wallet.address, 1000)
-      await balanceKeeperLP.setCanSubtract(oracleRouter.address, true)
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await lpKeeper.add(token1.address, wallet.address, 1000)
+      await lpKeeper.setCanSubtract(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
       await oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
                                                     ,"0x04", __LP_SUB_TOPIC, token1.address
                                                     ,wallet.address, wallet.address, "500"))
-      expect(await balanceKeeperLP.userBalance(token1.address, wallet.address)).to.eq(500)
+      expect(await lpKeeper.userBalance(token1.address, wallet.address)).to.eq(500)
     })
 
     it('emits event', async () => {

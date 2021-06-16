@@ -4,6 +4,7 @@ pragma solidity >=0.8.0;
 import './interfaces/IFarm.sol';
 import './interfaces/IBalanceKeeperV2.sol';
 import './interfaces/IBalanceAdder.sol';
+import './interfaces/IBalanceAdderShares.sol';
 
 /// @title BalanceAdderV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
@@ -104,7 +105,7 @@ contract BalanceAdderV2 is IBalanceAdder {
         for(uint i = fromUser; i < toUser; i++) {
             //require(shares[lastFarm].getTotal() > 0, "there is no balance available for staking");
             uint add = shares[lastFarm].getShareById(i) * currentPortion / shares[lastFarm].getTotal();
-            balanceKeeper.addById(i, add);
+            balanceKeeper.add(i, add);
         }
 
         if (toUser == totalUsers) {

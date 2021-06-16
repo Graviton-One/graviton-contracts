@@ -1,12 +1,12 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import './interfaces/IBalanceKeeperLP.sol';
+import './interfaces/ILPKeeper.sol';
 
-/// @title BalanceKeeperLP
+/// @title LPKeeper
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceKeeperLP is IBalanceKeeperLP {
+contract LPKeeper is ILPKeeper {
 
     address public owner;
 

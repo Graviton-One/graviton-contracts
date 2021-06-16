@@ -11,7 +11,7 @@ import { Voter } from "../../typechain/Voter";
 import { BalanceAdderEB } from "../../typechain/BalanceAdderEB";
 import { BalanceAdderStaking } from "../../typechain/BalanceAdderStaking";
 import { BalanceAdderLP } from "../../typechain/BalanceAdderLP";
-import { BalanceKeeperLP } from "../../typechain/BalanceKeeperLP";
+import { LPKeeper } from "../../typechain/LPKeeper";
 import { OracleRouter } from "../../typechain/OracleRouter";
 import { OracleParser } from "../../typechain/OracleParser";
 import { MockTimeClaimGTON } from "../../typechain/MockTimeClaimGTON";
@@ -244,37 +244,37 @@ export const balanceAdderStakingFixture: Fixture<BalanceAdderStakingFixture> =
     };
   };
 
-interface BalanceKeeperLPFixture extends TokensFixture {
-  balanceKeeperLP: BalanceKeeperLP;
+interface LPKeeperFixture extends TokensFixture {
+  lpKeeper: LPKeeper;
 }
 
-export const balanceKeeperLPFixture: Fixture<BalanceKeeperLPFixture> =
-  async function ([wallet, other], provider): Promise<BalanceKeeperLPFixture> {
+export const lpKeeperFixture: Fixture<LPKeeperFixture> =
+  async function ([wallet, other], provider): Promise<LPKeeperFixture> {
     const { token0, token1, token2 } = await tokensFixture();
-    const balanceKeeperLPFactory = await ethers.getContractFactory(
-      "BalanceKeeperLP"
+    const lpKeeperFactory = await ethers.getContractFactory(
+      "LPKeeper"
     );
-    const balanceKeeperLP = (await balanceKeeperLPFactory.deploy(
+    const lpKeeper = (await lpKeeperFactory.deploy(
       wallet.address
-    )) as BalanceKeeperLP;
+    )) as LPKeeper;
     return {
       token0,
       token1,
       token2,
-      balanceKeeperLP,
+      lpKeeper,
     };
   };
 
-type FarmCurvedAndBalanceKeeperAndBalanceKeeperLPFixture = FarmCurvedFixture & BalanceKeeperFixture & BalanceKeeperLPFixture;
+type FarmCurvedAndBalanceKeeperAndLPKeeperFixture = FarmCurvedFixture & BalanceKeeperFixture & LPKeeperFixture;
 
-interface BalanceAdderLPFixture extends FarmCurvedAndBalanceKeeperAndBalanceKeeperLPFixture {
+interface BalanceAdderLPFixture extends FarmCurvedAndBalanceKeeperAndLPKeeperFixture {
   balanceAdderLP: BalanceAdderLP;
 }
 
 export const balanceAdderLPFixture: Fixture<BalanceAdderLPFixture> =
   async function ([wallet, other], provider): Promise<BalanceAdderLPFixture> {
     const { balanceKeeper } = await balanceKeeperFixture(wallet.address);
-    const { token0, token1, token2, balanceKeeperLP } = await balanceKeeperLPFixture([wallet, other], provider);
+    const { token0, token1, token2, lpKeeper } = await lpKeeperFixture([wallet, other], provider);
     const { farm } = await farmCurvedFixture(wallet.address);
 
     const balanceAdderLPFactory = await ethers.getContractFactory(
@@ -283,7 +283,7 @@ export const balanceAdderLPFixture: Fixture<BalanceAdderLPFixture> =
     const balanceAdderLP = (await balanceAdderLPFactory.deploy(
       farm.address,
       balanceKeeper.address,
-      balanceKeeperLP.address
+      lpKeeper.address
     )) as BalanceAdderLP;
     return {
       token0,
@@ -291,27 +291,27 @@ export const balanceAdderLPFixture: Fixture<BalanceAdderLPFixture> =
       token2,
       farm,
       balanceKeeper,
-      balanceKeeperLP,
+      lpKeeper,
       balanceAdderLP,
     };
   };
 
-type BalanceKeeperAndBalanceKeeperLPFixture = BalanceKeeperFixture & BalanceKeeperLPFixture
+type BalanceKeeperAndLPKeeperFixture = BalanceKeeperFixture & LPKeeperFixture
 
-interface OracleRouterFixture extends BalanceKeeperAndBalanceKeeperLPFixture {
+interface OracleRouterFixture extends BalanceKeeperAndLPKeeperFixture {
   oracleRouter: OracleRouter;
 }
 
 export const oracleRouterFixture: Fixture<OracleRouterFixture> =
   async function ([wallet, other], provider): Promise<OracleRouterFixture> {
     const { balanceKeeper } = await balanceKeeperFixture(wallet.address);
-    const { token0, token1, token2, balanceKeeperLP } = await balanceKeeperLPFixture([wallet, other], provider);
+    const { token0, token1, token2, lpKeeper } = await lpKeeperFixture([wallet, other], provider);
 
     const oracleRouterFactory = await ethers.getContractFactory("OracleRouter");
     const oracleRouter = (await oracleRouterFactory.deploy(
       wallet.address,
       balanceKeeper.address,
-      balanceKeeperLP.address,
+      lpKeeper.address,
       GTON_ADD_TOPIC,
       GTON_SUB_TOPIC,
       __LP_ADD_TOPIC,
@@ -322,7 +322,7 @@ export const oracleRouterFixture: Fixture<OracleRouterFixture> =
       token1,
       token2,
       balanceKeeper,
-      balanceKeeperLP,
+      lpKeeper,
       oracleRouter
     };
   };
@@ -333,7 +333,7 @@ interface OracleParserFixture extends OracleRouterFixture {
 
 export const oracleParserFixture: Fixture<OracleParserFixture> =
   async function ([wallet, other, nebula], provider): Promise<OracleParserFixture> {
-    const { token0, token1, token2, balanceKeeper, balanceKeeperLP, oracleRouter } = await oracleRouterFixture([wallet, other], provider);
+    const { token0, token1, token2, balanceKeeper, lpKeeper, oracleRouter } = await oracleRouterFixture([wallet, other], provider);
 
     const oracleParserFactory = await ethers.getContractFactory("OracleParser");
     const oracleParser = (await oracleParserFactory.deploy(
@@ -346,7 +346,7 @@ export const oracleParserFixture: Fixture<OracleParserFixture> =
       token1,
       token2,
       balanceKeeper,
-      balanceKeeperLP,
+      lpKeeper,
       oracleRouter,
       oracleParser
     };

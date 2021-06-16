@@ -1,7 +1,7 @@
 import { ethers, waffle } from 'hardhat'
 import { TestERC20 } from '../typechain/TestERC20'
 import { BalanceKeeper } from '../typechain/BalanceKeeper'
-import { BalanceKeeperLP } from '../typechain/BalanceKeeperLP'
+import { LPKeeper } from '../typechain/LPKeeper'
 import { OracleRouter } from '../typechain/OracleRouter'
 import { oracleRouterFixture } from './shared/fixtures'
 import { expect } from './shared/expect'
@@ -26,17 +26,17 @@ describe('OracleRouter', () => {
   let token1: TestERC20
   let token2: TestERC20
   let balanceKeeper: BalanceKeeper
-  let balanceKeeperLP: BalanceKeeperLP
+  let lpKeeper: LPKeeper
   let oracleRouter: OracleRouter
 
   beforeEach('deploy test contracts', async () => {
-    ;({ token0, token1, token2, balanceKeeper, balanceKeeperLP, oracleRouter } = await loadFixture(oracleRouterFixture))
+    ;({ token0, token1, token2, balanceKeeper, lpKeeper, oracleRouter } = await loadFixture(oracleRouterFixture))
   })
 
   it('constructor initializes variables', async () => {
     expect(await oracleRouter.owner()).to.eq(wallet.address)
     expect(await oracleRouter.balanceKeeper()).to.eq(balanceKeeper.address)
-    expect(await oracleRouter.balanceKeeperLP()).to.eq(balanceKeeperLP.address)
+    expect(await oracleRouter.lpKeeper()).to.eq(lpKeeper.address)
     expect(await oracleRouter.gtonAddTopic()).to.eq(GTON_ADD_TOPIC)
     expect(await oracleRouter.gtonSubTopic()).to.eq(GTON_SUB_TOPIC)
     expect(await oracleRouter.__lpAddTopic()).to.eq(__LP_ADD_TOPIC)
@@ -229,7 +229,7 @@ describe('OracleRouter', () => {
 
     it('routes to add lp', async () => {
       await oracleRouter.setCanRoute(wallet.address, true)
-      await balanceKeeperLP.setCanAdd(oracleRouter.address, true)
+      await lpKeeper.setCanAdd(oracleRouter.address, true)
       await oracleRouter.routeValue(MOCK_UUID
                                    ,MOCK_CHAIN
                                    ,other.address
@@ -238,12 +238,12 @@ describe('OracleRouter', () => {
                                    ,wallet.address
                                    ,wallet.address
                                    ,1000)
-      expect(await balanceKeeperLP.userBalance(token1.address, wallet.address)).to.eq(1000)
+      expect(await lpKeeper.userBalance(token1.address, wallet.address)).to.eq(1000)
     })
 
     it('emits event to add lp', async () => {
       await oracleRouter.setCanRoute(wallet.address, true)
-      await balanceKeeperLP.setCanAdd(oracleRouter.address, true)
+      await lpKeeper.setCanAdd(oracleRouter.address, true)
       await expect(oracleRouter.routeValue(MOCK_UUID
                                           ,MOCK_CHAIN
                                           ,other.address
@@ -259,8 +259,8 @@ describe('OracleRouter', () => {
 
     it('fails if router is not allowed to subtract lp', async () => {
       await oracleRouter.setCanRoute(wallet.address, true)
-      await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.add(token1.address, wallet.address, 1000)
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await lpKeeper.add(token1.address, wallet.address, 1000)
       await expect(oracleRouter.routeValue(MOCK_UUID
                                           ,MOCK_CHAIN
                                           ,other.address
@@ -273,9 +273,9 @@ describe('OracleRouter', () => {
 
     it('routes to subtract lp', async () => {
       await oracleRouter.setCanRoute(wallet.address, true)
-      await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.add(token1.address, wallet.address, 1000)
-      await balanceKeeperLP.setCanSubtract(oracleRouter.address, true)
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await lpKeeper.add(token1.address, wallet.address, 1000)
+      await lpKeeper.setCanSubtract(oracleRouter.address, true)
       await oracleRouter.routeValue(MOCK_UUID
                                    ,MOCK_CHAIN
                                    ,other.address
@@ -284,14 +284,14 @@ describe('OracleRouter', () => {
                                    ,wallet.address
                                    ,wallet.address
                                    ,500)
-      expect(await balanceKeeperLP.userBalance(token1.address, wallet.address)).to.eq(500)
+      expect(await lpKeeper.userBalance(token1.address, wallet.address)).to.eq(500)
     })
 
     it('emits event to subtract lp', async () => {
       await oracleRouter.setCanRoute(wallet.address, true)
-      await balanceKeeperLP.setCanAdd(wallet.address, true)
-      await balanceKeeperLP.add(token1.address, wallet.address, 1000)
-      await balanceKeeperLP.setCanSubtract(oracleRouter.address, true)
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await lpKeeper.add(token1.address, wallet.address, 1000)
+      await lpKeeper.setCanSubtract(oracleRouter.address, true)
       await expect(oracleRouter.routeValue(MOCK_UUID
                                           ,MOCK_CHAIN
                                           ,other.address

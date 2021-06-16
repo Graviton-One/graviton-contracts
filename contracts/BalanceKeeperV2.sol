@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0;
 
 import './interfaces/IBalanceKeeperV2.sol';
-import './interfaces/IBalanceAdder.sol';
+import './interfaces/IBalanceAdderShares.sol';
 
 /// @title BalanceKeeperV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
@@ -22,29 +22,38 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IBalanceAdderShares {
     mapping (address => bool) public canOpen;
 
     // chain code => in chain address => user id;
-    mapping (uint => string) internal _chainById;
-    mapping (uint => bytes) internal _addressById;
-    mapping (string => mapping (bytes => uint)) internal _idByChainAddress;
-    mapping (string => mapping (bytes => bool)) internal _isKnownChainAddress;
+    mapping (uint => string) internal _userChainById;
+    mapping (uint => bytes) internal _userAddressById;
+    mapping (string => mapping (bytes => uint)) internal _userIdByChainAddress;
+    mapping (string => mapping (bytes => bool)) internal _isKnownUser;
 
     uint public override totalUsers;
     uint public override totalBalance;
-    mapping (uint => uint) internal _balanceById;
+    mapping (uint => uint) internal _balance;
 
-    event Add(address indexed adder,
-              uint indexed id,
-              string chain,
-              bytes indexed addr,
-              uint amount);
-    event Subtract(address indexed subtractor,
-                   uint indexed id,
-                   string chain,
-                   bytes indexed addr,
-                   uint amount);
-    event SetCanAdd(address indexed owner, address indexed adder, bool indexed newBool);
-    event SetCanOpen(address indexed owner, address indexed opener, bool indexed newBool);
-    event SetCanSubtract(address indexed owner, address indexed subtractor, bool indexed newBool);
-    event SetOwner(address ownerOld, address ownerNew);
+    event SetOwner
+        (address ownerOld,
+         address ownerNew);
+    event SetCanOpen
+        (address indexed owner,
+         address indexed opener,
+         bool indexed newBool);
+    event SetCanAdd
+        (address indexed owner,
+         address indexed adder,
+         bool indexed newBool);
+    event SetCanSubtract
+        (address indexed owner,
+         address indexed subtractor,
+         bool indexed newBool);
+    event Add
+        (address indexed adder,
+         uint indexed userId,
+         uint amount);
+    event Subtract
+        (address indexed subtractor,
+         uint indexed userId,
+         uint amount);
 
     constructor(address _owner) {
         owner = _owner;
@@ -73,94 +82,94 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IBalanceAdderShares {
         emit SetCanSubtract(msg.sender, subtractor, canSubtract[subtractor]);
     }
 
-    function isKnownId(uint id) public view override returns (bool) {
-        return _isKnownChainAddress[_chainById[id]][_addressById[id]];
+    function isKnownUser(uint userId) public view override returns (bool) {
+        return _isKnownUser[_userChainById[userId]][_userAddressById[userId]];
     }
 
-    function isKnownChainAddress(string memory chain, bytes memory addr) public view override returns (bool) {
-        return _isKnownChainAddress[chain][addr];
+    function isKnownUser(string calldata userChain, bytes calldata userAddress) public view override returns (bool) {
+        return _isKnownUser[userChain][userAddress];
     }
 
-    function chainById(uint id) public view returns (string memory) {
-        require(isKnownId(id), "user is not known");
-        return _chainById[id];
+    function userChainById(uint userId) public view override returns (string memory) {
+        require(isKnownUser(userId), "user is not known");
+        return _userChainById[userId];
     }
 
-    function addressById(uint id) public view returns (bytes memory) {
-        require(isKnownId(id), "user is not known");
-        return _addressById[id];
+    function userAddressById(uint userId) public view override returns (bytes memory) {
+        require(isKnownUser(userId), "user is not known");
+        return _userAddressById[userId];
     }
 
-    function chainAddressById(uint id) public view returns (string memory, bytes memory) {
-        require(isKnownId(id), "user is not known");
-        return (_chainById[id], _addressById[id]);
+    function userChainAddressById(uint userId) public view override returns (string memory, bytes memory) {
+        require(isKnownUser(userId), "user is not known");
+        return (_userChainById[userId], _userAddressById[userId]);
     }
 
-    function idByChainAddress(string memory chain, bytes memory addr) public view returns (uint) {
-        require(isKnownChainAddress(chain, addr), "user is not known");
-        return _idByChainAddress[chain][addr];
+    function userIdByChainAddress(string calldata userChain, bytes calldata userAddress) public view override returns (uint) {
+        require(isKnownUser(userChain, userAddress), "user is not known");
+        return _userIdByChainAddress[userChain][userAddress];
     }
 
-    function balanceById(uint id) public view override returns (uint) {
-        return _balanceById[id];
+    function balance(uint userId) public view override returns (uint) {
+        return _balance[userId];
     }
 
-    function balanceByChainAddress(string memory chain, bytes memory addr) public view override returns (uint) {
-        return _balanceById[_idByChainAddress[chain][addr]];
+    function balance(string calldata userChain, bytes calldata userAddress) public view override returns (uint) {
+        return _balance[_userIdByChainAddress[userChain][userAddress]];
     }
 
-    function openId(string memory chain, bytes memory addr) public override {
+    function open(string calldata userChain, bytes calldata userAddress) public override {
         require(canOpen[msg.sender], "not allowed to open");
-        if (!_isKnownChainAddress[chain][addr]) {
-            uint id = totalUsers;
-            _chainById[id] = chain;
-            _addressById[id] = addr;
-            _idByChainAddress[chain][addr] = id;
-            _isKnownChainAddress[chain][addr] = true;
+        if (!isKnownUser(userChain, userAddress)) {
+            uint userId = totalUsers;
+            _userChainById[userId] = userChain;
+            _userAddressById[userId] = userAddress;
+            _userIdByChainAddress[userChain][userAddress] = userId;
+            _isKnownUser[userChain][userAddress] = true;
             totalUsers++;
         }
     }
 
     // add user balance
-    function addById(uint id, uint amount) public override {
+    function add(uint userId, uint amount) public override {
         require(canAdd[msg.sender], "not allowed to add");
-        require(isKnownId(id), "user is not known");
-        _add(id, amount);
+        require(isKnownUser(userId), "user is not known");
+        _add(userId, amount);
     }
 
-    function addByChainAddress(string memory chain, bytes memory addr, uint amount) public override {
+    function add(string calldata userChain, bytes calldata userAddress, uint amount) public override {
         require(canAdd[msg.sender], "not allowed to add");
-        require(isKnownChainAddress(chain, addr), "user is not known");
-        _add(_idByChainAddress[chain][addr], amount);
+        require(isKnownUser(userChain, userAddress), "user is not known");
+        _add(_userIdByChainAddress[userChain][userAddress], amount);
+    }
+
+    function _add(uint userId, uint amount) internal {
+        _balance[userId] += amount;
+        totalBalance += amount;
+        emit Add(msg.sender, userId, amount);
     }
 
     // subtract user balance
-    function subtractById(uint id, uint amount) public override {
+    function subtract(uint userId, uint amount) public override {
         require(canSubtract[msg.sender], "not allowed to subtract");
-        require(isKnownId(id), "user is not known");
-        _subtract(id, amount);
+        require(isKnownUser(userId), "user is not known");
+        _subtract(userId, amount);
     }
 
-    function subtractByChainAddress(string memory chain, bytes memory addr, uint amount) public override {
+    function subtract(string calldata userChain, bytes calldata userAddress, uint amount) public override {
         require(canSubtract[msg.sender], "not allowed to subtract");
-        require(isKnownChainAddress(chain, addr), "user is not known");
-        _subtract(_idByChainAddress[chain][addr], amount);
+        require(isKnownUser(userChain, userAddress), "user is not known");
+        _subtract(_userIdByChainAddress[userChain][userAddress], amount);
     }
 
-    function _add(uint id, uint amount) internal {
-        _balanceById[id] += amount;
-        totalBalance += amount;
-        emit Add(msg.sender, id, _chainById[id], _addressById[id], amount);
-    }
-
-    function _subtract(uint id, uint amount) internal {
-        _balanceById[id] -= amount;
+    function _subtract(uint userId, uint amount) internal {
+        _balance[userId] -= amount;
         totalBalance -= amount;
-        emit Subtract(msg.sender, id, _chainById[id], _addressById[id], amount);
+        emit Subtract(msg.sender, userId, amount);
     }
     
-    function getShareById(uint id) public view override returns (uint) {
-        return _balanceById[id];
+    function getShareById(uint userId) public view override returns (uint) {
+        return _balance[userId];
     }
 
     function getTotal() public view override returns (uint) {
