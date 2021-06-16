@@ -289,33 +289,253 @@ describe('BalanceKeeperV2', () => {
   })
 
   describe('#openId', () => {
-    it('fails if caller is not opener', async () => {
+    it('fails if caller is not allowed to open', async () => {
+      await expect(balanceKeeper.openId("EVM", wallet.address)).to.be.reverted
     })
 
     it('sets chain for id', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      expect(await balanceKeeper.chainById(0)).to.eq("EVM")
     })
 
     it('sets address for id', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      expect(await balanceKeeper.addressById(0)).to.eq(wallet.address.toLowerCase())
     })
 
     it('sets id for chain and address', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      let chainAddress = await balanceKeeper.chainAddressById(0)
+      expect(chainAddress[0]).to.eq("EVM")
+      expect(chainAddress[1]).to.eq(wallet.address.toLowerCase())
     })
 
-    it('increments the number of users for the id that is not known', async () => {
+    it('increments the number of users for the chain and address that are not known', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      expect(await balanceKeeper.totalUsers()).to.eq(1)
     })
 
-    it('does not increment the number of users for the known id', async () => {
+    it('increments the number of users for the chain and address that are not known', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.openId("EVM", other.address)
+      expect(await balanceKeeper.totalUsers()).to.eq(2)
     })
 
-    it('returns opened id', async () => {
+    it('does not increment the number of users for the known chain and address', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.openId("EVM", wallet.address)
+      expect(await balanceKeeper.totalUsers()).to.eq(1)
+    })
+
+    it('does not increment the number of users for the same address in upper and lower case', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.openId("EVM", wallet.address.toLowerCase())
+      expect(await balanceKeeper.totalUsers()).to.eq(1)
     })
   })
 
-  describe('#addById', () => {})
+  describe('#addById', () => {
+    it('fails if caller is not allowed to add', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await expect(balanceKeeper.addById(0, 1)).to.be.reverted
+    })
 
-  describe('#addByChainAddress', () => {})
+    it('fails if the id is not known', async () => {
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await expect(balanceKeeper.addById(0, 1)).to.be.reverted
+    })
 
-  describe('#subtractById', () => {})
+    it('adds amount to user balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addById(0, 100)
+      expect(await balanceKeeper.balanceById(0)).to.eq(100)
+    })
 
-  describe('#subtractByChainAddress', () => {})
+    it('adds amount to total balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addById(0, 100)
+      expect(await balanceKeeper.totalBalance()).to.eq(100)
+    })
+
+    it('adds amount to total balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addById(0, 100)
+      await balanceKeeper.openId("EVM", other.address)
+      await balanceKeeper.addById(1, 100)
+      expect(await balanceKeeper.totalBalance()).to.eq(200)
+    })
+  })
+
+  describe('#addByChainAddress', () => {
+    it('fails if caller is not allowed to add', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await expect(balanceKeeper.addByChainAddress("EVM", wallet.address, 100)).to.be.reverted
+    })
+
+    it('fails if the chain and address are not known', async () => {
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await expect(balanceKeeper.addByChainAddress("EVM", wallet.address, 100)).to.be.reverted
+    })
+
+    it('adds amount to user balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addByChainAddress("EVM", wallet.address, 100)
+      expect(await balanceKeeper.balanceById(0)).to.eq(100)
+    })
+
+    it('adds amount to total balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addByChainAddress("EVM", wallet.address, 100)
+      expect(await balanceKeeper.totalBalance()).to.eq(100)
+    })
+
+    it('adds amount to total balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addByChainAddress("EVM", wallet.address, 100)
+      await balanceKeeper.openId("EVM", other.address)
+      await balanceKeeper.addByChainAddress("EVM", other.address, 100)
+      expect(await balanceKeeper.totalBalance()).to.eq(200)
+    })
+  })
+
+  describe('#subtractById', () => {
+    it('fails if caller is not allowed to add', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addById(0, 100)
+      await expect(balanceKeeper.subtractById(0, 50)).to.be.reverted
+    })
+
+    it('fails if the id is not known', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.setCanSubtract(wallet.address, true)
+      await expect(balanceKeeper.subtractById(0, 0)).to.be.reverted
+    })
+
+    it('subtracts amount from user balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addById(0, 100)
+      await balanceKeeper.setCanSubtract(wallet.address, true)
+      await balanceKeeper.subtractById(0, 50)
+      expect(await balanceKeeper.balanceById(0)).to.eq(50)
+    })
+
+    it('subtracts amount from total balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addById(0, 100)
+      await balanceKeeper.setCanSubtract(wallet.address, true)
+      await balanceKeeper.subtractById(0, 50)
+      expect(await balanceKeeper.totalBalance()).to.eq(50)
+    })
+
+    it('subtracts amount from total balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addById(0, 100)
+      await balanceKeeper.openId("EVM", other.address)
+      await balanceKeeper.addById(1, 100)
+      await balanceKeeper.setCanSubtract(wallet.address, true)
+      await balanceKeeper.subtractById(0, 50)
+      await balanceKeeper.subtractById(1, 75)
+      expect(await balanceKeeper.totalBalance()).to.eq(75)
+    })
+  })
+
+  describe('#subtractByChainAddress', () => {
+    it('fails if caller is not allowed to add', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addById(0, 100)
+      await expect(balanceKeeper.subtractByChainAddress("EVM", wallet.address, 100)).to.be.reverted
+    })
+
+    it('fails if the chain and address are not known', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.setCanSubtract(wallet.address, true)
+      await expect(balanceKeeper.subtractByChainAddress("EVM", wallet.address, 0)).to.be.reverted
+    })
+
+    it('subtracts amount from user', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addById(0, 100)
+      await balanceKeeper.setCanSubtract(wallet.address, true)
+      await balanceKeeper.subtractByChainAddress("EVM", wallet.address, 50)
+      expect(await balanceKeeper.balanceById(0)).to.eq(50)
+    })
+
+    it('subtracts amount from total balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addById(0, 100)
+      await balanceKeeper.setCanSubtract(wallet.address, true)
+      await balanceKeeper.subtractByChainAddress("EVM", wallet.address, 50)
+      expect(await balanceKeeper.totalBalance()).to.eq(50)
+    })
+
+    it('subtracts amount from total balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addById(0, 100)
+      await balanceKeeper.openId("EVM", other.address)
+      await balanceKeeper.addById(1, 100)
+      await balanceKeeper.setCanSubtract(wallet.address, true)
+      await balanceKeeper.subtractByChainAddress("EVM", wallet.address, 50)
+      await balanceKeeper.subtractByChainAddress("EVM", other.address, 75)
+      expect(await balanceKeeper.totalBalance()).to.eq(75)
+    })
+  })
+
+  describe('#getShareById', () => {
+    it('returns user balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addById(0, 100)
+      expect(await balanceKeeper.getShareById(0)).to.eq(100)
+    })
+  })
+
+  describe('#getShareById', () => {
+    it('returns total balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.openId("EVM", wallet.address)
+      await balanceKeeper.setCanAdd(wallet.address, true)
+      await balanceKeeper.addById(0, 100)
+      await balanceKeeper.openId("EVM", other.address)
+      await balanceKeeper.addById(1, 100)
+      expect(await balanceKeeper.getTotal()).to.eq(200)
+    })
+  })
 })

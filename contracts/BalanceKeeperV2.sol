@@ -111,7 +111,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IBalanceAdderShares {
 
     function openId(string memory chain, bytes memory addr) public override {
         require(canOpen[msg.sender], "not allowed to open");
-        if (_idByChainAddress[chain][addr] == 0) {
+        if (!_isKnownChainAddress[chain][addr]) {
             uint id = totalUsers;
             _chainById[id] = chain;
             _addressById[id] = addr;
@@ -159,12 +159,11 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IBalanceAdderShares {
         emit Subtract(msg.sender, id, _chainById[id], _addressById[id], amount);
     }
     
-    // implement of share interface 
     function getShareById(uint id) public view override returns (uint) {
         return _balanceById[id];
     }
+
     function getTotal() public view override returns (uint) {
         return totalBalance;
     }
-
 }
