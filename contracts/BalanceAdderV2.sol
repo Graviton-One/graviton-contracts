@@ -10,6 +10,13 @@ import './interfaces/IShares.sol';
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract BalanceAdderV2 is IBalanceAdder {
+
+    address public owner;
+
+    modifier isOwner() {
+        require(msg.sender == owner, "Caller is not owner");
+        _;
+    }
     
     // these are addresses of contracts that keeps users shares
     IShares[] public shares;
@@ -22,33 +29,32 @@ contract BalanceAdderV2 is IBalanceAdder {
     uint public lastUser;
     uint public totalUsers;
     uint public currentPortion;
-    uint public lastFarm;
-    
-    address public owner;
-    
-    modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
-        _;
-    }
-    
-    function setOwner(address _owner) public isOwner {
+    uint public currentFarm;
+
+    mapping (uint => bool) public isProcessing;
+
+    event SetOwner(address ownerOld, address ownerNew);
+
+    constructor(address _owner, IBalanceKeeperV2 _balanceKeeper) {
         owner = _owner;
+        balanceKeeper = _balanceKeeper;
     }
 
-    constructor(IBalanceKeeperV2 _balanceKeeper, address _owner) {
-        balanceKeeper = _balanceKeeper;
+    function setOwner(address _owner) public isOwner {
+        address ownerOld = owner;
         owner = _owner;
+        emit SetOwner(ownerOld, _owner);
     }
     
-    function addNewFarm(IShares _share, IFarm _farm) public isOwner {
+    function addFarm(IShares _share, IFarm _farm) public isOwner {
         shares.push(_share);
         farms.push(_farm);
         lastPortions.push(0);
     }
 
     function removeFarm(uint farmId) public isOwner {
-        require(lastFarm != farmId, "index is currently in process");
-        // removing from array by index
+        require(!isProcessing[currentFarm], "index is currently in process");
+        // remove shares from array by index
         IShares[] memory newShares = new IShares[](shares.length-1);
         uint j = 0;
         for (uint i = 0; i < shares.length; i++) {
@@ -83,17 +89,13 @@ contract BalanceAdderV2 is IBalanceAdder {
         lastPortions = newLastPortions;
     }
 
-    // it iterates over all users but afer all are processed it forwards the index of array of current farm
+    // iterates over all users and then increments the current farm index
     function processBalances(uint step) public override {
         if (lastUser == 0) {
-            if (lastFarm >= shares.length) {
-                lastFarm = 0;
-            } else {
-                lastFarm++;
-            }
+            isProcessing[currentFarm] = true;
             totalUsers = balanceKeeper.totalUsers();
-            totalUnlocked = farms[lastFarm].totalUnlocked();
-            currentPortion = totalUnlocked - lastPortions[lastFarm];
+            totalUnlocked = farms[currentFarm].totalUnlocked();
+            currentPortion = totalUnlocked - lastPortions[currentFarm];
         }
         uint toUser = lastUser + step;
         uint fromUser = lastUser;
@@ -103,14 +105,20 @@ contract BalanceAdderV2 is IBalanceAdder {
         }
 
         for(uint i = fromUser; i < toUser; i++) {
-            //require(shares[lastFarm].totalShares() > 0, "there is no balance available for staking");
-            uint add = shares[lastFarm].shareById(i) * currentPortion / shares[lastFarm].totalShares();
+            //require(shares[currentFarm].totalShares() > 0, "there is no balance available for staking");
+            uint add = shares[currentFarm].shareById(i) * currentPortion / shares[currentFarm].totalShares();
             balanceKeeper.add(i, add);
         }
 
         if (toUser == totalUsers) {
             lastUser = 0;
-            lastPortions[lastFarm] = totalUnlocked;
+            lastPortions[currentFarm] = totalUnlocked;
+            isProcessing[currentFarm] = false;
+            if (currentFarm == shares.length-1) {
+                currentFarm = 0;
+            } else {
+                currentFarm++;
+            }
         } else {
             lastUser = toUser;
         }
