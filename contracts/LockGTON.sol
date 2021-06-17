@@ -3,10 +3,10 @@ pragma solidity >=0.8.0;
 
 import './interfaces/IERC20.sol';
 
-/// @title CrosschainLockGTON
+/// @title LockGTON
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract CrosschainLockGTON {
+contract LockGTON {
 
     address public owner;
 
@@ -19,7 +19,11 @@ contract CrosschainLockGTON {
 
     bool public canLock = false;
 
-    event LockGTON(address indexed governanceToken, address indexed sender, address indexed receiver, uint amount);
+    event Lock
+        (address indexed governanceToken,
+         address indexed sender,
+         address indexed receiver,
+         uint amount);
     event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner, IERC20 _governanceToken) {
@@ -33,10 +37,6 @@ contract CrosschainLockGTON {
         emit SetOwner(ownerOld, _owner);
     }
 
-    function setGovernanceToken(IERC20 _governanceToken) public isOwner {
-        governanceToken = _governanceToken;
-    }
-
     function setCanLock(bool _canLock) public isOwner {
         canLock = _canLock;
     }
@@ -45,10 +45,9 @@ contract CrosschainLockGTON {
         governanceToken.transfer(to, amount);
     }
 
-    function lockTokens(address receiver, uint amount) public {
-        require(canLock, "can't lock");
+    function lock(address receiver, uint amount) public {
+        require(canLock, "lock is not allowed");
         governanceToken.transferFrom(msg.sender, address(this), amount);
-        emit LockGTON(address(governanceToken), msg.sender, receiver, amount);
+        emit Lock(address(governanceToken), msg.sender, receiver, amount);
     }
-
 }
