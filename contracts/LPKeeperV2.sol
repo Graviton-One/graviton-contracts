@@ -99,6 +99,9 @@ contract LPKeeperV2 is ILPKeeperV2 {
          string calldata userChain,
          bytes calldata userAddress)
         public view override returns (uint) {
+        if (!balanceKeeper.isKnownUser(userChain, userAddress)) {
+            return 0;
+        }
         uint userId = balanceKeeper.userIdByChainAddress(userChain, userAddress);
         return _balance[tokenId][userId];
     }
@@ -108,6 +111,9 @@ contract LPKeeperV2 is ILPKeeperV2 {
          bytes calldata tokenAddress,
          uint userId)
         public view override returns (uint) {
+        if (!isKnownToken(tokenChain, tokenAddress)) {
+            return 0;
+        }
         uint tokenId = tokenIdByChainAddress(tokenChain, tokenAddress);
         return _balance[tokenId][userId];
     }
@@ -118,7 +124,13 @@ contract LPKeeperV2 is ILPKeeperV2 {
          string calldata userChain,
          bytes calldata userAddress)
         public view override returns (uint) {
+        if (!isKnownToken(tokenChain, tokenAddress)) {
+            return 0;
+        }
         uint tokenId = tokenIdByChainAddress(tokenChain, tokenAddress);
+        if (!balanceKeeper.isKnownUser(userChain, userAddress)) {
+            return 0;
+        }
         uint userId = balanceKeeper.userIdByChainAddress(userChain, userAddress);
         return _balance[tokenId][userId];
     }
@@ -146,7 +158,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
     }
 
     function isKnownToken(uint tokenId) public view override returns (bool) {
-        return _isKnownToken[_tokenChainById[tokenId]][_tokenAddressById[tokenId]];
+        return tokenId < totalLPTokens;
     }
 
     function isKnownToken(string calldata tokenChain, bytes calldata tokenAddress) public view override returns (bool) {
@@ -192,12 +204,18 @@ contract LPKeeperV2 is ILPKeeperV2 {
     }
 
     function isKnownTokenUser(uint tokenId, string calldata userChain, bytes calldata userAddress) public view override returns (bool) {
+        if (!balanceKeeper.isKnownUser(userChain, userAddress)) {
+            return false;
+        }
         uint userId = balanceKeeper.userIdByChainAddress(userChain, userAddress);
         return _isKnownTokenUser[tokenId][userId];
     }
 
     function isKnownTokenUser(string calldata tokenChain, bytes calldata tokenAddress, string calldata userChain, bytes calldata userAddress) public view override returns (bool) {
         uint tokenId = _tokenIdByChainAddress[tokenChain][tokenAddress];
+        if (!balanceKeeper.isKnownUser(userChain, userAddress)) {
+            return false;
+        }
         uint userId = balanceKeeper.userIdByChainAddress(userChain, userAddress);
         return _isKnownTokenUser[tokenId][userId];
     }

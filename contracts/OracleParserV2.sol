@@ -1,12 +1,12 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import './interfaces/IOracleRouter.sol';
+import './interfaces/IOracleRouterV2.sol';
 
-/// @title OracleParser
+/// @title OracleParserV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract OracleParser {
+contract OracleParserV2 {
 
     address public owner;
 
@@ -22,23 +22,23 @@ contract OracleParser {
         _;
     }
 
-    IOracleRouter public oracleRouter;
+    IOracleRouterV2 public oracleRouter;
 
     mapping (bytes16 => bool) public uuidIsProcessed;
 
     event AttachValue(address nebula,
                       bytes16 uuid,
                       string chain,
-                      address emiter,
+                      bytes emiter,
                       bytes32 topic0,
-                      address token,
-                      address sender,
-                      address receiver,
+                      bytes token,
+                      bytes sender,
+                      bytes receiver,
                       uint256 amount);
     event SetOwner(address ownerOld, address ownerNew);
     event SetNebula(address nebulaOld, address nebulaNew);
 
-    constructor(address _owner, IOracleRouter _oracleRouter, address _nebula) {
+    constructor(address _owner, IOracleRouterV2 _oracleRouter, address _nebula) {
         owner = _owner;
         oracleRouter = _oracleRouter;
         nebula = _nebula;
@@ -56,7 +56,7 @@ contract OracleParser {
         emit SetNebula(nebulaOld, _nebula);
     }
 
-    function setOracleRouter(IOracleRouter _oracleRouter) public isOwner {
+    function setOracleRouter(IOracleRouterV2 _oracleRouter) public isOwner {
         oracleRouter = _oracleRouter;
     }
 
@@ -88,6 +88,10 @@ contract OracleParser {
         return out;
     }
 
+    function equal(string memory a, string memory b) internal pure returns (bool) {
+        return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
+    }
+
     function attachValue(bytes calldata impactData) external isNebula {
 
         if (impactData.length != 200) { return; }  // ignore data with unexpected length
@@ -96,35 +100,37 @@ contract OracleParser {
         if (uuidIsProcessed[uuid]) { return; } // parse data only once
         uuidIsProcessed[uuid] = true;
         string memory chain = string(abi.encodePacked(impactData[16:19])); // [ 16: 19]
-        address emiter = deserializeAddress(impactData, 19);               // [ 19: 39]
-        bytes1 topics = bytes1(impactData[39]);                            // [ 39: 40]
-        if (keccak256(abi.encodePacked(topics)) != // ignore data with unexpected number of topics
-            keccak256(abi.encodePacked(bytes1(abi.encodePacked(uint(4))[31])))) {
-            return;
+        if (equal(chain, "EVM")) {
+          bytes memory emiter = impactData[19:39];                         // [ 19: 39]
+          bytes1 topics = bytes1(impactData[39]);                          // [ 39: 40]
+          if (keccak256(abi.encodePacked(topics)) != // ignore data with unexpected number of topics
+              keccak256(abi.encodePacked(bytes1(abi.encodePacked(uint(4))[31])))) {
+              return;
+          }
+          bytes32 topic0 = bytesToBytes32(impactData, 40);                 // [ 40: 72]
+          bytes memory token    = impactData[84:104];                      // [ 72:104][12:32]
+          bytes memory sender   = impactData[116:136];                     // [104:136][12:32]
+          bytes memory receiver = impactData[148:168];                     // [136:168][12:32]
+          uint256 amount = deserializeUint(impactData, 168, 32);           // [168:200]
+
+          oracleRouter.routeValue(uuid,
+                                  chain,
+                                  emiter,
+                                  topic0,
+                                  token,
+                                  sender,
+                                  receiver,
+                                  amount);
+
+          emit AttachValue(msg.sender,
+                           uuid,
+                           chain,
+                           emiter,
+                           topic0,
+                           token,
+                           sender,
+                           receiver,
+                           amount);
         }
-        bytes32 topic0   = bytesToBytes32(impactData, 40);                 // [ 40: 72]
-        address token    = deserializeAddress(impactData[72:], 12);        // [ 72:104][12:32]
-        address sender   = deserializeAddress(impactData[104:], 12);       // [104:136][12:32]
-        address receiver = deserializeAddress(impactData[136:], 12);       // [136:168][12:32]
-        uint256 amount   = deserializeUint(impactData, 168, 32);           // [168:200]
-
-        oracleRouter.routeValue(uuid,
-                                chain,
-                                emiter,
-                                topic0,
-                                token,
-                                sender,
-                                receiver,
-                                amount);
-
-        emit AttachValue(msg.sender,
-                         uuid,
-                         chain,
-                         emiter,
-                         topic0,
-                         token,
-                         sender,
-                         receiver,
-                         amount);
     }
 }

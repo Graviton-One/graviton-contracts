@@ -2,13 +2,13 @@
 pragma solidity >=0.8.0;
 
 import './interfaces/IBalanceKeeperV2.sol';
-import './interfaces/ILPKeeper.sol';
-import './interfaces/IOracleRouter.sol';
+import './interfaces/ILPKeeperV2.sol';
+import './interfaces/IOracleRouterV2.sol';
 
 /// @title OracleRouterV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract OracleRouterV2 is IOracleRouter {
+contract OracleRouterV2 is IOracleRouterV2 {
 
     address public owner;
 
@@ -18,7 +18,7 @@ contract OracleRouterV2 is IOracleRouter {
     }
 
     IBalanceKeeperV2 public balanceKeeper;
-    ILPKeeper public lpKeeper;
+    ILPKeeperV2 public lpKeeper;
     bytes32 public gtonAddTopic;
     bytes32 public gtonSubTopic;
     bytes32 public __lpAddTopic;
@@ -31,37 +31,37 @@ contract OracleRouterV2 is IOracleRouter {
                       bool indexed newBool);
     event GTONAdd(bytes16 uuid,
                   string chain,
-                  address emiter,
-                  address token,
-                  address sender,
-                  address receiver,
+                  bytes emiter,
+                  bytes token,
+                  bytes sender,
+                  bytes receiver,
                   uint256 amount);
     event GTONSub(bytes16 uuid,
                   string chain,
-                  address emiter,
-                  address token,
-                  address sender,
-                  address receiver,
+                  bytes emiter,
+                  bytes token,
+                  bytes sender,
+                  bytes receiver,
                   uint256 amount);
     event __LPAdd(bytes16 uuid,
                   string chain,
-                  address emiter,
-                  address token,
-                  address sender,
-                  address receiver,
+                  bytes emiter,
+                  bytes token,
+                  bytes sender,
+                  bytes receiver,
                   uint256 amount);
     event __LPSub(bytes16 uuid,
                   string chain,
-                  address emiter,
-                  address token,
-                  address sender,
-                  address receiver,
+                  bytes emiter,
+                  bytes token,
+                  bytes sender,
+                  bytes receiver,
                   uint256 amount);
     event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner,
                 IBalanceKeeperV2 _balanceKeeper,
-                ILPKeeper _lpKeeper,
+                ILPKeeperV2 _lpKeeper,
                 bytes32 _gtonAddTopic,
                 bytes32 _gtonSubTopic,
                 bytes32 ___lpAddTopic,
@@ -101,33 +101,37 @@ contract OracleRouterV2 is IOracleRouter {
 
     function routeValue(bytes16 uuid,
                         string memory chain,
-                        address emiter,
+                        bytes memory emiter,
                         bytes32 topic0,
-                        address token,
-                        address sender,
-                        address receiver,
+                        bytes memory token,
+                        bytes memory sender,
+                        bytes memory receiver,
                         uint256 amount) external override {
         require(canRoute[msg.sender], "not allowed to route value");
 
         if (equal(topic0, gtonAddTopic)) {
-            bytes memory addr = abi.encodePacked(receiver);
-            if (!balanceKeeper.isKnownUser(chain, addr)) {
-                balanceKeeper.open(chain, addr);
+            if (!balanceKeeper.isKnownUser(chain, receiver)) {
+                balanceKeeper.open(chain, receiver);
             }
-            balanceKeeper.add(chain, addr, amount);
+            balanceKeeper.add(chain, receiver, amount);
             emit GTONAdd(uuid, chain, emiter, token, sender, receiver, amount);
         }
         if (equal(topic0, gtonSubTopic)) {
-            bytes memory addr = abi.encodePacked(sender);
-            balanceKeeper.subtract(chain, addr, amount);
+            balanceKeeper.subtract(chain, sender, amount);
             emit GTONSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
         if (equal(topic0, __lpAddTopic)) {
-            lpKeeper.add(token, receiver, amount);
+            if (!balanceKeeper.isKnownUser(chain, receiver)) {
+                balanceKeeper.open(chain, receiver);
+            }
+            if (!lpKeeper.isKnownToken(chain, token)) {
+                lpKeeper.open(chain, token);
+            }
+            lpKeeper.add(chain, token, chain, receiver, amount);
             emit __LPAdd(uuid, chain, emiter, token, sender, receiver, amount);
         }
         if (equal(topic0, __lpSubTopic)) {
-            lpKeeper.subtract(token, sender, amount);
+            lpKeeper.subtract(chain, token, chain, sender, amount);
             emit __LPSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
     }

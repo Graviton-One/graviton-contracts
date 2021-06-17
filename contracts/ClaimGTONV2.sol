@@ -2,13 +2,13 @@
 pragma solidity >=0.8.0;
 
 import './interfaces/IERC20.sol';
-import './interfaces/IBalanceKeeper.sol';
+import './interfaces/IBalanceKeeperV2.sol';
 import './interfaces/IVoter.sol';
 
-/// @title ClaimGTON
+/// @title ClaimGTONV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract ClaimGTON {
+contract ClaimGTONV2 {
 
     address public owner;
 
@@ -18,7 +18,7 @@ contract ClaimGTON {
     }
 
     IERC20 public governanceToken;
-    IBalanceKeeper public balanceKeeper;
+    IBalanceKeeperV2 public balanceKeeper;
     IVoter public voter;
     address public wallet;
 
@@ -31,7 +31,7 @@ contract ClaimGTON {
     constructor(address _owner,
                 IERC20 _governanceToken,
                 address _wallet,
-                IBalanceKeeper _balanceKeeper,
+                IBalanceKeeperV2 _balanceKeeper,
                 IVoter _voter) {
         owner = _owner;
         governanceToken = _governanceToken;
@@ -58,7 +58,7 @@ contract ClaimGTON {
         governanceToken = _governanceToken;
     }
 
-    function setBalanceKeeper(IBalanceKeeper _balanceKeeper) public isOwner {
+    function setBalanceKeeper(IBalanceKeeperV2 _balanceKeeper) public isOwner {
         balanceKeeper = _balanceKeeper;
     }
 
@@ -80,7 +80,7 @@ contract ClaimGTON {
 
     function claim(uint amount, address to) public {
         require(claimActivated, "can't claim");
-        uint balance = balanceKeeper.userBalance(msg.sender);
+        uint balance = balanceKeeper.balance("EVM", abi.encodePacked(msg.sender));
         require(balance >= amount, "not enough money");
         if (limitActivated) {
           if ((_blockTimestamp() - lastLimitTimestamp[msg.sender]) > 86400) {
@@ -90,7 +90,7 @@ contract ClaimGTON {
           require(amount <= limitMax[msg.sender], "exceeded daily limit");
           limitMax[msg.sender] -= amount;
         }
-        balanceKeeper.subtract(msg.sender, amount);
+        balanceKeeper.subtract("EVM", abi.encodePacked(msg.sender), amount);
         voter.checkVoteBalances(msg.sender);
         governanceToken.transferFrom(wallet, to, amount);
         emit Claim(msg.sender, to, amount);

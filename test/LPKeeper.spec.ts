@@ -1,7 +1,6 @@
 import { ethers, waffle } from 'hardhat'
 import { TestERC20 } from '../typechain/TestERC20'
 import { MockTimeFarmCurved } from '../typechain/MockTimeFarmCurved'
-import { BalanceKeeper } from '../typechain/BalanceKeeper'
 import { LPKeeper } from '../typechain/LPKeeper'
 import { lpKeeperFixture } from './shared/fixtures'
 import { expect } from './shared/expect'
@@ -36,10 +35,10 @@ describe('LPKeeper', () => {
     expect(await lpKeeper.totalBalance(token2.address)).to.eq(0)
     await expect(lpKeeper.users(token1.address, 0)).to.be.reverted
     await expect(lpKeeper.users(token2.address, 0)).to.be.reverted
-    expect(await lpKeeper.userIsKnown(token1.address, wallet.address)).to.eq(false)
-    expect(await lpKeeper.userIsKnown(token1.address, other.address)).to.eq(false)
-    expect(await lpKeeper.userIsKnown(token2.address, wallet.address)).to.eq(false)
-    expect(await lpKeeper.userIsKnown(token2.address, other.address)).to.eq(false)
+    expect(await lpKeeper.isKnownUser(token1.address, wallet.address)).to.eq(false)
+    expect(await lpKeeper.isKnownUser(token1.address, other.address)).to.eq(false)
+    expect(await lpKeeper.isKnownUser(token2.address, wallet.address)).to.eq(false)
+    expect(await lpKeeper.isKnownUser(token2.address, other.address)).to.eq(false)
     expect(await lpKeeper.userBalance(token1.address, wallet.address)).to.eq(0)
     expect(await lpKeeper.userBalance(token1.address, other.address)).to.eq(0)
     expect(await lpKeeper.userBalance(token2.address, wallet.address)).to.eq(0)
@@ -151,7 +150,7 @@ describe('LPKeeper', () => {
     it('records a new user', async () => {
       await lpKeeper.setCanAdd(wallet.address, true)
       await lpKeeper.add(token1.address, other.address, 1)
-      expect(await lpKeeper.userIsKnown(token1.address, other.address)).to.eq(true)
+      expect(await lpKeeper.isKnownUser(token1.address, other.address)).to.eq(true)
       expect(await lpKeeper.users(token1.address, 0)).to.eq(other.address)
       expect(await lpKeeper.totalUsers(token1.address)).to.eq(1)
     })

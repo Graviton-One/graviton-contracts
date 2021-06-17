@@ -2,6 +2,7 @@ import { ethers, waffle } from 'hardhat'
 import { BalanceKeeperV2 } from '../typechain/BalanceKeeperV2'
 import { VoterV2 } from '../typechain/VoterV2'
 import { voterV2Fixture } from './shared/fixtures'
+import { MOCK_CHAIN } from './shared/utilities'
 import { expect } from './shared/expect'
 
 describe('VoterV2', () => {
@@ -19,9 +20,9 @@ describe('VoterV2', () => {
   beforeEach('deploy test contracts', async () => {
     ;({ balanceKeeper, voter } = await loadFixture(voterV2Fixture))
     await balanceKeeper.setCanOpen(wallet.address, true)
-    await balanceKeeper.open("EVM", wallet.address)
+    await balanceKeeper.open(MOCK_CHAIN, wallet.address)
     await balanceKeeper.setCanAdd(wallet.address, true)
-    await balanceKeeper['add(string,bytes,uint256)']("EVM", wallet.address, "100")
+    await balanceKeeper['add(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, "100")
   })
 
   it('constructor initializes variables', async () => {
@@ -408,10 +409,10 @@ describe('VoterV2', () => {
       expect(await voter.votesForOptionByUser(0, wallet.address, 0)).to.eq(20)
       expect(await voter.votesForOptionByUser(0, wallet.address, 1)).to.eq(40)
       expect(await voter.votesInRoundByUser(0, wallet.address)).to.eq(60)
-      expect(await balanceKeeper['balance(string,bytes)']("EVM", wallet.address)).to.eq(100)
+      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(100)
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper['subtract(string,bytes,uint256)']("EVM", wallet.address, 30)
-      expect(await balanceKeeper['balance(string,bytes)']("EVM", wallet.address)).to.eq(70)
+      await balanceKeeper['subtract(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 30)
+      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(70)
       await voter.setCanCheck(wallet.address, true)
       await voter.checkVoteBalances(wallet.address)
       expect(await voter.votesForOptionByUser(0, wallet.address, 0)).to.eq(20)
@@ -425,10 +426,10 @@ describe('VoterV2', () => {
       expect(await voter.votesForOptionByUser(0, wallet.address, 0)).to.eq(20)
       expect(await voter.votesForOptionByUser(0, wallet.address, 1)).to.eq(40)
       expect(await voter.votesInRoundByUser(0, wallet.address)).to.eq(60)
-      expect(await balanceKeeper['balance(string,bytes)']("EVM", wallet.address)).to.eq(100)
+      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(100)
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper['subtract(string,bytes,uint256)']("EVM", wallet.address, 70)
-      expect(await balanceKeeper['balance(string,bytes)']("EVM", wallet.address)).to.eq(30)
+      await balanceKeeper['subtract(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 70)
+      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(30)
       await voter.setCanCheck(wallet.address, true)
       await voter.checkVoteBalances(wallet.address)
       expect(await voter.votesForOptionByUser(0, wallet.address, 0)).to.eq(10)
@@ -439,10 +440,10 @@ describe('VoterV2', () => {
     it('emits event', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.castVotes(0, [20,40])
-      expect(await balanceKeeper['balance(string,bytes)']("EVM", wallet.address)).to.eq(100)
+      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(100)
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper['subtract(string,bytes,uint256)']("EVM", wallet.address, 30)
-      expect(await balanceKeeper['balance(string,bytes)']("EVM", wallet.address)).to.eq(70)
+      await balanceKeeper['subtract(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 30)
+      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(70)
       await voter.setCanCheck(wallet.address, true)
       await voter.checkVoteBalances(wallet.address)
       await expect(voter.checkVoteBalances(wallet.address))

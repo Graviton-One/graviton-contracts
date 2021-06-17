@@ -18,15 +18,19 @@ contract BalanceAdderSharesEB is IBalanceAdderShares {
         impactEB = _impactEB;
     }
 
-    function bytesToAddress(bytes memory bys) private pure returns (address addr) {
+    function bytesToAddress(bytes memory bys) internal pure returns (address addr) {
         assembly {
           addr := mload(add(bys,20))
         }
     }
 
+    function equal(string memory a, string memory b) internal pure returns (bool) {
+        return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
+    }
+
     function getShareById(uint id) public view override returns (uint) {
         string memory chain = balanceKeeper.userChainById(id);
-        if (keccak256(abi.encodePacked(chain)) == keccak256(abi.encodePacked("EVM"))) {
+        if (equal(chain, "EVM")) {
             return 0;
         }
         bytes memory addr = balanceKeeper.userAddressById(id);

@@ -20,7 +20,7 @@ contract LPKeeper is ILPKeeper {
     mapping (address => uint) public override totalBalance;
 
     mapping (address => address[]) public override users;
-    mapping (address => mapping (address => bool)) public userIsKnown;
+    mapping (address => mapping (address => bool)) public isKnownUser;
 
     mapping (address => mapping (address => uint)) public override userBalance;
 
@@ -82,9 +82,9 @@ contract LPKeeper is ILPKeeper {
             lpTokens.push(lptoken);
             isKnownLPToken[lptoken] = true;
         }
-        if (!userIsKnown[lptoken][user]) {
+        if (!isKnownUser[lptoken][user]) {
             users[lptoken].push(user);
-            userIsKnown[lptoken][user] = true;
+            isKnownUser[lptoken][user] = true;
         }
         userBalance[lptoken][user] += amount;
         totalBalance[lptoken] += amount;

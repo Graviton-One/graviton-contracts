@@ -3,21 +3,25 @@ import { BigNumber } from "ethers";
 
 import { TestERC20 } from "../../typechain/TestERC20";
 import { ImpactKeeperTest } from "../../typechain/ImpactKeeperTest";
+import { ImpactEB } from "../../typechain/ImpactEB";
 import { MockTimeFarmCurved } from "../../typechain/MockTimeFarmCurved";
 import { MockTimeFarmLinear } from "../../typechain/MockTimeFarmLinear";
-import { ImpactEB } from "../../typechain/ImpactEB";
+
 import { BalanceKeeper } from "../../typechain/BalanceKeeper";
 import { Voter } from "../../typechain/Voter";
 import { BalanceAdderEB } from "../../typechain/BalanceAdderEB";
 import { BalanceAdderStaking } from "../../typechain/BalanceAdderStaking";
-import { BalanceAdderLP } from "../../typechain/BalanceAdderLP";
 import { LPKeeper } from "../../typechain/LPKeeper";
+import { BalanceAdderLP } from "../../typechain/BalanceAdderLP";
 import { OracleRouter } from "../../typechain/OracleRouter";
 import { OracleParser } from "../../typechain/OracleParser";
 import { MockTimeClaimGTON } from "../../typechain/MockTimeClaimGTON";
 
 import { BalanceKeeperV2 } from "../../typechain/BalanceKeeperV2";
 import { VoterV2 } from "../../typechain/VoterV2";
+import { LPKeeperV2 } from "../../typechain/LPKeeperV2";
+import { OracleRouterV2 } from "../../typechain/OracleRouterV2";
+import { OracleParserV2 } from "../../typechain/OracleParserV2";
 
 import {
   makeValueImpact,
@@ -415,3 +419,82 @@ export const voterV2Fixture: Fixture<VoterV2Fixture> = async function (
     voter,
   };
 };
+
+type TokensAndBalanceKeeperV2Fixture = TokensFixture & BalanceKeeperV2Fixture
+
+interface LPKeeperV2Fixture extends TokensAndBalanceKeeperV2Fixture {
+  lpKeeper: LPKeeperV2;
+}
+
+export const lpKeeperV2Fixture: Fixture<LPKeeperV2Fixture> =
+  async function ([wallet, other], provider): Promise<LPKeeperV2Fixture> {
+    const { token0, token1, token2 } = await tokensFixture();
+    const { balanceKeeper } = await balanceKeeperV2Fixture(wallet.address);
+    const lpKeeperFactory = await ethers.getContractFactory(
+      "LPKeeperV2"
+    );
+    const lpKeeper = (await lpKeeperFactory.deploy(
+      wallet.address,
+      balanceKeeper.address
+    )) as LPKeeperV2;
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeper,
+      lpKeeper,
+    };
+  };
+
+interface OracleRouterV2Fixture extends LPKeeperV2Fixture {
+  oracleRouter: OracleRouterV2;
+}
+
+export const oracleRouterV2Fixture: Fixture<OracleRouterV2Fixture> =
+  async function ([wallet, other], provider): Promise<OracleRouterV2Fixture> {
+    const { token0, token1, token2, balanceKeeper, lpKeeper } = await lpKeeperV2Fixture([wallet, other], provider);
+
+    const oracleRouterFactory = await ethers.getContractFactory("OracleRouterV2");
+    const oracleRouter = (await oracleRouterFactory.deploy(
+      wallet.address,
+      balanceKeeper.address,
+      lpKeeper.address,
+      GTON_ADD_TOPIC,
+      GTON_SUB_TOPIC,
+      __LP_ADD_TOPIC,
+      __LP_SUB_TOPIC
+    )) as OracleRouterV2;
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeper,
+      lpKeeper,
+      oracleRouter
+    };
+  };
+
+interface OracleParserV2Fixture extends OracleRouterV2Fixture {
+  oracleParser: OracleParserV2;
+}
+
+export const oracleParserV2Fixture: Fixture<OracleParserV2Fixture> =
+  async function ([wallet, other, nebula], provider): Promise<OracleParserV2Fixture> {
+    const { token0, token1, token2, balanceKeeper, lpKeeper, oracleRouter } = await oracleRouterV2Fixture([wallet, other], provider);
+
+    const oracleParserFactory = await ethers.getContractFactory("OracleParserV2");
+    const oracleParser = (await oracleParserFactory.deploy(
+      wallet.address,
+      oracleRouter.address,
+      nebula.address
+    )) as OracleParserV2;
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeper,
+      lpKeeper,
+      oracleRouter,
+      oracleParser
+    };
+  };

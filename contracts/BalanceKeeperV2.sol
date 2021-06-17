@@ -83,7 +83,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IBalanceAdderShares {
     }
 
     function isKnownUser(uint userId) public view override returns (bool) {
-        return _isKnownUser[_userChainById[userId]][_userAddressById[userId]];
+        return userId < totalUsers;
     }
 
     function isKnownUser(string calldata userChain, bytes calldata userAddress) public view override returns (bool) {

@@ -3,7 +3,7 @@ pragma solidity >= 0.8.0;
 
 interface IOracleRouter {
     function routeValue(bytes16 uuid,
-                        string memory chain,
+                        string calldata chain,
                         address emiter,
                         bytes32 topic0,
                         address token,
