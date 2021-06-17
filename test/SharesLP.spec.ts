@@ -9,12 +9,12 @@ import { MOCK_CHAIN } from './shared/utilities'
 import { expect } from './shared/expect'
 
 describe('SharesLP', () => {
-  const [wallet, other, nebula] = waffle.provider.getWallets()
+  const [wallet, other] = waffle.provider.getWallets()
 
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
 
   before('create fixture loader', async () => {
-    loadFixture = waffle.createFixtureLoader([wallet, other, nebula])
+    loadFixture = waffle.createFixtureLoader([wallet, other])
   })
 
   let token0: TestERC20
@@ -32,6 +32,10 @@ describe('SharesLP', () => {
     expect(await sharesLP.balanceKeeper()).to.eq(balanceKeeper.address)
     expect(await sharesLP.lpKeeper()).to.eq(lpKeeper.address)
     expect(await sharesLP.tokenId()).to.eq(0)
+  })
+  it('constructor fails if token is not known', async () => {
+    const sharesLPFactory = await ethers.getContractFactory("SharesLP");
+    await expect(sharesLPFactory.deploy(balanceKeeper.address, lpKeeper.address, 1)).to.be.reverted
   })
 
   describe('#shareByid', () => {

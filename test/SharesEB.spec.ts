@@ -33,10 +33,13 @@ describe('SharesEB', () => {
     expect(await sharesEB.impactEB()).to.eq(impactEB.address)
   })
 
+  it('constructor fails if token is not known', async () => {
+    expect(await sharesEB.balanceKeeper()).to.eq(balanceKeeper.address)
+    expect(await sharesEB.impactEB()).to.eq(impactEB.address)
+  })
+
   describe('#shareByid', () => {
     it('returns 0 if user is not known', async () => {
-      await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open("WRONG_CHAIN", wallet.address)
       expect(await sharesEB.shareById(0)).to.eq(0)
     })
 
