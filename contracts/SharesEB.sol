@@ -28,20 +28,23 @@ contract SharesEB is IShares {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
-    function getShareById(uint id) public view override returns (uint) {
-        string memory chain = balanceKeeper.userChainById(id);
-        if (equal(chain, "EVM")) {
+    function shareById(uint userId) public view override returns (uint) {
+        if (!balanceKeeper.isKnownUser(userId)) {
             return 0;
         }
-        bytes memory addr = balanceKeeper.userAddressById(id);
-        if (addr.length != 20) {
+        string memory chain = balanceKeeper.userChainById(userId);
+        if (!equal(chain, "EVM")) {
             return 0;
         }
-        address user = bytesToAddress(addr);
+        bytes memory userAddress = balanceKeeper.userAddressById(userId);
+        if (userAddress.length != 20) {
+            return 0;
+        }
+        address user = bytesToAddress(userAddress);
         return impactEB.impact(user);
     }
 
-    function getTotal() public view override returns (uint) {
+    function totalShares() public view override returns (uint) {
         return impactEB.totalSupply();
     }
 }

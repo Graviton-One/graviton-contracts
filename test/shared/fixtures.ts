@@ -517,13 +517,6 @@ export const sharesEBFixture: Fixture<SharesEBFixture> = async function (
   );
   const { balanceKeeper } = await balanceKeeperV2Fixture(wallet.address);
 
-  await impactEB
-    .connect(nebula)
-    .attachValue(makeValueImpact(token1.address, wallet.address, "1000", "0", "0"));
-  await impactEB
-    .connect(nebula)
-    .attachValue(makeValueImpact(token2.address, other.address, "1000", "1", "0"));
-
   const sharesEBFactory = await ethers.getContractFactory("SharesEB");
   const sharesEB = (await sharesEBFactory.deploy(
     balanceKeeper.address,
@@ -554,14 +547,6 @@ export const sharesLPFixture: Fixture<SharesLPFixture> = async function (
 
   await lpKeeper.setCanOpen(wallet.address, true)
   await lpKeeper.open(MOCK_CHAIN, token1.address)
-
-  await balanceKeeper.setCanOpen(wallet.address, true)
-  await balanceKeeper.open(MOCK_CHAIN, wallet.address)
-  await balanceKeeper.open(MOCK_CHAIN, other.address)
-
-  await lpKeeper.setCanAdd(wallet.address, true)
-  await lpKeeper['add(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, wallet.address, 1000)
-  await lpKeeper['add(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, other.address, 1000)
 
   const sharesLPFactory = await ethers.getContractFactory("SharesLP");
   const sharesLP = (await sharesLPFactory.deploy(

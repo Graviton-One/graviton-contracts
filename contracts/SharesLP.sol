@@ -21,11 +21,11 @@ contract SharesLP is IShares {
         tokenId = _tokenId;
     }
 
-    function getShareById(uint userId) public view override returns (uint) {
+    function shareById(uint userId) public view override returns (uint) {
         return lpKeeper.balance(tokenId, userId);
     }
 
-    function getTotal() public view override returns (uint) {
+    function totalShares() public view override returns (uint) {
         return lpKeeper.totalBalance(tokenId);
     }
 }

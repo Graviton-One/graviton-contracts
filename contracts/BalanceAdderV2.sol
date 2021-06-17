@@ -103,8 +103,8 @@ contract BalanceAdderV2 is IBalanceAdder {
         }
 
         for(uint i = fromUser; i < toUser; i++) {
-            //require(shares[lastFarm].getTotal() > 0, "there is no balance available for staking");
-            uint add = shares[lastFarm].getShareById(i) * currentPortion / shares[lastFarm].getTotal();
+            //require(shares[lastFarm].totalShares() > 0, "there is no balance available for staking");
+            uint add = shares[lastFarm].shareById(i) * currentPortion / shares[lastFarm].totalShares();
             balanceKeeper.add(i, add);
         }
 

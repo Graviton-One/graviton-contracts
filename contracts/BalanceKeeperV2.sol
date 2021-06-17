@@ -168,11 +168,11 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IShares {
         emit Subtract(msg.sender, userId, amount);
     }
     
-    function getShareById(uint userId) public view override returns (uint) {
+    function shareById(uint userId) public view override returns (uint) {
         return _balance[userId];
     }
 
-    function getTotal() public view override returns (uint) {
+    function totalShares() public view override returns (uint) {
         return totalBalance;
     }
 }
