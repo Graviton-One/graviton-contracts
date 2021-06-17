@@ -1,17 +1,17 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import './interfaces/IBalanceAdderShares.sol';
+import './interfaces/IShares.sol';
 import './interfaces/IBalanceKeeperV2.sol';
 import './interfaces/IImpactKeeper.sol';
 
-/// @title BalanceAdderSharesEB
+/// @title SharesEB
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceAdderSharesEB is IBalanceAdderShares {
+contract SharesEB is IShares {
 
-    IBalanceKeeperV2 balanceKeeper;
-    IImpactKeeper impactEB;
+    IBalanceKeeperV2 public balanceKeeper;
+    IImpactKeeper public impactEB;
 
     constructor(IBalanceKeeperV2 _balanceKeeper, IImpactKeeper _impactEB) {
         balanceKeeper = _balanceKeeper;

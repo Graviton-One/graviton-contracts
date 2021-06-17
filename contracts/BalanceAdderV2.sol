@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 import './interfaces/IFarm.sol';
 import './interfaces/IBalanceKeeperV2.sol';
 import './interfaces/IBalanceAdder.sol';
-import './interfaces/IBalanceAdderShares.sol';
+import './interfaces/IShares.sol';
 
 /// @title BalanceAdderV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
@@ -12,7 +12,7 @@ import './interfaces/IBalanceAdderShares.sol';
 contract BalanceAdderV2 is IBalanceAdder {
     
     // these are addresses of contracts that keeps users shares
-    IBalanceAdderShares[] public shares;
+    IShares[] public shares;
     IFarm[] public farms;
     uint[] public lastPortions;
 
@@ -40,7 +40,7 @@ contract BalanceAdderV2 is IBalanceAdder {
         owner = _owner;
     }
     
-    function addNewFarm(IBalanceAdderShares _share, IFarm _farm) public isOwner {
+    function addNewFarm(IShares _share, IFarm _farm) public isOwner {
         shares.push(_share);
         farms.push(_farm);
         lastPortions.push(0);
@@ -49,7 +49,7 @@ contract BalanceAdderV2 is IBalanceAdder {
     function removeFarm(uint farmId) public isOwner {
         require(lastFarm != farmId, "index is currently in process");
         // removing from array by index
-        IBalanceAdderShares[] memory newShares = new IBalanceAdderShares[](shares.length-1);
+        IShares[] memory newShares = new IShares[](shares.length-1);
         uint j = 0;
         for (uint i = 0; i < shares.length; i++) {
             if (i == farmId) {

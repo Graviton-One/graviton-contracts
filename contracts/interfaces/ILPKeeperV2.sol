@@ -13,7 +13,7 @@ interface ILPKeeperV2 {
         external view returns (string calldata, bytes calldata);
     function tokenIdByChainAddress
         (string calldata chain,
-         bytes calldata addr)
+         bytes calldata userAddress)
         external view returns (uint);
     function isKnownToken
         (uint tokenId)
@@ -22,7 +22,7 @@ interface ILPKeeperV2 {
         (string calldata tokenChain,
          bytes calldata tokenAddress)
         external view returns (bool);
-    function totalLPTokens() external view returns (uint);
+    function totalTokens() external view returns (uint);
     function tokenUser
         (uint tokenId,
          uint userIndex)
@@ -52,10 +52,10 @@ interface ILPKeeperV2 {
          string calldata userChain,
          bytes calldata userAddress)
         external view returns (bool);
-    function totalUsers
+    function totalTokenUsers
         (uint tokenId)
         external view returns (uint);
-    function totalUsers
+    function totalTokenUsers
         (string calldata tokenChain,
          bytes calldata tokenAddress)
         external view returns (uint);

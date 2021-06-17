@@ -23,6 +23,8 @@ import { LPKeeperV2 } from "../../typechain/LPKeeperV2";
 import { OracleRouterV2 } from "../../typechain/OracleRouterV2";
 import { OracleParserV2 } from "../../typechain/OracleParserV2";
 import { MockTimeClaimGTONV2 } from "../../typechain/MockTimeClaimGTONV2";
+import { SharesEB } from "../../typechain/SharesEB";
+import { SharesLP } from "../../typechain/SharesLP";
 
 import {
   makeValueImpact,
@@ -33,7 +35,8 @@ import {
   GTON_ADD_TOPIC,
   GTON_SUB_TOPIC,
   __LP_ADD_TOPIC,
-  __LP_SUB_TOPIC
+  __LP_SUB_TOPIC,
+  MOCK_CHAIN
 } from "./utilities";
 
 import { Fixture } from "ethereum-waffle";
@@ -497,3 +500,81 @@ export const claimGTONV2Fixture: Fixture<ClaimGTONV2Fixture> =
       claimGTON
     };
   };
+
+type ImpactEBAndBalanceKeeperV2Fixture =  ImpactEBFixture & BalanceKeeperV2Fixture;
+
+interface SharesEBFixture extends ImpactEBAndBalanceKeeperV2Fixture {
+  sharesEB: SharesEB;
+}
+
+export const sharesEBFixture: Fixture<SharesEBFixture> = async function (
+  [wallet, other, nebula],
+  provider
+): Promise<SharesEBFixture> {
+  const { token0, token1, token2, impactEB } = await impactEBFixture(
+    [wallet, other, nebula],
+    provider
+  );
+  const { balanceKeeper } = await balanceKeeperV2Fixture(wallet.address);
+
+  await impactEB
+    .connect(nebula)
+    .attachValue(makeValueImpact(token1.address, wallet.address, "1000", "0", "0"));
+  await impactEB
+    .connect(nebula)
+    .attachValue(makeValueImpact(token2.address, other.address, "1000", "1", "0"));
+
+  const sharesEBFactory = await ethers.getContractFactory("SharesEB");
+  const sharesEB = (await sharesEBFactory.deploy(
+    balanceKeeper.address,
+    impactEB.address
+  )) as SharesEB;
+  return {
+    token0,
+    token1,
+    token2,
+    impactEB,
+    balanceKeeper,
+    sharesEB,
+  };
+};
+
+interface SharesLPFixture extends LPKeeperV2Fixture {
+  sharesLP: SharesLP;
+}
+
+export const sharesLPFixture: Fixture<SharesLPFixture> = async function (
+  [wallet, other],
+  provider
+): Promise<SharesLPFixture> {
+  const { token0, token1, token2, balanceKeeper, lpKeeper } = await lpKeeperV2Fixture(
+    [wallet, other],
+    provider
+  );
+
+  await lpKeeper.setCanOpen(wallet.address, true)
+  await lpKeeper.open(MOCK_CHAIN, token1.address)
+
+  await balanceKeeper.setCanOpen(wallet.address, true)
+  await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+  await balanceKeeper.open(MOCK_CHAIN, other.address)
+
+  await lpKeeper.setCanAdd(wallet.address, true)
+  await lpKeeper['add(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, wallet.address, 1000)
+  await lpKeeper['add(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, other.address, 1000)
+
+  const sharesLPFactory = await ethers.getContractFactory("SharesLP");
+  const sharesLP = (await sharesLPFactory.deploy(
+    balanceKeeper.address,
+    lpKeeper.address,
+    0
+  )) as SharesLP;
+  return {
+    token0,
+    token1,
+    token2,
+    balanceKeeper,
+    lpKeeper,
+    sharesLP,
+  };
+};

@@ -175,30 +175,6 @@ describe('BalanceKeeperV2', () => {
     })
   })
 
-  describe('#isKnownUser(uint256)', () => {
-    it('returns false for the user that is not known', async () => {
-      expect(await balanceKeeper['isKnownUser(uint256)'](0)).to.eq(false)
-    })
-
-    it('returns true for the known user', async () => {
-      await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
-      expect(await balanceKeeper['isKnownUser(uint256)'](0)).to.eq(true)
-    })
-  })
-
-  describe('#isKnownUser(string,bytes)', () => {
-    it('returns false for the user that is not known', async () => {
-      expect(await balanceKeeper['isKnownUser(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(false)
-    })
-
-    it('returns true for the known user', async () => {
-      await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
-      expect(await balanceKeeper['isKnownUser(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(true)
-    })
-  })
-
   describe('#userChainById', () => {
     it('fails for the user that is not known', async () => {
       await expect(balanceKeeper.userChainById(0)).to.be.reverted
@@ -246,6 +222,30 @@ describe('BalanceKeeperV2', () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
       await balanceKeeper.open(MOCK_CHAIN, wallet.address)
       expect(await balanceKeeper.userIdByChainAddress(MOCK_CHAIN, wallet.address)).to.eq(0)
+    })
+  })
+
+  describe('#isKnownUser(uint256)', () => {
+    it('returns false for the user that is not known', async () => {
+      expect(await balanceKeeper['isKnownUser(uint256)'](0)).to.eq(false)
+    })
+
+    it('returns true for the known user', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      expect(await balanceKeeper['isKnownUser(uint256)'](0)).to.eq(true)
+    })
+  })
+
+  describe('#isKnownUser(string,bytes)', () => {
+    it('returns false for the user that is not known', async () => {
+      expect(await balanceKeeper['isKnownUser(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(false)
+    })
+
+    it('returns true for the known user', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      expect(await balanceKeeper['isKnownUser(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(true)
     })
   })
 

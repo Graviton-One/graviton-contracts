@@ -2,12 +2,12 @@
 pragma solidity >=0.8.0;
 
 import './interfaces/IBalanceKeeperV2.sol';
-import './interfaces/IBalanceAdderShares.sol';
+import './interfaces/IShares.sol';
 
 /// @title BalanceKeeperV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceKeeperV2 is IBalanceKeeperV2, IBalanceAdderShares {
+contract BalanceKeeperV2 is IBalanceKeeperV2, IShares {
 
     address public owner;
 
