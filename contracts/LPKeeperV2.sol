@@ -258,7 +258,6 @@ contract LPKeeperV2 is ILPKeeperV2 {
         require(canAdd[msg.sender], "not allowed to add");
         require(isKnownToken(tokenId), "token is not known");
         uint userId = balanceKeeper.userIdByChainAddress(userChain, userAddress);
-        require(balanceKeeper.isKnownUser(userId), "user is not known");
         _add(tokenId, userId, amount);
     }
 
@@ -268,7 +267,6 @@ contract LPKeeperV2 is ILPKeeperV2 {
                  uint amount) public override {
         require(canAdd[msg.sender], "not allowed to add");
         uint tokenId = tokenIdByChainAddress(tokenChain, tokenAddress);
-        require(isKnownToken(tokenId), "token is not known");
         require(balanceKeeper.isKnownUser(userId), "user is not known");
         _add(tokenId, userId, amount);
     }
@@ -280,9 +278,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
                  uint amount) public override {
         require(canAdd[msg.sender], "not allowed to add");
         uint tokenId = tokenIdByChainAddress(tokenChain, tokenAddress);
-        require(isKnownToken(tokenId), "token is not known");
         uint userId = balanceKeeper.userIdByChainAddress(userChain, userAddress);
-        require(balanceKeeper.isKnownUser(userId), "user is not known");
         _add(tokenId, userId, amount);
     }
 
@@ -313,7 +309,6 @@ contract LPKeeperV2 is ILPKeeperV2 {
         require(canSubtract[msg.sender], "not allowed to subtract");
         require(isKnownToken(tokenId), "token is not known");
         uint userId = balanceKeeper.userIdByChainAddress(userChain, userAddress);
-        require(balanceKeeper.isKnownUser(userId), "user is not known");
         _subtract(tokenId, userId, amount);
     }
 
@@ -323,7 +318,6 @@ contract LPKeeperV2 is ILPKeeperV2 {
                       uint amount) public override {
         require(canSubtract[msg.sender], "not allowed to subtract");
         uint tokenId = tokenIdByChainAddress(tokenChain, tokenAddress);
-        require(isKnownToken(tokenId), "token is not known");
         require(balanceKeeper.isKnownUser(userId), "user is not known");
         _subtract(tokenId, userId, amount);
     }
@@ -335,9 +329,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
                       uint amount) public override {
         require(canSubtract[msg.sender], "not allowed to subtract");
         uint tokenId = tokenIdByChainAddress(tokenChain, tokenAddress);
-        require(isKnownToken(tokenId), "token is not known");
         uint userId = balanceKeeper.userIdByChainAddress(userChain, userAddress);
-        require(balanceKeeper.isKnownUser(userId), "user is not known");
         _subtract(tokenId, userId, amount);
     }
 

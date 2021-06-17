@@ -231,7 +231,7 @@ describe('LPKeeperV2', () => {
 
   describe('#tokenChainAddressById', () => {
     it('fails for the token that is not known', async () => {
-      await expect(lpKeeper.tokenChainById(0)).to.be.reverted
+      await expect(lpKeeper.tokenChainAddressById(0)).to.be.reverted
     })
 
     it('returns chain and address for the known token', async () => {
@@ -610,6 +610,17 @@ describe('LPKeeperV2', () => {
       await expect(lpKeeper['add(uint256,uint256,uint256)'](0, 1, 1)).to.be.reverted
     })
 
+    it('fails if token is not known', async () => {
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await expect(lpKeeper['add(uint256,uint256,uint256)'](0, 1, 1)).to.be.reverted
+    })
+
+    it('fails if user is not known', async () => {
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await openToken1()
+      await expect(lpKeeper['add(uint256,uint256,uint256)'](0, 1, 1)).to.be.reverted
+    })
+
     it('records a new user', async () => {
       await openToken1()
       await openWallet()
@@ -667,6 +678,17 @@ describe('LPKeeperV2', () => {
 
   describe('#add(string,bytes,uint256,uint256)', () => {
     it('fails if caller is not allowed to add', async () => {
+      await expect(lpKeeper['add(string,bytes,uint256,uint256)'](MOCK_CHAIN, token1.address, 1, 1)).to.be.reverted
+    })
+
+    it('fails if token is not known', async () => {
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await expect(lpKeeper['add(string,bytes,uint256,uint256)'](MOCK_CHAIN, token1.address, 1, 1)).to.be.reverted
+    })
+
+    it('fails if user is not known', async () => {
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await openToken1()
       await expect(lpKeeper['add(string,bytes,uint256,uint256)'](MOCK_CHAIN, token1.address, 1, 1)).to.be.reverted
     })
 
@@ -730,6 +752,17 @@ describe('LPKeeperV2', () => {
       await expect(lpKeeper['add(uint256,string,bytes,uint256)'](0, MOCK_CHAIN, other.address, 1)).to.be.reverted
     })
 
+    it('fails if token is not known', async () => {
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await expect(lpKeeper['add(uint256,string,bytes,uint256)'](0, MOCK_CHAIN, other.address, 1)).to.be.reverted
+    })
+
+    it('fails if user is not known', async () => {
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await openToken1()
+      await expect(lpKeeper['add(uint256,string,bytes,uint256)'](0, MOCK_CHAIN, other.address, 1)).to.be.reverted
+    })
+
     it('records a new user', async () => {
       await openToken1()
       await openWallet()
@@ -787,6 +820,17 @@ describe('LPKeeperV2', () => {
 
   describe('#add(string,bytes,string,bytes,uint256)', () => {
     it('fails if caller is not allowed to add', async () => {
+      await expect(lpKeeper['add(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, other.address, 1)).to.be.reverted
+    })
+
+    it('fails if token is not known', async () => {
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await expect(lpKeeper['add(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, other.address, 1)).to.be.reverted
+    })
+
+    it('fails if user is not known', async () => {
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await openToken1()
       await expect(lpKeeper['add(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, other.address, 1)).to.be.reverted
     })
 
@@ -851,6 +895,17 @@ describe('LPKeeperV2', () => {
       await expect(lpKeeper['subtract(uint256,uint256,uint256)'](0, 0, 1)).to.be.reverted
     })
 
+    it('fails if token is not known', async () => {
+      await lpKeeper.setCanSubtract(wallet.address, true)
+      await expect(lpKeeper['subtract(uint256,uint256,uint256)'](0, 0, 1)).to.be.reverted
+    })
+
+    it('fails if user is not known', async () => {
+      await lpKeeper.setCanSubtract(wallet.address, true)
+      await openToken1()
+      await expect(lpKeeper['subtract(uint256,uint256,uint256)'](0, 0, 1)).to.be.reverted
+    })
+
     it('subtracts from user balance', async () => {
       await wallet2Token1()
       await lpKeeper.setCanSubtract(wallet.address, true)
@@ -877,6 +932,17 @@ describe('LPKeeperV2', () => {
   describe('#subtract(string,bytes,uint256,uint256)', () => {
     it('fails if caller is not allowed to subtract', async () => {
       await wallet2Token1()
+      await expect(lpKeeper['subtract(string,bytes,uint256,uint256)'](MOCK_CHAIN, token1.address, 0, 1)).to.be.reverted
+    })
+
+    it('fails if token is not known', async () => {
+      await lpKeeper.setCanSubtract(wallet.address, true)
+      await expect(lpKeeper['subtract(string,bytes,uint256,uint256)'](MOCK_CHAIN, token1.address, 0, 1)).to.be.reverted
+    })
+
+    it('fails if user is not known', async () => {
+      await lpKeeper.setCanSubtract(wallet.address, true)
+      await openToken1()
       await expect(lpKeeper['subtract(string,bytes,uint256,uint256)'](MOCK_CHAIN, token1.address, 0, 1)).to.be.reverted
     })
 
@@ -909,6 +975,17 @@ describe('LPKeeperV2', () => {
       await expect(lpKeeper['subtract(uint256,string,bytes,uint256)'](0, MOCK_CHAIN, wallet.address, 1)).to.be.reverted
     })
 
+    it('fails if token is not known', async () => {
+      await lpKeeper.setCanSubtract(wallet.address, true)
+      await expect(lpKeeper['subtract(uint256,string,bytes,uint256)'](0, MOCK_CHAIN, wallet.address, 1)).to.be.reverted
+    })
+
+    it('fails if user is not known', async () => {
+      await lpKeeper.setCanSubtract(wallet.address, true)
+      await openToken1()
+      await expect(lpKeeper['subtract(uint256,string,bytes,uint256)'](0, MOCK_CHAIN, wallet.address, 1)).to.be.reverted
+    })
+
     it('subtracts from user balance', async () => {
       await wallet2Token1()
       await lpKeeper.setCanSubtract(wallet.address, true)
@@ -935,6 +1012,17 @@ describe('LPKeeperV2', () => {
   describe('#subtract(string,bytes,string,bytes,uint256)', () => {
     it('fails if caller is not allowed to subtract', async () => {
       await wallet2Token1()
+      await expect(lpKeeper['subtract(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, wallet.address, 1)).to.be.reverted
+    })
+
+    it('fails if token is not known', async () => {
+      await lpKeeper.setCanSubtract(wallet.address, true)
+      await expect(lpKeeper['subtract(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, wallet.address, 1)).to.be.reverted
+    })
+
+    it('fails if user is not known', async () => {
+      await lpKeeper.setCanSubtract(wallet.address, true)
+      await openToken1()
       await expect(lpKeeper['subtract(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, wallet.address, 1)).to.be.reverted
     })
 
