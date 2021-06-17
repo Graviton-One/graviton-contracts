@@ -22,6 +22,7 @@ import { VoterV2 } from "../../typechain/VoterV2";
 import { LPKeeperV2 } from "../../typechain/LPKeeperV2";
 import { OracleRouterV2 } from "../../typechain/OracleRouterV2";
 import { OracleParserV2 } from "../../typechain/OracleParserV2";
+import { MockTimeClaimGTONV2 } from "../../typechain/MockTimeClaimGTONV2";
 
 import {
   makeValueImpact,
@@ -269,37 +270,6 @@ export const lpKeeperFixture: Fixture<LPKeeperFixture> =
     };
   };
 
-type FarmCurvedAndBalanceKeeperAndLPKeeperFixture = FarmCurvedFixture & BalanceKeeperFixture & LPKeeperFixture;
-
-interface BalanceAdderLPFixture extends FarmCurvedAndBalanceKeeperAndLPKeeperFixture {
-  balanceAdderLP: BalanceAdderLP;
-}
-
-export const balanceAdderLPFixture: Fixture<BalanceAdderLPFixture> =
-  async function ([wallet, other], provider): Promise<BalanceAdderLPFixture> {
-    const { balanceKeeper } = await balanceKeeperFixture(wallet.address);
-    const { token0, token1, token2, lpKeeper } = await lpKeeperFixture([wallet, other], provider);
-    const { farm } = await farmCurvedFixture(wallet.address);
-
-    const balanceAdderLPFactory = await ethers.getContractFactory(
-      "BalanceAdderLP"
-    );
-    const balanceAdderLP = (await balanceAdderLPFactory.deploy(
-      farm.address,
-      balanceKeeper.address,
-      lpKeeper.address
-    )) as BalanceAdderLP;
-    return {
-      token0,
-      token1,
-      token2,
-      farm,
-      balanceKeeper,
-      lpKeeper,
-      balanceAdderLP,
-    };
-  };
-
 type BalanceKeeperAndLPKeeperFixture = BalanceKeeperFixture & LPKeeperFixture
 
 interface OracleRouterFixture extends BalanceKeeperAndLPKeeperFixture {
@@ -496,5 +466,34 @@ export const oracleParserV2Fixture: Fixture<OracleParserV2Fixture> =
       lpKeeper,
       oracleRouter,
       oracleParser
+    };
+  };
+
+type TokensAndVoterV2Fixture = TokensFixture & VoterV2Fixture
+
+interface ClaimGTONV2Fixture extends TokensAndVoterV2Fixture {
+  claimGTON: MockTimeClaimGTONV2;
+}
+
+export const claimGTONV2Fixture: Fixture<ClaimGTONV2Fixture> =
+  async function ([wallet, other], provider): Promise<ClaimGTONV2Fixture> {
+    const { token0, token1, token2 } = await tokensFixture();
+    const { balanceKeeper, voter } = await voterV2Fixture([wallet, other], provider)
+
+    const claimGTONFactory = await ethers.getContractFactory("MockTimeClaimGTONV2");
+    const claimGTON = (await claimGTONFactory.deploy(
+      wallet.address,
+      token0.address,
+      wallet.address,
+      balanceKeeper.address,
+      voter.address
+    )) as MockTimeClaimGTONV2;
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeper,
+      voter,
+      claimGTON
     };
   };
