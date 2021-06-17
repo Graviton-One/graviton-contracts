@@ -7,6 +7,7 @@ import { ImpactEB } from "../../typechain/ImpactEB";
 import { MockTimeFarmCurved } from "../../typechain/MockTimeFarmCurved";
 import { MockTimeFarmLinear } from "../../typechain/MockTimeFarmLinear";
 import { LockGTON } from "../../typechain/LockGTON";
+import { LockUnlockLP } from "../../typechain/LockUnlockLP";
 
 import { BalanceKeeper } from "../../typechain/BalanceKeeper";
 import { Voter } from "../../typechain/Voter";
@@ -588,5 +589,31 @@ export const lockGTONFixture: Fixture<LockGTONFixture> =
       token1,
       token2,
       lockGTON
+    };
+  };
+
+interface LockUnlockLPFixture extends TokensFixture {
+  lockUnlockLP: LockUnlockLP;
+}
+
+export const lockUnlockLPFixture: Fixture<LockUnlockLPFixture> =
+  async function (
+    [wallet, other, nebula],
+    provider
+  ): Promise<LockUnlockLPFixture> {
+    const { token0, token1, token2 } = await tokensFixture();
+
+    const lockUnlockLPFactory = await ethers.getContractFactory(
+      "LockUnlockLP"
+    );
+    const lockUnlockLP = (await lockUnlockLPFactory.deploy(
+      wallet.address,
+      [token1.address],
+    )) as LockUnlockLP;
+    return {
+      token0,
+      token1,
+      token2,
+      lockUnlockLP
     };
   };
