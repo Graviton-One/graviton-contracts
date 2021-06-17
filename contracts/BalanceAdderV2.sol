@@ -18,7 +18,6 @@ contract BalanceAdderV2 is IBalanceAdder {
         _;
     }
     
-    // these are addresses of contracts that keeps users shares
     IShares[] public shares;
     IFarm[] public farms;
     uint[] public lastPortions;
@@ -52,9 +51,10 @@ contract BalanceAdderV2 is IBalanceAdder {
         lastPortions.push(0);
     }
 
+    // remove index from arrays
     function removeFarm(uint farmId) public isOwner {
         require(!isProcessing[currentFarm], "index is currently in process");
-        // remove shares from array by index
+
         IShares[] memory newShares = new IShares[](shares.length-1);
         uint j = 0;
         for (uint i = 0; i < shares.length; i++) {
@@ -89,14 +89,19 @@ contract BalanceAdderV2 is IBalanceAdder {
         lastPortions = newLastPortions;
     }
 
-    // iterates over all users and then increments the current farm index
+    // iterates over all users and then increment current farm index
     function processBalances(uint step) public override {
+        if (currentFarm >= farms.length) {
+            return;
+        }
+
         if (lastUser == 0) {
             isProcessing[currentFarm] = true;
             totalUsers = balanceKeeper.totalUsers();
             totalUnlocked = farms[currentFarm].totalUnlocked();
             currentPortion = totalUnlocked - lastPortions[currentFarm];
         }
+
         uint toUser = lastUser + step;
         uint fromUser = lastUser;
 
@@ -105,7 +110,7 @@ contract BalanceAdderV2 is IBalanceAdder {
         }
 
         for(uint i = fromUser; i < toUser; i++) {
-            //require(shares[currentFarm].totalShares() > 0, "there is no balance available for staking");
+            require(shares[currentFarm].totalShares() > 0, "there are no shares");
             uint add = shares[currentFarm].shareById(i) * currentPortion / shares[currentFarm].totalShares();
             balanceKeeper.add(i, add);
         }
@@ -114,7 +119,7 @@ contract BalanceAdderV2 is IBalanceAdder {
             lastUser = 0;
             lastPortions[currentFarm] = totalUnlocked;
             isProcessing[currentFarm] = false;
-            if (currentFarm == shares.length-1) {
+            if (currentFarm == farms.length-1) {
                 currentFarm = 0;
             } else {
                 currentFarm++;
