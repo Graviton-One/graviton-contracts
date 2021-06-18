@@ -9,7 +9,6 @@ import "../interfaces/IVoter.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract ClaimGTON {
-
     address public owner;
 
     modifier isOwner() {
@@ -25,14 +24,20 @@ contract ClaimGTON {
     bool public claimActivated;
     bool public limitActivated;
 
-    event Claim(address indexed sender, address indexed receiver, uint amount);
+    event Claim(
+        address indexed sender,
+        address indexed receiver,
+        uint256 amount
+    );
     event SetOwner(address ownerOld, address ownerNew);
 
-    constructor(address _owner,
-                IERC20 _governanceToken,
-                address _wallet,
-                IBalanceKeeper _balanceKeeper,
-                IVoter _voter) {
+    constructor(
+        address _owner,
+        IERC20 _governanceToken,
+        address _wallet,
+        IBalanceKeeper _balanceKeeper,
+        IVoter _voter
+    ) {
         owner = _owner;
         governanceToken = _governanceToken;
         wallet = _wallet;
@@ -71,24 +76,24 @@ contract ClaimGTON {
     }
 
     /// @dev Returns the block timestamp. This method is overridden in tests.
-    function _blockTimestamp() internal view virtual returns (uint) {
+    function _blockTimestamp() internal view virtual returns (uint256) {
         return block.timestamp;
     }
 
-    mapping (address => uint) public lastLimitTimestamp;
-    mapping (address => uint) public limitMax;
+    mapping(address => uint256) public lastLimitTimestamp;
+    mapping(address => uint256) public limitMax;
 
-    function claim(uint amount, address to) public {
+    function claim(uint256 amount, address to) public {
         require(claimActivated, "can't claim");
-        uint balance = balanceKeeper.userBalance(msg.sender);
+        uint256 balance = balanceKeeper.userBalance(msg.sender);
         require(balance >= amount, "not enough money");
         if (limitActivated) {
-          if ((_blockTimestamp() - lastLimitTimestamp[msg.sender]) > 86400) {
-            lastLimitTimestamp[msg.sender] = _blockTimestamp();
-            limitMax[msg.sender] = balance / 2;
-          }
-          require(amount <= limitMax[msg.sender], "exceeded daily limit");
-          limitMax[msg.sender] -= amount;
+            if ((_blockTimestamp() - lastLimitTimestamp[msg.sender]) > 86400) {
+                lastLimitTimestamp[msg.sender] = _blockTimestamp();
+                limitMax[msg.sender] = balance / 2;
+            }
+            require(amount <= limitMax[msg.sender], "exceeded daily limit");
+            limitMax[msg.sender] -= amount;
         }
         balanceKeeper.subtract(msg.sender, amount);
         voter.checkVoteBalances(msg.sender);

@@ -10,19 +10,22 @@ import "../interfaces/IBalanceAdder.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract BalanceAdderEB is IBalanceAdder {
-
     // early birds emission data
     IFarm public farm;
     IImpactKeeper public impactEB;
 
     IBalanceKeeper public balanceKeeper;
 
-    uint public lastUser;
-    uint public totalUsers;
+    uint256 public lastUser;
+    uint256 public totalUsers;
 
-    mapping (address => uint) public lastPortion;
+    mapping(address => uint256) public lastPortion;
 
-    constructor(IFarm _farm, IImpactKeeper _impactEB, IBalanceKeeper _balanceKeeper) {
+    constructor(
+        IFarm _farm,
+        IImpactKeeper _impactEB,
+        IBalanceKeeper _balanceKeeper
+    ) {
         farm = _farm;
         impactEB = _impactEB;
         balanceKeeper = _balanceKeeper;
@@ -30,21 +33,22 @@ contract BalanceAdderEB is IBalanceAdder {
     }
 
     function addEB(address user) internal {
-        uint currentPortion = farm.totalUnlocked() * impactEB.impact(user) / impactEB.totalSupply();
-        uint add = currentPortion - lastPortion[user];
+        uint256 currentPortion = (farm.totalUnlocked() *
+            impactEB.impact(user)) / impactEB.totalSupply();
+        uint256 add = currentPortion - lastPortion[user];
         lastPortion[user] = currentPortion;
         balanceKeeper.add(user, add);
     }
 
-    function processBalances(uint step) public override {
-        uint toUser = lastUser + step;
-        uint fromUser = lastUser;
+    function processBalances(uint256 step) public override {
+        uint256 toUser = lastUser + step;
+        uint256 fromUser = lastUser;
 
         if (toUser > totalUsers) {
             toUser = totalUsers;
         }
 
-        for (uint i = fromUser; i < toUser; i++) {
+        for (uint256 i = fromUser; i < toUser; i++) {
             address user = impactEB.users(i);
             addEB(user);
         }

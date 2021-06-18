@@ -7,29 +7,28 @@ import "./interfaces/IBalanceAdderV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract BalanceAdderV2 is IBalanceAdderV2 {
-
     address public override owner;
 
     modifier isOwner() {
         require(msg.sender == owner, "Caller is not owner");
         _;
     }
-    
+
     IShares[] public override shares;
     IFarm[] public override farms;
-    uint[] public override lastPortions;
-    uint public override totalFarms;
+    uint256[] public override lastPortions;
+    uint256 public override totalFarms;
 
-    uint public override lastUser;
-    uint public override currentFarm;
-    uint public override currentPortion;
-    uint public override totalUnlocked;
-    uint public override totalBalance;
-    uint public override totalUsers;
+    uint256 public override lastUser;
+    uint256 public override currentFarm;
+    uint256 public override currentPortion;
+    uint256 public override totalUnlocked;
+    uint256 public override totalBalance;
+    uint256 public override totalUsers;
 
     IBalanceKeeperV2 public override balanceKeeper;
 
-    mapping (uint => bool) public override isProcessing;
+    mapping(uint256 => bool) public override isProcessing;
 
     event SetOwner(address ownerOld, address ownerNew);
 
@@ -43,7 +42,7 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
-    
+
     function addFarm(IShares _share, IFarm _farm) external override isOwner {
         shares.push(_share);
         farms.push(_farm);
@@ -52,12 +51,12 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
     }
 
     // remove index from arrays
-    function removeFarm(uint farmId) external override isOwner {
+    function removeFarm(uint256 farmId) external override isOwner {
         require(!isProcessing[currentFarm], "farm is processing balances");
 
-        IShares[] memory newShares = new IShares[](shares.length-1);
-        uint j = 0;
-        for (uint i = 0; i < shares.length; i++) {
+        IShares[] memory newShares = new IShares[](shares.length - 1);
+        uint256 j = 0;
+        for (uint256 i = 0; i < shares.length; i++) {
             if (i == farmId) {
                 continue;
             }
@@ -65,10 +64,10 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
             j++;
         }
         shares = newShares;
-        
-        IFarm[] memory newFarms = new IFarm[](farms.length-1);
+
+        IFarm[] memory newFarms = new IFarm[](farms.length - 1);
         j = 0;
-        for (uint i = 0; i < farms.length; i++) {
+        for (uint256 i = 0; i < farms.length; i++) {
             if (i == farmId) {
                 continue;
             }
@@ -76,10 +75,12 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
             j++;
         }
         farms = newFarms;
-        
-        uint[] memory newLastPortions = new uint[](lastPortions.length-1);
+
+        uint256[] memory newLastPortions = new uint256[](
+            lastPortions.length - 1
+        );
         j = 0;
-        for (uint i = 0; i < lastPortions.length; i++) {
+        for (uint256 i = 0; i < lastPortions.length; i++) {
             if (i == farmId) {
                 continue;
             }
@@ -91,7 +92,7 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
     }
 
     // iterates over all users and then increments current farm index
-    function processBalances(uint step) external override {
+    function processBalances(uint256 step) external override {
         if (currentFarm >= farms.length) {
             return;
         }
@@ -104,16 +105,20 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
             currentPortion = totalUnlocked - lastPortions[currentFarm];
         }
 
-        uint toUser = lastUser + step;
-        uint fromUser = lastUser;
+        uint256 toUser = lastUser + step;
+        uint256 fromUser = lastUser;
 
         if (toUser > totalUsers) {
             toUser = totalUsers;
         }
 
-        for(uint i = fromUser; i < toUser; i++) {
-            require(shares[currentFarm].totalShares() > 0, "there are no shares");
-            uint add = shares[currentFarm].shareById(i) * currentPortion / totalBalance;
+        for (uint256 i = fromUser; i < toUser; i++) {
+            require(
+                shares[currentFarm].totalShares() > 0,
+                "there are no shares"
+            );
+            uint256 add = (shares[currentFarm].shareById(i) * currentPortion) /
+                totalBalance;
             balanceKeeper.add(i, add);
         }
 
@@ -121,7 +126,7 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
             lastUser = 0;
             lastPortions[currentFarm] = totalUnlocked;
             isProcessing[currentFarm] = false;
-            if (currentFarm == farms.length-1) {
+            if (currentFarm == farms.length - 1) {
                 currentFarm = 0;
             } else {
                 currentFarm++;

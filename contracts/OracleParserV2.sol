@@ -7,7 +7,6 @@ import "./interfaces/IOracleParserV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract OracleParserV2 is IOracleParserV2 {
-
     address public override owner;
 
     modifier isOwner() {
@@ -24,21 +23,27 @@ contract OracleParserV2 is IOracleParserV2 {
 
     IOracleRouterV2 public override oracleRouter;
 
-    mapping (bytes16 => bool) public override uuidIsProcessed;
+    mapping(bytes16 => bool) public override uuidIsProcessed;
 
-    event AttachValue(address nebula,
-                      bytes16 uuid,
-                      string chain,
-                      bytes emiter,
-                      bytes32 topic0,
-                      bytes token,
-                      bytes sender,
-                      bytes receiver,
-                      uint256 amount);
+    event AttachValue(
+        address nebula,
+        bytes16 uuid,
+        string chain,
+        bytes emiter,
+        bytes32 topic0,
+        bytes token,
+        bytes sender,
+        bytes receiver,
+        uint256 amount
+    );
     event SetOwner(address ownerOld, address ownerNew);
     event SetNebula(address nebulaOld, address nebulaNew);
 
-    constructor(address _owner, IOracleRouterV2 _oracleRouter, address _nebula) {
+    constructor(
+        address _owner,
+        IOracleRouterV2 _oracleRouter,
+        address _nebula
+    ) {
         owner = _owner;
         oracleRouter = _oracleRouter;
         nebula = _nebula;
@@ -56,81 +61,120 @@ contract OracleParserV2 is IOracleParserV2 {
         emit SetNebula(nebulaOld, _nebula);
     }
 
-    function setOracleRouter(IOracleRouterV2 _oracleRouter) external override isOwner {
+    function setOracleRouter(IOracleRouterV2 _oracleRouter)
+        external
+        override
+        isOwner
+    {
         oracleRouter = _oracleRouter;
     }
 
-    function deserializeUint(bytes memory b, uint startPos, uint len) public override pure returns (uint) {
-        uint v = 0;
-        for (uint p = startPos; p < startPos + len; p++) {
-            v = v * 256 + uint(uint8(b[p]));
+    function deserializeUint(
+        bytes memory b,
+        uint256 startPos,
+        uint256 len
+    ) public pure override returns (uint256) {
+        uint256 v = 0;
+        for (uint256 p = startPos; p < startPos + len; p++) {
+            v = v * 256 + uint256(uint8(b[p]));
         }
         return v;
     }
 
-    function deserializeAddress(bytes memory b, uint startPos) public pure override returns (address) {
+    function deserializeAddress(bytes memory b, uint256 startPos)
+        public
+        pure
+        override
+        returns (address)
+    {
         return address(uint160(deserializeUint(b, startPos, 20)));
     }
 
-    function bytesToBytes32(bytes memory b, uint offset) public pure override returns (bytes32) {
+    function bytesToBytes32(bytes memory b, uint256 offset)
+        public
+        pure
+        override
+        returns (bytes32)
+    {
         bytes32 out;
-        for (uint i = 0; i < 32; i++) {
-          out |= bytes32(b[offset + i]) >> (i * 8);
+        for (uint256 i = 0; i < 32; i++) {
+            out |= bytes32(b[offset + i]) >> (i * 8);
         }
         return out;
     }
 
-    function bytesToBytes16(bytes memory b, uint offset) public pure override returns (bytes16) {
+    function bytesToBytes16(bytes memory b, uint256 offset)
+        public
+        pure
+        override
+        returns (bytes16)
+    {
         bytes16 out;
-        for (uint i = 0; i < 16; i++) {
-          out |= bytes16(b[offset + i]) >> (i * 8);
+        for (uint256 i = 0; i < 16; i++) {
+            out |= bytes16(b[offset + i]) >> (i * 8);
         }
         return out;
     }
 
-    function equal(string memory a, string memory b) public pure override returns (bool) {
+    function equal(string memory a, string memory b)
+        public
+        pure
+        override
+        returns (bool)
+    {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
     function attachValue(bytes calldata impactData) external override isNebula {
+        if (impactData.length != 200) {
+            return;
+        } // ignore data with unexpected length
 
-        if (impactData.length != 200) { return; }  // ignore data with unexpected length
-
-        bytes16 uuid = bytesToBytes16(impactData, 0);                      // [  0: 16]
-        if (uuidIsProcessed[uuid]) { return; } // parse data only once
+        bytes16 uuid = bytesToBytes16(impactData, 0); // [  0: 16]
+        if (uuidIsProcessed[uuid]) {
+            return;
+        } // parse data only once
         uuidIsProcessed[uuid] = true;
         string memory chain = string(abi.encodePacked(impactData[16:19])); // [ 16: 19]
         if (equal(chain, "EVM")) {
-          bytes memory emiter = impactData[19:39];                         // [ 19: 39]
-          bytes1 topics = bytes1(impactData[39]);                          // [ 39: 40]
-          if (keccak256(abi.encodePacked(topics)) != // ignore data with unexpected number of topics
-              keccak256(abi.encodePacked(bytes1(abi.encodePacked(uint(4))[31])))) {
-              return;
-          }
-          bytes32 topic0 = bytesToBytes32(impactData, 40);                 // [ 40: 72]
-          bytes memory token    = impactData[84:104];                      // [ 72:104][12:32]
-          bytes memory sender   = impactData[116:136];                     // [104:136][12:32]
-          bytes memory receiver = impactData[148:168];                     // [136:168][12:32]
-          uint256 amount = deserializeUint(impactData, 168, 32);           // [168:200]
+            bytes memory emiter = impactData[19:39]; // [ 19: 39]
+            bytes1 topics = bytes1(impactData[39]); // [ 39: 40]
+            if (
+                keccak256(abi.encodePacked(topics)) != // ignore data with unexpected number of topics
+                keccak256(
+                    abi.encodePacked(bytes1(abi.encodePacked(uint256(4))[31]))
+                )
+            ) {
+                return;
+            }
+            bytes32 topic0 = bytesToBytes32(impactData, 40); // [ 40: 72]
+            bytes memory token = impactData[84:104]; // [ 72:104][12:32]
+            bytes memory sender = impactData[116:136]; // [104:136][12:32]
+            bytes memory receiver = impactData[148:168]; // [136:168][12:32]
+            uint256 amount = deserializeUint(impactData, 168, 32); // [168:200]
 
-          oracleRouter.routeValue(uuid,
-                                  chain,
-                                  emiter,
-                                  topic0,
-                                  token,
-                                  sender,
-                                  receiver,
-                                  amount);
+            oracleRouter.routeValue(
+                uuid,
+                chain,
+                emiter,
+                topic0,
+                token,
+                sender,
+                receiver,
+                amount
+            );
 
-          emit AttachValue(msg.sender,
-                           uuid,
-                           chain,
-                           emiter,
-                           topic0,
-                           token,
-                           sender,
-                           receiver,
-                           amount);
+            emit AttachValue(
+                msg.sender,
+                uuid,
+                chain,
+                emiter,
+                topic0,
+                token,
+                sender,
+                receiver,
+                amount
+            );
         }
     }
 }

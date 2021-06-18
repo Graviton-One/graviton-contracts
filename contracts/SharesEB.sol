@@ -7,10 +7,9 @@ import "./interfaces/ISharesEB.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract SharesEB is ISharesEB {
-
-    mapping (uint => uint) public override impactById;
-    uint public override totalSupply;
-    uint public override lastUser;
+    mapping(uint256 => uint256) public override impactById;
+    uint256 public override totalSupply;
+    uint256 public override lastUser;
 
     IBalanceKeeperV2 public override balanceKeeper;
     IImpactKeeper public override impactEB;
@@ -20,18 +19,21 @@ contract SharesEB is ISharesEB {
         impactEB = _impactEB;
     }
 
-    function migrate(uint step) external override {
-        uint toUser = lastUser + step;
+    function migrate(uint256 step) external override {
+        uint256 toUser = lastUser + step;
         if (toUser > impactEB.userCount()) {
             toUser = impactEB.userCount();
         }
-        for (uint i = lastUser; i < toUser; i++) {
+        for (uint256 i = lastUser; i < toUser; i++) {
             address user = impactEB.users(i);
             bytes memory userAddress = abi.encodePacked(user);
             if (!balanceKeeper.isKnownUser("EVM", userAddress)) {
                 balanceKeeper.open("EVM", userAddress);
             }
-            uint userId = balanceKeeper.userIdByChainAddress("EVM", userAddress);
+            uint256 userId = balanceKeeper.userIdByChainAddress(
+                "EVM",
+                userAddress
+            );
             impactById[userId] = impactEB.impact(user);
         }
         // moved here from the constructor to test different impactEB states
@@ -39,11 +41,16 @@ contract SharesEB is ISharesEB {
         lastUser = toUser;
     }
 
-    function shareById(uint userId) external view override returns (uint) {
+    function shareById(uint256 userId)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return impactById[userId];
     }
 
-    function totalShares() external view override returns (uint) {
+    function totalShares() external view override returns (uint256) {
         return totalSupply;
     }
 }

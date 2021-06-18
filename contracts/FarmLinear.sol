@@ -7,15 +7,14 @@ import "./interfaces/IFarm.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract FarmLinear is IFarm {
-
     address public override owner;
 
-    uint public override totalUnlocked;
+    uint256 public override totalUnlocked;
 
-    uint public override lastClaimedTimestamp;
-    uint public override startTimestampOffset;
-    uint public amount;
-    uint public period;
+    uint256 public override lastClaimedTimestamp;
+    uint256 public override startTimestampOffset;
+    uint256 public amount;
+    uint256 public period;
 
     bool public override deprecated;
     bool public override farmingStarted;
@@ -37,7 +36,12 @@ contract FarmLinear is IFarm {
         deprecated = true;
     }
 
-    constructor(address _owner, uint _amount, uint _period, uint _startTimestampOffset) {
+    constructor(
+        address _owner,
+        uint256 _amount,
+        uint256 _period,
+        uint256 _startTimestampOffset
+    ) {
         owner = _owner;
         amount = _amount;
         period = _period;
@@ -49,15 +53,15 @@ contract FarmLinear is IFarm {
     }
 
     /// @dev Returns the block timestamp. This method is overridden in tests.
-    function _blockTimestamp() internal view virtual returns (uint) {
+    function _blockTimestamp() internal view virtual returns (uint256) {
         return block.timestamp;
     }
 
     function startFarming() public override isOwner {
         if (!farmingStarted) {
-          farmingStarted = true;
-          startTimestampOffset = _blockTimestamp();
-          lastClaimedTimestamp = startTimestampOffset;
+            farmingStarted = true;
+            startTimestampOffset = _blockTimestamp();
+            lastClaimedTimestamp = startTimestampOffset;
         }
     }
 
@@ -65,13 +69,17 @@ contract FarmLinear is IFarm {
         require(farmingStarted, "farming is not started yet");
         require(!deprecated, "This contract is deprecated.");
 
-        uint lastTimestamp    = lastClaimedTimestamp;
-        uint currentTimestamp = _blockTimestamp();
+        uint256 lastTimestamp = lastClaimedTimestamp;
+        uint256 currentTimestamp = _blockTimestamp();
 
-        uint lastY    = (amount * (lastTimestamp    - startTimestampOffset) * (1e18)) / period;
-        uint currentY = (amount * (currentTimestamp - startTimestampOffset) * (1e18)) / period;
+        uint256 lastY = (amount *
+            (lastTimestamp - startTimestampOffset) *
+            (1e18)) / period;
+        uint256 currentY = (amount *
+            (currentTimestamp - startTimestampOffset) *
+            (1e18)) / period;
 
-        uint addAmount = currentY - lastY;
+        uint256 addAmount = currentY - lastY;
 
         lastClaimedTimestamp = currentTimestamp;
 

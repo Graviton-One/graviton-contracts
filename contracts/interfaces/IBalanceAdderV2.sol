@@ -7,20 +7,36 @@ import "./IBalanceKeeperV2.sol";
 
 interface IBalanceAdderV2 {
     function owner() external view returns (address);
-    function shares(uint farmId) external view returns (IShares);
-    function farms(uint farmId) external view returns (IFarm);
-    function lastPortions(uint farmId) external view returns (uint);
-    function lastUser() external view returns (uint);
-    function currentFarm() external view returns (uint);
-    function currentPortion() external view returns (uint);
-    function totalUnlocked() external view returns (uint);
-    function totalBalance() external view returns (uint);
+
+    function shares(uint256 farmId) external view returns (IShares);
+
+    function farms(uint256 farmId) external view returns (IFarm);
+
+    function lastPortions(uint256 farmId) external view returns (uint256);
+
+    function lastUser() external view returns (uint256);
+
+    function currentFarm() external view returns (uint256);
+
+    function currentPortion() external view returns (uint256);
+
+    function totalUnlocked() external view returns (uint256);
+
+    function totalBalance() external view returns (uint256);
+
     function balanceKeeper() external view returns (IBalanceKeeperV2);
-    function isProcessing(uint farmId) external view returns (bool);
-    function totalFarms() external view returns (uint);
-    function totalUsers() external view returns (uint);
+
+    function isProcessing(uint256 farmId) external view returns (bool);
+
+    function totalFarms() external view returns (uint256);
+
+    function totalUsers() external view returns (uint256);
+
     function setOwner(address _owner) external;
+
     function addFarm(IShares _share, IFarm _farm) external;
-    function removeFarm(uint farmId) external;
-    function processBalances(uint step) external;
+
+    function removeFarm(uint256 farmId) external;
+
+    function processBalances(uint256 step) external;
 }

@@ -8,17 +8,13 @@ import "../interfaces/IVoter.sol";
 
 // used for testing time dependent behavior
 contract MockTimeClaimGTON is ClaimGTON {
-
-    constructor(address _owner,
-                IERC20 _governanceToken,
-                address _wallet,
-                IBalanceKeeper _balanceKeeper,
-                IVoter _voter)
-        ClaimGTON(_owner,
-                  _governanceToken,
-                  _wallet,
-                  _balanceKeeper,
-                  _voter) {}
+    constructor(
+        address _owner,
+        IERC20 _governanceToken,
+        address _wallet,
+        IBalanceKeeper _balanceKeeper,
+        IVoter _voter
+    ) ClaimGTON(_owner, _governanceToken, _wallet, _balanceKeeper, _voter) {}
 
     // Monday, October 5, 2020 9:00:00 AM GMT-05:00
     uint256 public time = 1601906400;
@@ -27,7 +23,7 @@ contract MockTimeClaimGTON is ClaimGTON {
         time += by;
     }
 
-    function _blockTimestamp() internal view override returns (uint) {
+    function _blockTimestamp() internal view override returns (uint256) {
         return time;
     }
 }

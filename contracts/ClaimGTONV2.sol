@@ -7,7 +7,6 @@ import "./interfaces/IClaimGTONV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract ClaimGTONV2 is IClaimGTONV2 {
-
     address public override owner;
 
     modifier isOwner() {
@@ -23,17 +22,23 @@ contract ClaimGTONV2 is IClaimGTONV2 {
     bool public override claimActivated;
     bool public override limitActivated;
 
-    mapping (address => uint) public override lastLimitTimestamp;
-    mapping (address => uint) public override limitMax;
+    mapping(address => uint256) public override lastLimitTimestamp;
+    mapping(address => uint256) public override limitMax;
 
-    event Claim(address indexed sender, address indexed receiver, uint amount);
+    event Claim(
+        address indexed sender,
+        address indexed receiver,
+        uint256 amount
+    );
     event SetOwner(address ownerOld, address ownerNew);
 
-    constructor(address _owner,
-                IERC20 _governanceToken,
-                address _wallet,
-                IBalanceKeeperV2 _balanceKeeper,
-                IVoter _voter) {
+    constructor(
+        address _owner,
+        IERC20 _governanceToken,
+        address _wallet,
+        IBalanceKeeperV2 _balanceKeeper,
+        IVoter _voter
+    ) {
         owner = _owner;
         governanceToken = _governanceToken;
         wallet = _wallet;
@@ -55,11 +60,19 @@ contract ClaimGTONV2 is IClaimGTONV2 {
         voter = _voter;
     }
 
-    function setGovernanceToken(IERC20 _governanceToken) public override isOwner {
+    function setGovernanceToken(IERC20 _governanceToken)
+        public
+        override
+        isOwner
+    {
         governanceToken = _governanceToken;
     }
 
-    function setBalanceKeeper(IBalanceKeeperV2 _balanceKeeper) public override isOwner {
+    function setBalanceKeeper(IBalanceKeeperV2 _balanceKeeper)
+        public
+        override
+        isOwner
+    {
         balanceKeeper = _balanceKeeper;
     }
 
@@ -72,21 +85,24 @@ contract ClaimGTONV2 is IClaimGTONV2 {
     }
 
     /// @dev Returns the block timestamp. This method is overridden in tests.
-    function _blockTimestamp() internal view virtual returns (uint) {
+    function _blockTimestamp() internal view virtual returns (uint256) {
         return block.timestamp;
     }
 
-    function claim(uint amount, address to) public override {
+    function claim(uint256 amount, address to) public override {
         require(claimActivated, "can't claim");
-        uint balance = balanceKeeper.balance("EVM", abi.encodePacked(msg.sender));
+        uint256 balance = balanceKeeper.balance(
+            "EVM",
+            abi.encodePacked(msg.sender)
+        );
         require(balance >= amount, "not enough money");
         if (limitActivated) {
-          if ((_blockTimestamp() - lastLimitTimestamp[msg.sender]) > 86400) {
-            lastLimitTimestamp[msg.sender] = _blockTimestamp();
-            limitMax[msg.sender] = balance / 2;
-          }
-          require(amount <= limitMax[msg.sender], "exceeded daily limit");
-          limitMax[msg.sender] -= amount;
+            if ((_blockTimestamp() - lastLimitTimestamp[msg.sender]) > 86400) {
+                lastLimitTimestamp[msg.sender] = _blockTimestamp();
+                limitMax[msg.sender] = balance / 2;
+            }
+            require(amount <= limitMax[msg.sender], "exceeded daily limit");
+            limitMax[msg.sender] -= amount;
         }
         balanceKeeper.subtract("EVM", abi.encodePacked(msg.sender), amount);
         voter.checkVoteBalances(msg.sender);

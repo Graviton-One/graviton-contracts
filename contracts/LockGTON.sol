@@ -7,7 +7,6 @@ import "./interfaces/ILockGTON.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract LockGTON is ILockGTON {
-
     address public override owner;
 
     modifier isOwner() {
@@ -19,11 +18,12 @@ contract LockGTON is ILockGTON {
 
     bool public override canLock;
 
-    event LockGTON
-        (address indexed governanceToken,
-         address indexed sender,
-         address indexed receiver,
-         uint amount);
+    event LockGTON(
+        address indexed governanceToken,
+        address indexed sender,
+        address indexed receiver,
+        uint256 amount
+    );
     event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner, IERC20 _governanceToken) {
@@ -41,11 +41,11 @@ contract LockGTON is ILockGTON {
         canLock = _canLock;
     }
 
-    function migrate(address to, uint amount) external override isOwner {
+    function migrate(address to, uint256 amount) external override isOwner {
         governanceToken.transfer(to, amount);
     }
 
-    function lock(address receiver, uint amount) external override {
+    function lock(address receiver, uint256 amount) external override {
         require(canLock, "lock is not allowed");
         governanceToken.transferFrom(msg.sender, address(this), amount);
         emit LockGTON(address(governanceToken), msg.sender, receiver, amount);

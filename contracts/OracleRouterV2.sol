@@ -7,7 +7,6 @@ import "./interfaces/IOracleRouterV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract OracleRouterV2 is IOracleRouterV2 {
-
     address public override owner;
 
     modifier isOwner() {
@@ -22,49 +21,60 @@ contract OracleRouterV2 is IOracleRouterV2 {
     bytes32 public override lpAddTopic;
     bytes32 public override lpSubTopic;
 
-    mapping (address => bool) public override canRoute;
+    mapping(address => bool) public override canRoute;
 
-    event SetCanRoute(address indexed owner,
-                      address indexed parser,
-                      bool indexed newBool);
-    event GTONAdd(bytes16 uuid,
-                  string chain,
-                  bytes emiter,
-                  bytes token,
-                  bytes sender,
-                  bytes receiver,
-                  uint256 amount);
-    event GTONSub(bytes16 uuid,
-                  string chain,
-                  bytes emiter,
-                  bytes token,
-                  bytes sender,
-                  bytes receiver,
-                  uint256 amount);
-    event LPAdd(bytes16 uuid,
-                string chain,
-                bytes emiter,
-                bytes token,
-                bytes sender,
-                bytes receiver,
-                uint256 amount);
-    event LPSub(bytes16 uuid,
-                string chain,
-                bytes emiter,
-                bytes token,
-                bytes sender,
-                bytes receiver,
-                uint256 amount);
+    event SetCanRoute(
+        address indexed owner,
+        address indexed parser,
+        bool indexed newBool
+    );
+    event GTONAdd(
+        bytes16 uuid,
+        string chain,
+        bytes emiter,
+        bytes token,
+        bytes sender,
+        bytes receiver,
+        uint256 amount
+    );
+    event GTONSub(
+        bytes16 uuid,
+        string chain,
+        bytes emiter,
+        bytes token,
+        bytes sender,
+        bytes receiver,
+        uint256 amount
+    );
+    event LPAdd(
+        bytes16 uuid,
+        string chain,
+        bytes emiter,
+        bytes token,
+        bytes sender,
+        bytes receiver,
+        uint256 amount
+    );
+    event LPSub(
+        bytes16 uuid,
+        string chain,
+        bytes emiter,
+        bytes token,
+        bytes sender,
+        bytes receiver,
+        uint256 amount
+    );
     event SetOwner(address ownerOld, address ownerNew);
 
-    constructor(address _owner,
-                IBalanceKeeperV2 _balanceKeeper,
-                ILPKeeperV2 _lpKeeper,
-                bytes32 _gtonAddTopic,
-                bytes32 _gtonSubTopic,
-                bytes32 _lpAddTopic,
-                bytes32 _lpSubTopic
-                ) {
+    constructor(
+        address _owner,
+        IBalanceKeeperV2 _balanceKeeper,
+        ILPKeeperV2 _lpKeeper,
+        bytes32 _gtonAddTopic,
+        bytes32 _gtonSubTopic,
+        bytes32 _lpAddTopic,
+        bytes32 _lpSubTopic
+    ) {
         owner = _owner;
         balanceKeeper = _balanceKeeper;
         lpKeeper = _lpKeeper;
@@ -77,18 +87,25 @@ contract OracleRouterV2 is IOracleRouterV2 {
     function setGTONAddTopic(bytes32 _gtonAddTopic) external override isOwner {
         gtonAddTopic = _gtonAddTopic;
     }
+
     function setGTONSubTopic(bytes32 _gtonSubTopic) external override isOwner {
         gtonSubTopic = _gtonSubTopic;
     }
+
     function setLPAddTopic(bytes32 _lpAddTopic) external override isOwner {
         lpAddTopic = _lpAddTopic;
     }
+
     function setLPSubTopic(bytes32 _lpSubTopic) external override isOwner {
         lpSubTopic = _lpSubTopic;
     }
 
     // permit/forbid a parser to send data to router
-    function setCanRoute(address parser, bool _canRoute) external override isOwner {
+    function setCanRoute(address parser, bool _canRoute)
+        external
+        override
+        isOwner
+    {
         canRoute[parser] = _canRoute;
         emit SetCanRoute(msg.sender, parser, canRoute[parser]);
     }
@@ -97,14 +114,16 @@ contract OracleRouterV2 is IOracleRouterV2 {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
-    function routeValue(bytes16 uuid,
-                        string memory chain,
-                        bytes memory emiter,
-                        bytes32 topic0,
-                        bytes memory token,
-                        bytes memory sender,
-                        bytes memory receiver,
-                        uint256 amount) external override {
+    function routeValue(
+        bytes16 uuid,
+        string memory chain,
+        bytes memory emiter,
+        bytes32 topic0,
+        bytes memory token,
+        bytes memory sender,
+        bytes memory receiver,
+        uint256 amount
+    ) external override {
         require(canRoute[msg.sender], "not allowed to route value");
 
         if (equal(topic0, gtonAddTopic)) {

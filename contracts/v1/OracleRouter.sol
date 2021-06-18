@@ -9,7 +9,6 @@ import "../interfaces/IOracleRouter.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract OracleRouter is IOracleRouter {
-
     address public owner;
 
     modifier isOwner() {
@@ -24,49 +23,60 @@ contract OracleRouter is IOracleRouter {
     bytes32 public lpAddTopic;
     bytes32 public lpSubTopic;
 
-    mapping (address => bool) public canRoute;
+    mapping(address => bool) public canRoute;
 
-    event SetCanRoute(address indexed owner,
-                      address indexed parser,
-                      bool indexed newBool);
-    event GTONAdd(bytes16 uuid,
-                  string chain,
-                  address emiter,
-                  address token,
-                  address sender,
-                  address receiver,
-                  uint256 amount);
-    event GTONSub(bytes16 uuid,
-                  string chain,
-                  address emiter,
-                  address token,
-                  address sender,
-                  address receiver,
-                  uint256 amount);
-    event LPAdd(bytes16 uuid,
-                string chain,
-                address emiter,
-                address token,
-                address sender,
-                address receiver,
-                uint256 amount);
-    event LPSub(bytes16 uuid,
-                string chain,
-                address emiter,
-                address token,
-                address sender,
-                address receiver,
-                uint256 amount);
+    event SetCanRoute(
+        address indexed owner,
+        address indexed parser,
+        bool indexed newBool
+    );
+    event GTONAdd(
+        bytes16 uuid,
+        string chain,
+        address emiter,
+        address token,
+        address sender,
+        address receiver,
+        uint256 amount
+    );
+    event GTONSub(
+        bytes16 uuid,
+        string chain,
+        address emiter,
+        address token,
+        address sender,
+        address receiver,
+        uint256 amount
+    );
+    event LPAdd(
+        bytes16 uuid,
+        string chain,
+        address emiter,
+        address token,
+        address sender,
+        address receiver,
+        uint256 amount
+    );
+    event LPSub(
+        bytes16 uuid,
+        string chain,
+        address emiter,
+        address token,
+        address sender,
+        address receiver,
+        uint256 amount
+    );
     event SetOwner(address ownerOld, address ownerNew);
 
-    constructor(address _owner,
-                IBalanceKeeper _balanceKeeper,
-                ILPKeeper _lpKeeper,
-                bytes32 _gtonAddTopic,
-                bytes32 _gtonSubTopic,
-                bytes32 _lpAddTopic,
-                bytes32 _lpSubTopic
-                ) {
+    constructor(
+        address _owner,
+        IBalanceKeeper _balanceKeeper,
+        ILPKeeper _lpKeeper,
+        bytes32 _gtonAddTopic,
+        bytes32 _gtonSubTopic,
+        bytes32 _lpAddTopic,
+        bytes32 _lpSubTopic
+    ) {
         owner = _owner;
         balanceKeeper = _balanceKeeper;
         lpKeeper = _lpKeeper;
@@ -79,12 +89,15 @@ contract OracleRouter is IOracleRouter {
     function setGTONAddTopic(bytes32 newTopic) public isOwner {
         gtonAddTopic = newTopic;
     }
+
     function setGTONSubTopic(bytes32 newTopic) public isOwner {
         gtonSubTopic = newTopic;
     }
+
     function setLPAddTopic(bytes32 newTopic) public isOwner {
         lpAddTopic = newTopic;
     }
+
     function setLPSubTopic(bytes32 newTopic) public isOwner {
         lpSubTopic = newTopic;
     }
@@ -99,14 +112,16 @@ contract OracleRouter is IOracleRouter {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
-    function routeValue(bytes16 uuid,
-                        string calldata chain,
-                        address emiter,
-                        bytes32 topic0,
-                        address token,
-                        address sender,
-                        address receiver,
-                        uint256 amount) external override {
+    function routeValue(
+        bytes16 uuid,
+        string calldata chain,
+        address emiter,
+        bytes32 topic0,
+        address token,
+        address sender,
+        address receiver,
+        uint256 amount
+    ) external override {
         require(canRoute[msg.sender], "not allowed to route value");
 
         if (equal(topic0, gtonAddTopic)) {

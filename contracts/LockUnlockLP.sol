@@ -7,7 +7,6 @@ import "./interfaces/ILockUnlockLP.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract LockUnlockLP is ILockUnlockLP {
-
     address public override owner;
 
     modifier isOwner() {
@@ -15,23 +14,27 @@ contract LockUnlockLP is ILockUnlockLP {
         _;
     }
 
-    mapping (address => bool) public override isAllowedToken;
-    mapping (address => mapping (address => uint)) internal _balance;
-    mapping (address => uint) public override tokenSupply;
-    uint public override totalSupply;
+    mapping(address => bool) public override isAllowedToken;
+    mapping(address => mapping(address => uint256)) internal _balance;
+    mapping(address => uint256) public override tokenSupply;
+    uint256 public override totalSupply;
 
-    event Lock(address indexed token,
-               address indexed sender,
-               address indexed receiver,
-               uint amount);
-    event Unlock(address indexed token,
-                 address indexed sender,
-                 address indexed receiver,
-                 uint amount);
+    event Lock(
+        address indexed token,
+        address indexed sender,
+        address indexed receiver,
+        uint256 amount
+    );
+    event Unlock(
+        address indexed token,
+        address indexed sender,
+        address indexed receiver,
+        uint256 amount
+    );
     event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner, address[] memory allowedTokens) {
-        for (uint i = 0; i < allowedTokens.length; i++) {
+        for (uint256 i = 0; i < allowedTokens.length; i++) {
             isAllowedToken[allowedTokens[i]] = true;
         }
         owner = _owner;
@@ -43,15 +46,28 @@ contract LockUnlockLP is ILockUnlockLP {
         emit SetOwner(ownerOld, _owner);
     }
 
-    function setIsAllowedToken(address token, bool _isAllowedToken) external override isOwner {
+    function setIsAllowedToken(address token, bool _isAllowedToken)
+        external
+        override
+        isOwner
+    {
         isAllowedToken[token] = _isAllowedToken;
     }
 
-    function balance(address token, address depositer) external view override returns (uint) {
+    function balance(address token, address depositer)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return _balance[token][depositer];
     }
 
-    function lock(address token, address receiver, uint amount) external override {
+    function lock(
+        address token,
+        address receiver,
+        uint256 amount
+    ) external override {
         require(isAllowedToken[token], "token not allowed");
         _balance[token][receiver] += amount;
         tokenSupply[token] += amount;
@@ -60,7 +76,11 @@ contract LockUnlockLP is ILockUnlockLP {
         emit Lock(token, msg.sender, receiver, amount);
     }
 
-    function unlock(address token, address receiver, uint amount) external override {
+    function unlock(
+        address token,
+        address receiver,
+        uint256 amount
+    ) external override {
         require(isAllowedToken[token], "token not allowed");
         require(_balance[token][msg.sender] >= amount, "not enough balance");
         _balance[token][msg.sender] -= amount;

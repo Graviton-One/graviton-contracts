@@ -7,7 +7,6 @@ import "../interfaces/IBalanceKeeper.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract BalanceKeeper is IBalanceKeeper {
-
     address public owner;
 
     modifier isOwner() {
@@ -16,18 +15,34 @@ contract BalanceKeeper is IBalanceKeeper {
     }
 
     // oracles for changing user balances
-    mapping (address => bool) public canAdd;
-    mapping (address => bool) public canSubtract;
+    mapping(address => bool) public canAdd;
+    mapping(address => bool) public canSubtract;
 
     address[] public override users;
-    mapping (address => bool) public isKnownUser;
-    mapping (address => uint) public override userBalance;
-    uint public override totalBalance;
+    mapping(address => bool) public isKnownUser;
+    mapping(address => uint256) public override userBalance;
+    uint256 public override totalBalance;
 
-    event Add(address indexed adder, address indexed user, uint indexed amount);
-    event Subtract(address indexed subtractor, address indexed user, uint indexed amount);
-    event SetCanAdd(address indexed owner, address indexed adder, bool indexed newBool);
-    event SetCanSubtract(address indexed owner, address indexed subtractor, bool indexed newBool);
+    event Add(
+        address indexed adder,
+        address indexed user,
+        uint256 indexed amount
+    );
+    event Subtract(
+        address indexed subtractor,
+        address indexed user,
+        uint256 indexed amount
+    );
+    event SetCanAdd(
+        address indexed owner,
+        address indexed adder,
+        bool indexed newBool
+    );
+    event SetCanSubtract(
+        address indexed owner,
+        address indexed subtractor,
+        bool indexed newBool
+    );
     event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner) {
@@ -40,7 +55,7 @@ contract BalanceKeeper is IBalanceKeeper {
         emit SetOwner(ownerOld, _owner);
     }
 
-    function totalUsers() public view override returns (uint) {
+    function totalUsers() public view override returns (uint256) {
         return users.length;
     }
 
@@ -51,15 +66,18 @@ contract BalanceKeeper is IBalanceKeeper {
     }
 
     // permit/forbid an oracle to subtract user balances
-    function setCanSubtract(address subtractor, bool _canSubtract) public isOwner {
+    function setCanSubtract(address subtractor, bool _canSubtract)
+        public
+        isOwner
+    {
         canSubtract[subtractor] = _canSubtract;
         emit SetCanSubtract(msg.sender, subtractor, canSubtract[subtractor]);
     }
 
     // add user balance
-    function add(address user, uint amount) public override {
+    function add(address user, uint256 amount) public override {
         require(canAdd[msg.sender], "not allowed to add");
-        if ( !isKnownUser[user]) {
+        if (!isKnownUser[user]) {
             isKnownUser[user] = true;
             users.push(user);
         }
@@ -69,7 +87,7 @@ contract BalanceKeeper is IBalanceKeeper {
     }
 
     // subtract user balance
-    function subtract(address user, uint amount) public override {
+    function subtract(address user, uint256 amount) public override {
         require(canSubtract[msg.sender], "not allowed to subtract");
         userBalance[user] -= amount;
         totalBalance -= amount;
