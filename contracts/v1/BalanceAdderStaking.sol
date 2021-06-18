@@ -1,9 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import '../interfaces/IFarm.sol';
-import '../interfaces/IBalanceKeeper.sol';
-import '../interfaces/IBalanceAdder.sol';
+import "../interfaces/IFarm.sol";
+import "../interfaces/IBalanceKeeper.sol";
+import "../interfaces/IBalanceAdder.sol";
 
 /// @title BalanceAdderStaking
 /// @author Artemij Artamonov - <array.clean@gmail.com>

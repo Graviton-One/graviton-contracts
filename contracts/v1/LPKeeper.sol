@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import '../interfaces/ILPKeeper.sol';
+import "../interfaces/ILPKeeper.sol";
 
 /// @title LPKeeper
 /// @author Artemij Artamonov - <array.clean@gmail.com>

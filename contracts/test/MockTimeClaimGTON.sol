@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.0;
 
-import '../v1/ClaimGTON.sol';
-import '../interfaces/IERC20.sol';
-import '../interfaces/IBalanceKeeper.sol';
-import '../interfaces/IVoter.sol';
+import "../v1/ClaimGTON.sol";
+import "../interfaces/IERC20.sol";
+import "../interfaces/IBalanceKeeper.sol";
+import "../interfaces/IVoter.sol";
 
 // used for testing time dependent behavior
 contract MockTimeClaimGTON is ClaimGTON {

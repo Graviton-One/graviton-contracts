@@ -1,8 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import './interfaces/IBalanceKeeperV2.sol';
-import './interfaces/IVoter.sol';
+import "./interfaces/IBalanceKeeperV2.sol";
+import "./interfaces/IVoter.sol";
 
 /// @title VoterV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>

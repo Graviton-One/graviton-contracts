@@ -1,10 +1,10 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import './interfaces/IFarm.sol';
-import './interfaces/IBalanceKeeperV2.sol';
-import './interfaces/IBalanceAdder.sol';
-import './interfaces/IShares.sol';
+import "./interfaces/IFarm.sol";
+import "./interfaces/IBalanceKeeperV2.sol";
+import "./interfaces/IBalanceAdder.sol";
+import "./interfaces/IShares.sol";
 
 /// @title BalanceAdderV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>

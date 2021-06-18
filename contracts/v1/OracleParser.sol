@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import '../interfaces/IOracleRouter.sol';
+import "../interfaces/IOracleRouter.sol";
 
 /// @title OracleParser
 /// @author Artemij Artamonov - <array.clean@gmail.com>

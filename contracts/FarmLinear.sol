@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import './interfaces/IFarm.sol';
+import "./interfaces/IFarm.sol";
 
 /// @title FarmLinear
 /// @author Artemij Artamonov - <array.clean@gmail.com>

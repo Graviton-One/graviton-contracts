@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import '../interfaces/IBalanceKeeper.sol';
+import "../interfaces/IBalanceKeeper.sol";
 
 /// @title BalanceKeeper
 /// @author Artemij Artamonov - <array.clean@gmail.com>
