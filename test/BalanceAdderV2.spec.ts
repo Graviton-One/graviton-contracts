@@ -185,6 +185,15 @@ describe('BalanceAdderV2', () => {
       await expect(balanceAdder.connect(other).removeFarm(0)).to.be.reverted
     })
 
+    it('fails if the farm is currently processing balances', async () => {
+      await openWallet()
+      await openOther()
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceKeeper.setCanAdd(balanceAdder.address, true)
+      await balanceAdder.processBalances(1)
+      await expect(balanceAdder.removeFarm(0)).to.be.revertedWith('farm is processing balances')
+    })
+
     it('removes shares', async () => {
       await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
       expect(await balanceAdder.shares(0)).to.eq(mockShares1.address)

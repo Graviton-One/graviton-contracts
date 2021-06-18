@@ -19,4 +19,5 @@
 ```bash
 yarn
 yarn test
+yarn coverage
 ```

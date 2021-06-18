@@ -56,7 +56,7 @@ contract BalanceAdderV2 is IBalanceAdder {
 
     // remove index from arrays
     function removeFarm(uint farmId) public isOwner {
-        require(!isProcessing[currentFarm], "index is currently in process");
+        require(!isProcessing[currentFarm], "farm is processing balances");
 
         IShares[] memory newShares = new IShares[](shares.length-1);
         uint j = 0;
