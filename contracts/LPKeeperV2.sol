@@ -34,7 +34,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
     mapping (uint => mapping (uint => uint)) internal _tokenUser;
     mapping (uint => mapping (uint => bool)) internal _isKnownTokenUser;
 
-    IBalanceKeeperV2 balanceKeeper;
+    IBalanceKeeperV2 public balanceKeeper;
 
     event SetOwner
         (address ownerOld,
