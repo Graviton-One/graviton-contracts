@@ -14,7 +14,7 @@ contract BalanceAdderStaking is IBalanceAdder {
     IFarm public farm;
     IBalanceKeeper public balanceKeeper;
 
-    uint public counter;
+    uint public lastUser;
     uint public totalUsers;
     uint public lastPortion;
     uint public currentPortion;
@@ -34,29 +34,29 @@ contract BalanceAdderStaking is IBalanceAdder {
     }
 
     function processBalances(uint step) public override {
-        if (counter == 0) {
+        if (lastUser == 0) {
             totalUsers = balanceKeeper.totalUsers();
             totalUnlocked = farm.totalUnlocked();
             currentPortion = totalUnlocked - lastPortion;
             totalBalance = balanceKeeper.totalBalance();
         }
-        uint min = counter;
-        uint max = counter + step;
+        uint fromUser = lastUser;
+        uint toUser = lastUser + step;
 
-        if (max > totalUsers) {
-            max = totalUsers;
+        if (toUser > totalUsers) {
+            toUser = totalUsers;
         }
 
-        for(uint i = min; i < max; i++) {
+        for(uint i = fromUser; i < toUser; i++) {
             address user = balanceKeeper.users(i);
             increaseUserStakeValue(user);
         }
 
-        if (max == totalUsers) {
-            counter = 0;
+        if (toUser == totalUsers) {
+            lastUser = 0;
             lastPortion = totalUnlocked;
         } else {
-            counter = max;
+            lastUser = toUser;
         }
     }
 }

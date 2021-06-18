@@ -17,7 +17,7 @@ contract BalanceAdderEB is IBalanceAdder {
 
     IBalanceKeeper public balanceKeeper;
 
-    uint public counter;
+    uint public lastUser;
     uint public totalUsers;
 
     mapping (address => uint) public lastPortion;
@@ -37,22 +37,22 @@ contract BalanceAdderEB is IBalanceAdder {
     }
 
     function processBalances(uint step) public override {
-        uint max = counter + step;
-        uint min = counter;
+        uint toUser = lastUser + step;
+        uint fromUser = lastUser;
 
-        if (max > totalUsers) {
-            max = totalUsers;
+        if (toUser > totalUsers) {
+            toUser = totalUsers;
         }
 
-        for(uint i = min; i < max; i++) {
+        for (uint i = fromUser; i < toUser; i++) {
             address user = impactEB.users(i);
             addEB(user);
         }
 
-        if (max == totalUsers) {
-            counter = 0;
+        if (toUser == totalUsers) {
+            lastUser = 0;
         } else {
-            counter = max;
+            lastUser = toUser;
         }
     }
 }

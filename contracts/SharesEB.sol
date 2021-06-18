@@ -10,41 +10,47 @@ import './interfaces/IImpactKeeper.sol';
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract SharesEB is IShares {
 
+    mapping (uint => uint) impactById;
+    uint public totalSupply;
+    uint public lastUser;
+
     IBalanceKeeperV2 public balanceKeeper;
     IImpactKeeper public impactEB;
 
     constructor(IBalanceKeeperV2 _balanceKeeper, IImpactKeeper _impactEB) {
         balanceKeeper = _balanceKeeper;
         impactEB = _impactEB;
+        totalSupply = impactEB.totalSupply();
+        migrate(1);
     }
 
-    function bytesToAddress(bytes memory bys) internal pure returns (address addr) {
-        assembly {
-          addr := mload(add(bys,20))
+    function migrate(uint step) internal {
+        require(lastUser != 0, "migration is finished");
+        uint toUser = lastUser + step;
+        if (toUser > balanceKeeper.totalUsers()) {
+            toUser = balanceKeeper.totalUsers();
         }
-    }
-
-    function equal(string memory a, string memory b) internal pure returns (bool) {
-        return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
+        for (uint i = lastUser; i < toUser; i++) {
+            address user = impactEB.users(i);
+            bytes memory userAddress = abi.encodePacked(user);
+            if (!balanceKeeper.isKnownUser("EVM", userAddress)) {
+                balanceKeeper.open("EVM", userAddress);
+            }
+            uint userId = balanceKeeper.userIdByChainAddress("EVM", userAddress);
+            impactById[userId] = impactEB.impact(user);
+        }
+        if (toUser == balanceKeeper.totalUsers()) {
+            lastUser = 0;
+        } else {
+            lastUser = toUser;
+        }
     }
 
     function shareById(uint userId) public view override returns (uint) {
-        if (!balanceKeeper.isKnownUser(userId)) {
-            return 0;
-        }
-        string memory chain = balanceKeeper.userChainById(userId);
-        if (!equal(chain, "EVM")) {
-            return 0;
-        }
-        bytes memory userAddress = balanceKeeper.userAddressById(userId);
-        if (userAddress.length != 20) {
-            return 0;
-        }
-        address user = bytesToAddress(userAddress);
-        return impactEB.impact(user);
+        return impactById[userId];
     }
 
     function totalShares() public view override returns (uint) {
-        return impactEB.totalSupply();
+        return totalSupply;
     }
 }
