@@ -1,24 +1,24 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IERC20.sol";
+import "./interfaces/ILockUnlockLP.sol";
 
 /// @title LockUnlockLP
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract LockUnlockLP {
+contract LockUnlockLP is ILockUnlockLP {
 
-    address public owner;
+    address public override owner;
 
     modifier isOwner() {
         require(msg.sender == owner, "Caller is not owner");
         _;
     }
 
-    mapping (address => bool) public isAllowedToken;
+    mapping (address => bool) public override isAllowedToken;
     mapping (address => mapping (address => uint)) internal _balance;
-    mapping (address => uint) public tokenSupply;
-    uint public totalSupply;
+    mapping (address => uint) public override tokenSupply;
+    uint public override totalSupply;
 
     event Lock(address indexed token,
                address indexed sender,
@@ -37,21 +37,21 @@ contract LockUnlockLP {
         owner = _owner;
     }
 
-    function setOwner(address _owner) public isOwner {
+    function setOwner(address _owner) external override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
-    function setIsAllowedToken(address token, bool _isAllowedToken) public isOwner {
+    function setIsAllowedToken(address token, bool _isAllowedToken) external override isOwner {
         isAllowedToken[token] = _isAllowedToken;
     }
 
-    function balance(address token, address depositer) public view returns (uint) {
+    function balance(address token, address depositer) external view override returns (uint) {
         return _balance[token][depositer];
     }
 
-    function lock(address token, address receiver, uint amount) public {
+    function lock(address token, address receiver, uint amount) external override {
         require(isAllowedToken[token], "token not allowed");
         _balance[token][receiver] += amount;
         tokenSupply[token] += amount;
@@ -60,7 +60,7 @@ contract LockUnlockLP {
         emit Lock(token, msg.sender, receiver, amount);
     }
 
-    function unlock(address token, address receiver, uint amount) public {
+    function unlock(address token, address receiver, uint amount) external override {
         require(isAllowedToken[token], "token not allowed");
         require(_balance[token][msg.sender] >= amount, "not enough balance");
         _balance[token][msg.sender] -= amount;

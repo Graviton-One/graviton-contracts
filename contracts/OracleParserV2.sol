@@ -1,30 +1,30 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IOracleRouterV2.sol";
+import "./interfaces/IOracleParserV2.sol";
 
 /// @title OracleParserV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract OracleParserV2 {
+contract OracleParserV2 is IOracleParserV2 {
 
-    address public owner;
+    address public override owner;
 
     modifier isOwner() {
         require(msg.sender == owner, "Caller is not owner");
         _;
     }
 
-    address public nebula;
+    address public override nebula;
 
     modifier isNebula() {
         require(msg.sender == nebula, "Caller is not nebula");
         _;
     }
 
-    IOracleRouterV2 public oracleRouter;
+    IOracleRouterV2 public override oracleRouter;
 
-    mapping (bytes16 => bool) public uuidIsProcessed;
+    mapping (bytes16 => bool) public override uuidIsProcessed;
 
     event AttachValue(address nebula,
                       bytes16 uuid,
@@ -44,23 +44,23 @@ contract OracleParserV2 {
         nebula = _nebula;
     }
 
-    function setOwner(address _owner) public isOwner {
+    function setOwner(address _owner) external override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
-    function setNebula(address _nebula) public isOwner {
+    function setNebula(address _nebula) external override isOwner {
         address nebulaOld = nebula;
         nebula = _nebula;
         emit SetNebula(nebulaOld, _nebula);
     }
 
-    function setOracleRouter(IOracleRouterV2 _oracleRouter) public isOwner {
+    function setOracleRouter(IOracleRouterV2 _oracleRouter) external override isOwner {
         oracleRouter = _oracleRouter;
     }
 
-    function deserializeUint(bytes memory b, uint startPos, uint len) public pure returns (uint) {
+    function deserializeUint(bytes memory b, uint startPos, uint len) public override pure returns (uint) {
         uint v = 0;
         for (uint p = startPos; p < startPos + len; p++) {
             v = v * 256 + uint(uint8(b[p]));
@@ -68,11 +68,11 @@ contract OracleParserV2 {
         return v;
     }
 
-    function deserializeAddress(bytes memory b, uint startPos) public pure returns (address) {
+    function deserializeAddress(bytes memory b, uint startPos) public pure override returns (address) {
         return address(uint160(deserializeUint(b, startPos, 20)));
     }
 
-    function bytesToBytes32(bytes memory b, uint offset) public pure returns (bytes32) {
+    function bytesToBytes32(bytes memory b, uint offset) public pure override returns (bytes32) {
         bytes32 out;
         for (uint i = 0; i < 32; i++) {
           out |= bytes32(b[offset + i]) >> (i * 8);
@@ -80,7 +80,7 @@ contract OracleParserV2 {
         return out;
     }
 
-    function bytesToBytes16(bytes memory b, uint offset) public pure returns (bytes16) {
+    function bytesToBytes16(bytes memory b, uint offset) public pure override returns (bytes16) {
         bytes16 out;
         for (uint i = 0; i < 16; i++) {
           out |= bytes16(b[offset + i]) >> (i * 8);
@@ -88,11 +88,11 @@ contract OracleParserV2 {
         return out;
     }
 
-    function equal(string memory a, string memory b) internal pure returns (bool) {
+    function equal(string memory a, string memory b) public pure override returns (bool) {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
-    function attachValue(bytes calldata impactData) external isNebula {
+    function attachValue(bytes calldata impactData) external override isNebula {
 
         if (impactData.length != 200) { return; }  // ignore data with unexpected length
 

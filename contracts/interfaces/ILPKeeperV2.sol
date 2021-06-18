@@ -1,7 +1,18 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
+import "./IBalanceKeeperV2.sol";
+
 interface ILPKeeperV2 {
+    function owner() external view returns (address);
+    function canAdd(address user) external view returns (bool);
+    function canSubtract(address user) external view returns (bool);
+    function canOpen(address user) external view returns (bool);
+    function balanceKeeper() external view returns (IBalanceKeeperV2);
+    function setOwner(address _owner) external;
+    function setCanOpen(address openeer, bool _canOpen) external;
+    function setCanAdd(address adder, bool _canAdd) external;
+    function setCanSubtract(address subtractor, bool _canSubtract) external;
     function tokenChainById
         (uint id)
         external view returns (string calldata);

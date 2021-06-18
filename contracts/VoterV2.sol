@@ -9,18 +9,18 @@ import "./interfaces/IVoter.sol";
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract VoterV2 is IVoter {
 
-    address public owner;
+    address public override owner;
 
     modifier isOwner() {
         require(msg.sender == owner, "Caller is not owner");
         _;
     }
 
-    address public balanceKeeper;
+    address public override balanceKeeper;
 
-    uint public totalRounds;
-    uint[] public activeRounds;
-    uint[] public pastRounds;
+    uint public override totalRounds;
+    uint[] public override activeRounds;
+    uint[] public override pastRounds;
     mapping(uint => string) internal _roundName;
     mapping(uint => string[]) internal _roundOptions;
 
@@ -35,7 +35,7 @@ contract VoterV2 is IVoter {
     mapping(uint => uint) internal _totalUsersInRound;
     mapping(uint => mapping(uint => uint)) internal _totalUsersForOption;
 
-    mapping(address => bool) public canCheck;
+    mapping(address => bool) public override canCheck;
 
     event CastVotes(address indexed voter, uint indexed roundId);
     event StartRound(address indexed owner, uint totalRounds, string name, string[] options);
@@ -50,36 +50,36 @@ contract VoterV2 is IVoter {
     }
 
     // getter functions with parameter names
-    function roundName(uint roundId) public view returns (string memory) {
+    function roundName(uint roundId) public override view returns (string memory) {
         return _roundName[roundId];
     }
-    function roundOptions(uint roundId, uint optionId) public view returns (string memory) {
+    function roundOptions(uint roundId, uint optionId) public override view returns (string memory) {
         return _roundOptions[roundId][optionId];
     }
-    function votesForOption(uint roundId, uint optionId) public view returns (uint) {
+    function votesForOption(uint roundId, uint optionId) public override view returns (uint) {
         return _votesForOption[roundId][optionId];
     }
-    function votesInRoundByUser(uint roundId, address user) public view returns (uint) {
+    function votesInRoundByUser(uint roundId, address user) public override view returns (uint) {
         return _votesInRoundByUser[roundId][user];
     }
-    function votesForOptionByUser(uint roundId, address user, uint optionId) public view returns (uint) {
+    function votesForOptionByUser(uint roundId, address user, uint optionId) public override view returns (uint) {
         return _votesForOptionByUser[roundId][user][optionId];
     }
-    function userVotedInRound(uint roundId, address user) public view returns (bool) {
+    function userVotedInRound(uint roundId, address user) public override view returns (bool) {
         return _userVotedInRound[roundId][user];
     }
-    function userVotedForOption(uint roundId, uint optionId, address user) public view returns (bool) {
+    function userVotedForOption(uint roundId, uint optionId, address user) public override view returns (bool) {
         return _userVotedForOption[roundId][optionId][user];
     }
-    function totalUsersInRound(uint roundId) public view returns (uint) {
+    function totalUsersInRound(uint roundId) public override view returns (uint) {
         return _totalUsersInRound[roundId];
     }
-    function totalUsersForOption(uint roundId, uint optionId) public view returns (uint) {
+    function totalUsersForOption(uint roundId, uint optionId) public override view returns (uint) {
         return _totalUsersForOption[roundId][optionId];
     }
 
     // sum of all votes in a round
-    function votesInRound(uint roundId) public view returns (uint) {
+    function votesInRound(uint roundId) public override view returns (uint) {
         uint sum;
         for (uint optionId = 0; optionId < _votesForOption[roundId].length; optionId++) {
             sum += _votesForOption[roundId][optionId];
@@ -88,17 +88,17 @@ contract VoterV2 is IVoter {
     }
 
     // number of сurrently active rounds
-    function totalActiveRounds() public view returns (uint) {
+    function totalActiveRounds() public override view returns (uint) {
         return activeRounds.length;
     }
 
     // number of finalized past rounds
-    function totalPastRounds() public view returns (uint) {
+    function totalPastRounds() public override view returns (uint) {
         return pastRounds.length;
     }
 
     // number of options in a round
-    function totalRoundOptions(uint roundId) public view returns (uint) {
+    function totalRoundOptions(uint roundId) public override view returns (uint) {
         uint sum;
         for (uint i = 0; i < _roundOptions[roundId].length; i++) {
             sum ++;
@@ -106,13 +106,13 @@ contract VoterV2 is IVoter {
         return sum;
     }
 
-    function setOwner(address _owner) public isOwner {
+    function setOwner(address _owner) public override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
-    function startRound(string memory name, string[] memory options) public isOwner {
+    function startRound(string memory name, string[] memory options) public override isOwner {
         _roundName[totalRounds] = name;
         _roundOptions[totalRounds] = options;
         _votesForOption[totalRounds] = new uint[](options.length);
@@ -121,7 +121,7 @@ contract VoterV2 is IVoter {
         emit StartRound(msg.sender, totalRounds, name, options);
     }
 
-    function isActiveRound(uint roundId) public view returns (bool) {
+    function isActiveRound(uint roundId) public override view returns (bool) {
         for(uint i = 0; i < activeRounds.length; i++) {
             if (activeRounds[i] == roundId) {
                 return true;
@@ -130,7 +130,7 @@ contract VoterV2 is IVoter {
         return false;
     }
 
-    function isPastRound(uint roundId) public view returns (bool) {
+    function isPastRound(uint roundId) public override view returns (bool) {
         for(uint i = 0; i < pastRounds.length; i++) {
             if (pastRounds[i] == roundId) {
                 return true;
@@ -139,7 +139,7 @@ contract VoterV2 is IVoter {
         return false;
     }
 
-    function castVotes(uint roundId, uint[] memory votes) public {
+    function castVotes(uint roundId, uint[] memory votes) public override {
 
         // fail if roundId is not an active vote
         require(isActiveRound(roundId), "roundId is not an active vote");
@@ -195,7 +195,7 @@ contract VoterV2 is IVoter {
     }
 
     // allow/forbid oracle to check votes
-    function setCanCheck(address checker, bool _canCheck) public isOwner {
+    function setCanCheck(address checker, bool _canCheck) public override isOwner {
         canCheck[checker] = _canCheck;
         emit SetCanCheck(msg.sender, checker, canCheck[checker]);
     }
@@ -231,7 +231,7 @@ contract VoterV2 is IVoter {
     }
 
     // move roundId from activeRounds to pastRounds
-    function finalizeRound(uint roundId) public isOwner {
+    function finalizeRound(uint roundId) public override isOwner {
         uint[] memory filteredRounds = new uint[](activeRounds.length-1);
         uint j = 0;
         for (uint i = 0; i < activeRounds.length; i++) {

@@ -1,29 +1,30 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IERC20.sol";
-import "./interfaces/IBalanceKeeperV2.sol";
-import "./interfaces/IVoter.sol";
+import "./interfaces/IClaimGTONV2.sol";
 
 /// @title ClaimGTONV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract ClaimGTONV2 {
+contract ClaimGTONV2 is IClaimGTONV2 {
 
-    address public owner;
+    address public override owner;
 
     modifier isOwner() {
         require(msg.sender == owner, "Caller is not owner");
         _;
     }
 
-    IERC20 public governanceToken;
-    IBalanceKeeperV2 public balanceKeeper;
-    IVoter public voter;
-    address public wallet;
+    IERC20 public override governanceToken;
+    IBalanceKeeperV2 public override balanceKeeper;
+    IVoter public override voter;
+    address public override wallet;
 
-    bool public claimActivated = false;
-    bool public limitActivated = false;
+    bool public override claimActivated = false;
+    bool public override limitActivated = false;
+
+    mapping (address => uint) public override lastLimitTimestamp;
+    mapping (address => uint) public override limitMax;
 
     event Claim(address indexed sender, address indexed receiver, uint amount);
     event SetOwner(address ownerOld, address ownerNew);
@@ -40,33 +41,33 @@ contract ClaimGTONV2 {
         voter = _voter;
     }
 
-    function setOwner(address _owner) public isOwner {
+    function setOwner(address _owner) public override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
-    function setWallet(address _wallet) public isOwner {
+    function setWallet(address _wallet) public override isOwner {
         wallet = _wallet;
     }
 
-    function setVoter(IVoter _voter) public isOwner {
+    function setVoter(IVoter _voter) public override isOwner {
         voter = _voter;
     }
 
-    function setGovernanceToken(IERC20 _governanceToken) public isOwner {
+    function setGovernanceToken(IERC20 _governanceToken) public override isOwner {
         governanceToken = _governanceToken;
     }
 
-    function setBalanceKeeper(IBalanceKeeperV2 _balanceKeeper) public isOwner {
+    function setBalanceKeeper(IBalanceKeeperV2 _balanceKeeper) public override isOwner {
         balanceKeeper = _balanceKeeper;
     }
 
-    function setClaimActivated(bool _claimActivated) public isOwner {
+    function setClaimActivated(bool _claimActivated) public override isOwner {
         claimActivated = _claimActivated;
     }
 
-    function setLimitActivated(bool _limitActivated) public isOwner {
+    function setLimitActivated(bool _limitActivated) public override isOwner {
         limitActivated = _limitActivated;
     }
 
@@ -75,10 +76,7 @@ contract ClaimGTONV2 {
         return block.timestamp;
     }
 
-    mapping (address => uint) public lastLimitTimestamp;
-    mapping (address => uint) public limitMax;
-
-    function claim(uint amount, address to) public {
+    function claim(uint amount, address to) public override {
         require(claimActivated, "can't claim");
         uint balance = balanceKeeper.balance("EVM", abi.encodePacked(msg.sender));
         require(balance >= amount, "not enough money");

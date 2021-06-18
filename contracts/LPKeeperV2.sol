@@ -2,14 +2,13 @@
 pragma solidity >=0.8.0;
 
 import "./interfaces/ILPKeeperV2.sol";
-import "./interfaces/IBalanceKeeperV2.sol";
 
 /// @title LPKeeperV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract LPKeeperV2 is ILPKeeperV2 {
 
-    address public owner;
+    address public override owner;
 
     modifier isOwner() {
         require(msg.sender == owner, "Caller is not owner");
@@ -17,9 +16,9 @@ contract LPKeeperV2 is ILPKeeperV2 {
     }
 
     // oracles for changing user lp balances
-    mapping (address => bool) public canAdd;
-    mapping (address => bool) public canSubtract;
-    mapping (address => bool) public canOpen;
+    mapping (address => bool) public override canAdd;
+    mapping (address => bool) public override canSubtract;
+    mapping (address => bool) public override canOpen;
 
     // chain code => in chain address => user id;
     mapping (uint => string) internal _tokenChainById;
@@ -34,7 +33,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
     mapping (uint => mapping (uint => uint)) internal _tokenUser;
     mapping (uint => mapping (uint => bool)) internal _isKnownTokenUser;
 
-    IBalanceKeeperV2 public balanceKeeper;
+    IBalanceKeeperV2 public override balanceKeeper;
 
     event SetOwner
         (address ownerOld,
@@ -67,25 +66,25 @@ contract LPKeeperV2 is ILPKeeperV2 {
         balanceKeeper = _balanceKeeper;
     }
 
-    function setOwner(address _owner) public isOwner {
+    function setOwner(address _owner) external override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
-    function setCanOpen(address opener, bool _canOpen) public isOwner {
+    function setCanOpen(address opener, bool _canOpen) external override isOwner {
         canOpen[opener] = _canOpen;
         emit SetCanOpen(msg.sender, opener, canOpen[opener]);
     }
 
     // permit/forbid an oracle to add user balances
-    function setCanAdd(address adder, bool _canAdd) public isOwner {
+    function setCanAdd(address adder, bool _canAdd) external override isOwner {
         canAdd[adder] = _canAdd;
         emit SetCanAdd(msg.sender, adder, canAdd[adder]);
     }
 
     // permit/forbid an oracle to subtract user balances
-    function setCanSubtract(address subtractor, bool _canSubtract) public isOwner {
+    function setCanSubtract(address subtractor, bool _canSubtract) external override isOwner {
         canSubtract[subtractor] = _canSubtract;
         emit SetCanSubtract(msg.sender, subtractor, canSubtract[subtractor]);
     }
@@ -98,17 +97,17 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _isKnownToken[tokenChain][tokenAddress];
     }
 
-    function tokenChainById(uint tokenId) public view override returns (string memory) {
+    function tokenChainById(uint tokenId) external view override returns (string memory) {
         require(isKnownToken(tokenId), "token is not known");
         return _tokenChainById[tokenId];
     }
 
-    function tokenAddressById(uint tokenId) public view override returns (bytes memory) {
+    function tokenAddressById(uint tokenId) external view override returns (bytes memory) {
         require(isKnownToken(tokenId), "token is not known");
         return _tokenAddressById[tokenId];
     }
 
-    function tokenChainAddressById(uint tokenId) public view override returns (string memory, bytes memory) {
+    function tokenChainAddressById(uint tokenId) external view override returns (string memory, bytes memory) {
         require(isKnownToken(tokenId), "token is not known");
         return (_tokenChainById[tokenId], _tokenAddressById[tokenId]);
     }
@@ -118,16 +117,16 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _tokenIdByChainAddress[tokenChain][tokenAddress];
     }
 
-    function isKnownTokenUser(uint tokenId, uint userId) public view override returns (bool) {
+    function isKnownTokenUser(uint tokenId, uint userId) external view override returns (bool) {
         return _isKnownTokenUser[tokenId][userId];
     }
 
-    function isKnownTokenUser(string calldata tokenChain, bytes calldata tokenAddress, uint userId) public view override returns (bool) {
+    function isKnownTokenUser(string calldata tokenChain, bytes calldata tokenAddress, uint userId) external view override returns (bool) {
         uint tokenId = _tokenIdByChainAddress[tokenChain][tokenAddress];
         return _isKnownTokenUser[tokenId][userId];
     }
 
-    function isKnownTokenUser(uint tokenId, string calldata userChain, bytes calldata userAddress) public view override returns (bool) {
+    function isKnownTokenUser(uint tokenId, string calldata userChain, bytes calldata userAddress) external view override returns (bool) {
         if (!balanceKeeper.isKnownUser(userChain, userAddress)) {
             return false;
         }
@@ -135,7 +134,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _isKnownTokenUser[tokenId][userId];
     }
 
-    function isKnownTokenUser(string calldata tokenChain, bytes calldata tokenAddress, string calldata userChain, bytes calldata userAddress) public view override returns (bool) {
+    function isKnownTokenUser(string calldata tokenChain, bytes calldata tokenAddress, string calldata userChain, bytes calldata userAddress) external view override returns (bool) {
         uint tokenId = _tokenIdByChainAddress[tokenChain][tokenAddress];
         if (!balanceKeeper.isKnownUser(userChain, userAddress)) {
             return false;
@@ -144,14 +143,14 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _isKnownTokenUser[tokenId][userId];
     }
 
-    function tokenUser(uint tokenId, uint userIndex) public view override returns (uint) {
+    function tokenUser(uint tokenId, uint userIndex) external view override returns (uint) {
         require(isKnownToken(tokenId), "token is not known");
         require(totalTokenUsers(tokenId) > 0, "no token users");
         require(userIndex < totalTokenUsers(tokenId), "token user is not known");
         return _tokenUser[tokenId][userIndex];
     }
 
-    function tokenUser(string calldata tokenChain, bytes calldata tokenAddress, uint userIndex) public view override returns (uint) {
+    function tokenUser(string calldata tokenChain, bytes calldata tokenAddress, uint userIndex) external view override returns (uint) {
         uint tokenId = _tokenIdByChainAddress[tokenChain][tokenAddress];
         require(isKnownToken(tokenId), "token is not known");
         require(totalTokenUsers(tokenId) > 0, "no token users");
@@ -166,7 +165,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
     function totalTokenUsers
         (string calldata tokenChain,
          bytes calldata tokenAddress)
-        public view override returns (uint) {
+        external view override returns (uint) {
         if (!isKnownToken(tokenChain, tokenAddress)) {
             return 0;
         }
@@ -174,7 +173,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
     }
 
 
-    function balance(uint tokenId, uint userId) public view override returns (uint) {
+    function balance(uint tokenId, uint userId) external view override returns (uint) {
         return _balance[tokenId][userId];
     }
 
@@ -182,7 +181,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         (uint tokenId,
          string calldata userChain,
          bytes calldata userAddress)
-        public view override returns (uint) {
+        external view override returns (uint) {
         if (!balanceKeeper.isKnownUser(userChain, userAddress)) {
             return 0;
         }
@@ -194,7 +193,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         (string calldata tokenChain,
          bytes calldata tokenAddress,
          uint userId)
-        public view override returns (uint) {
+        external view override returns (uint) {
         if (!isKnownToken(tokenChain, tokenAddress)) {
             return 0;
         }
@@ -207,7 +206,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
          bytes calldata tokenAddress,
          string calldata userChain,
          bytes calldata userAddress)
-        public view override returns (uint) {
+        external view override returns (uint) {
         if (!isKnownToken(tokenChain, tokenAddress)) {
             return 0;
         }
@@ -219,18 +218,18 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _balance[tokenId][userId];
     }
 
-    function totalBalance(uint tokenId) public view override returns (uint) {
+    function totalBalance(uint tokenId) external view override returns (uint) {
         return _totalBalance[tokenId];
     }
 
     function totalBalance
         (string calldata tokenChain,
          bytes calldata tokenAddress)
-        public view override returns (uint) {
+        external view override returns (uint) {
         return _totalBalance[_tokenIdByChainAddress[tokenChain][tokenAddress]];
     }
 
-    function open(string calldata tokenChain, bytes calldata tokenAddress) public override {
+    function open(string calldata tokenChain, bytes calldata tokenAddress) external override {
         require(canOpen[msg.sender], "not allowed to open");
         if (!isKnownToken(tokenChain, tokenAddress)) {
             uint tokenId = totalTokens;
@@ -244,7 +243,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
 
     function add(uint tokenId,
                  uint userId,
-                 uint amount) public override {
+                 uint amount) external override {
         require(canAdd[msg.sender], "not allowed to add");
         require(isKnownToken(tokenId), "token is not known");
         require(balanceKeeper.isKnownUser(userId), "user is not known");
@@ -254,7 +253,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
     function add(uint tokenId,
                  string calldata userChain,
                  bytes calldata userAddress,
-                 uint amount) public override {
+                 uint amount) external override {
         require(canAdd[msg.sender], "not allowed to add");
         require(isKnownToken(tokenId), "token is not known");
         uint userId = balanceKeeper.userIdByChainAddress(userChain, userAddress);
@@ -264,7 +263,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
     function add(string calldata tokenChain,
                  bytes calldata tokenAddress,
                  uint userId,
-                 uint amount) public override {
+                 uint amount) external override {
         require(canAdd[msg.sender], "not allowed to add");
         uint tokenId = tokenIdByChainAddress(tokenChain, tokenAddress);
         require(balanceKeeper.isKnownUser(userId), "user is not known");
@@ -275,7 +274,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
                  bytes calldata tokenAddress,
                  string calldata userChain,
                  bytes calldata userAddress,
-                 uint amount) public override {
+                 uint amount) external override {
         require(canAdd[msg.sender], "not allowed to add");
         uint tokenId = tokenIdByChainAddress(tokenChain, tokenAddress);
         uint userId = balanceKeeper.userIdByChainAddress(userChain, userAddress);
@@ -295,7 +294,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
 
     function subtract(uint tokenId,
                       uint userId,
-                      uint amount) public override {
+                      uint amount) external override {
         require(canSubtract[msg.sender], "not allowed to subtract");
         require(isKnownToken(tokenId), "token is not known");
         require(balanceKeeper.isKnownUser(userId), "user is not known");
@@ -305,7 +304,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
     function subtract(uint tokenId,
                       string calldata userChain,
                       bytes calldata userAddress,
-                      uint amount) public override {
+                      uint amount) external override {
         require(canSubtract[msg.sender], "not allowed to subtract");
         require(isKnownToken(tokenId), "token is not known");
         uint userId = balanceKeeper.userIdByChainAddress(userChain, userAddress);
@@ -315,7 +314,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
     function subtract(string calldata tokenChain,
                       bytes calldata tokenAddress,
                       uint userId,
-                      uint amount) public override {
+                      uint amount) external override {
         require(canSubtract[msg.sender], "not allowed to subtract");
         uint tokenId = tokenIdByChainAddress(tokenChain, tokenAddress);
         require(balanceKeeper.isKnownUser(userId), "user is not known");
@@ -326,7 +325,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
                       bytes calldata tokenAddress,
                       string calldata userChain,
                       bytes calldata userAddress,
-                      uint amount) public override {
+                      uint amount) external override {
         require(canSubtract[msg.sender], "not allowed to subtract");
         uint tokenId = tokenIdByChainAddress(tokenChain, tokenAddress);
         uint userId = balanceKeeper.userIdByChainAddress(userChain, userAddress);

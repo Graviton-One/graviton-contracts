@@ -1,8 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IBalanceKeeperV2.sol";
-import "./interfaces/ILPKeeperV2.sol";
 import "./interfaces/IOracleRouterV2.sol";
 
 /// @title OracleRouterV2
@@ -10,21 +8,21 @@ import "./interfaces/IOracleRouterV2.sol";
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract OracleRouterV2 is IOracleRouterV2 {
 
-    address public owner;
+    address public override owner;
 
     modifier isOwner() {
         require(msg.sender == owner, "Caller is not owner");
         _;
     }
 
-    IBalanceKeeperV2 public balanceKeeper;
-    ILPKeeperV2 public lpKeeper;
-    bytes32 public gtonAddTopic;
-    bytes32 public gtonSubTopic;
-    bytes32 public lpAddTopic;
-    bytes32 public lpSubTopic;
+    IBalanceKeeperV2 public override balanceKeeper;
+    ILPKeeperV2 public override lpKeeper;
+    bytes32 public override gtonAddTopic;
+    bytes32 public override gtonSubTopic;
+    bytes32 public override lpAddTopic;
+    bytes32 public override lpSubTopic;
 
-    mapping (address => bool) public canRoute;
+    mapping (address => bool) public override canRoute;
 
     event SetCanRoute(address indexed owner,
                       address indexed parser,
@@ -76,21 +74,21 @@ contract OracleRouterV2 is IOracleRouterV2 {
         lpSubTopic = _lpSubTopic;
     }
 
-    function setGTONAddTopic(bytes32 newTopic) public isOwner {
-        gtonAddTopic = newTopic;
+    function setGTONAddTopic(bytes32 _gtonAddTopic) external override isOwner {
+        gtonAddTopic = _gtonAddTopic;
     }
-    function setGTONSubTopic(bytes32 newTopic) public isOwner {
-        gtonSubTopic = newTopic;
+    function setGTONSubTopic(bytes32 _gtonSubTopic) external override isOwner {
+        gtonSubTopic = _gtonSubTopic;
     }
-    function setLPAddTopic(bytes32 newTopic) public isOwner {
-        lpAddTopic = newTopic;
+    function setLPAddTopic(bytes32 _lpAddTopic) external override isOwner {
+        lpAddTopic = _lpAddTopic;
     }
-    function setLPSubTopic(bytes32 newTopic) public isOwner {
-        lpSubTopic = newTopic;
+    function setLPSubTopic(bytes32 _lpSubTopic) external override isOwner {
+        lpSubTopic = _lpSubTopic;
     }
 
     // permit/forbid a parser to send data to router
-    function setCanRoute(address parser, bool _canRoute) public isOwner {
+    function setCanRoute(address parser, bool _canRoute) external override isOwner {
         canRoute[parser] = _canRoute;
         emit SetCanRoute(msg.sender, parser, canRoute[parser]);
     }

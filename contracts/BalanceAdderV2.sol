@@ -1,38 +1,35 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IFarm.sol";
-import "./interfaces/IBalanceKeeperV2.sol";
-import "./interfaces/IBalanceAdder.sol";
-import "./interfaces/IShares.sol";
+import "./interfaces/IBalanceAdderV2.sol";
 
 /// @title BalanceAdderV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceAdderV2 is IBalanceAdder {
+contract BalanceAdderV2 is IBalanceAdderV2 {
 
-    address public owner;
+    address public override owner;
 
     modifier isOwner() {
         require(msg.sender == owner, "Caller is not owner");
         _;
     }
     
-    IShares[] public shares;
-    IFarm[] public farms;
-    uint[] public lastPortions;
-    uint public totalFarms;
+    IShares[] public override shares;
+    IFarm[] public override farms;
+    uint[] public override lastPortions;
+    uint public override totalFarms;
 
-    uint public lastUser;
-    uint public currentFarm;
-    uint public currentPortion;
-    uint public totalUnlocked;
-    uint public totalBalance;
-    uint public totalUsers;
+    uint public override lastUser;
+    uint public override currentFarm;
+    uint public override currentPortion;
+    uint public override totalUnlocked;
+    uint public override totalBalance;
+    uint public override totalUsers;
 
-    IBalanceKeeperV2 public balanceKeeper;
+    IBalanceKeeperV2 public override balanceKeeper;
 
-    mapping (uint => bool) public isProcessing;
+    mapping (uint => bool) public override isProcessing;
 
     event SetOwner(address ownerOld, address ownerNew);
 
@@ -41,13 +38,13 @@ contract BalanceAdderV2 is IBalanceAdder {
         balanceKeeper = _balanceKeeper;
     }
 
-    function setOwner(address _owner) public isOwner {
+    function setOwner(address _owner) external override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
     
-    function addFarm(IShares _share, IFarm _farm) public isOwner {
+    function addFarm(IShares _share, IFarm _farm) external override isOwner {
         shares.push(_share);
         farms.push(_farm);
         lastPortions.push(0);
@@ -55,7 +52,7 @@ contract BalanceAdderV2 is IBalanceAdder {
     }
 
     // remove index from arrays
-    function removeFarm(uint farmId) public isOwner {
+    function removeFarm(uint farmId) external override isOwner {
         require(!isProcessing[currentFarm], "farm is processing balances");
 
         IShares[] memory newShares = new IShares[](shares.length-1);
@@ -94,7 +91,7 @@ contract BalanceAdderV2 is IBalanceAdder {
     }
 
     // iterates over all users and then increment current farm index
-    function processBalances(uint step) public override {
+    function processBalances(uint step) external override {
         if (currentFarm >= farms.length) {
             return;
         }

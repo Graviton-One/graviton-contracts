@@ -26,7 +26,7 @@ contract BalanceAdderEB is IBalanceAdder {
         farm = _farm;
         impactEB = _impactEB;
         balanceKeeper = _balanceKeeper;
-        totalUsers = impactEB.totalUsers();
+        totalUsers = impactEB.userCount();
     }
 
     function addEB(address user) internal {

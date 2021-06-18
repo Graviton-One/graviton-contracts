@@ -1,18 +1,16 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IShares.sol";
-import "./interfaces/IBalanceKeeperV2.sol";
-import "./interfaces/ILPKeeperV2.sol";
+import "./interfaces/ISharesLP.sol";
 
 /// @title SharesLP
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract SharesLP is IShares {
+contract SharesLP is ISharesLP {
 
-    IBalanceKeeperV2 public balanceKeeper;
-    ILPKeeperV2 public lpKeeper;
-    uint public tokenId;
+    IBalanceKeeperV2 public override balanceKeeper;
+    ILPKeeperV2 public override lpKeeper;
+    uint public override tokenId;
 
     constructor(IBalanceKeeperV2 _balanceKeeper, ILPKeeperV2 _lpKeeper, uint _tokenId) {
         balanceKeeper = _balanceKeeper;
@@ -21,11 +19,11 @@ contract SharesLP is IShares {
         tokenId = _tokenId;
     }
 
-    function shareById(uint userId) public view override returns (uint) {
+    function shareById(uint userId) external view override returns (uint) {
         return lpKeeper.balance(tokenId, userId);
     }
 
-    function totalShares() public view override returns (uint) {
+    function totalShares() external view override returns (uint) {
         return lpKeeper.totalBalance(tokenId);
     }
 }

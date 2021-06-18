@@ -29,7 +29,7 @@ describe('BalanceAdderEB', () => {
 
   beforeEach('deploy test contracts', async () => {
     ;({ farm, token0, token1, token2, impactEB, balanceKeeper, balanceAdderEB } = await loadFixture(balanceAdderEBFixture))
-    totalUsers = await impactEB.totalUsers()
+    totalUsers = await impactEB.userCount()
   })
 
   it('constructor initializes variables', async () => {

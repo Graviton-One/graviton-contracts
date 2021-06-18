@@ -2,14 +2,13 @@
 pragma solidity >=0.8.0;
 
 import "./interfaces/IBalanceKeeperV2.sol";
-import "./interfaces/IShares.sol";
 
 /// @title BalanceKeeperV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceKeeperV2 is IBalanceKeeperV2, IShares {
+contract BalanceKeeperV2 is IBalanceKeeperV2 {
 
-    address public owner;
+    address public override owner;
 
     modifier isOwner() {
         require(msg.sender == owner, "Caller is not owner");
@@ -17,9 +16,9 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IShares {
     }
 
     // oracles for changing user balances
-    mapping (address => bool) public canAdd;
-    mapping (address => bool) public canSubtract;
-    mapping (address => bool) public canOpen;
+    mapping (address => bool) public override canAdd;
+    mapping (address => bool) public override canSubtract;
+    mapping (address => bool) public override canOpen;
 
     // chain code => in chain address => user id;
     mapping (uint => string) internal _userChainById;
@@ -27,8 +26,8 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IShares {
     mapping (string => mapping (bytes => uint)) internal _userIdByChainAddress;
     mapping (string => mapping (bytes => bool)) internal _isKnownUser;
 
-    uint public override totalUsers;
-    uint public override totalBalance;
+    uint public override  totalUsers;
+    uint public override  totalBalance;
     mapping (uint => uint) internal _balance;
 
     event SetOwner
@@ -59,25 +58,25 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IShares {
         owner = _owner;
     }
 
-    function setOwner(address _owner) public isOwner {
+    function setOwner(address _owner) external override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
-    function setCanOpen(address opener, bool _canOpen) public isOwner {
+    function setCanOpen(address opener, bool _canOpen) external override isOwner {
         canOpen[opener] = _canOpen;
         emit SetCanOpen(msg.sender, opener, canOpen[opener]);
     }
 
     // permit/forbid an oracle to add user balances
-    function setCanAdd(address adder, bool _canAdd) public isOwner {
+    function setCanAdd(address adder, bool _canAdd) external override isOwner {
         canAdd[adder] = _canAdd;
         emit SetCanAdd(msg.sender, adder, canAdd[adder]);
     }
 
     // permit/forbid an oracle to subtract user balances
-    function setCanSubtract(address subtractor, bool _canSubtract) public isOwner {
+    function setCanSubtract(address subtractor, bool _canSubtract) external override isOwner {
         canSubtract[subtractor] = _canSubtract;
         emit SetCanSubtract(msg.sender, subtractor, canSubtract[subtractor]);
     }
@@ -90,35 +89,35 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IShares {
         return _isKnownUser[userChain][userAddress];
     }
 
-    function userChainById(uint userId) public view override returns (string memory) {
+    function userChainById(uint userId) external view override returns (string memory) {
         require(isKnownUser(userId), "user is not known");
         return _userChainById[userId];
     }
 
-    function userAddressById(uint userId) public view override returns (bytes memory) {
+    function userAddressById(uint userId) external view override returns (bytes memory) {
         require(isKnownUser(userId), "user is not known");
         return _userAddressById[userId];
     }
 
-    function userChainAddressById(uint userId) public view override returns (string memory, bytes memory) {
+    function userChainAddressById(uint userId) external view override returns (string memory, bytes memory) {
         require(isKnownUser(userId), "user is not known");
         return (_userChainById[userId], _userAddressById[userId]);
     }
 
-    function userIdByChainAddress(string calldata userChain, bytes calldata userAddress) public view override returns (uint) {
+    function userIdByChainAddress(string calldata userChain, bytes calldata userAddress) external view override returns (uint) {
         require(isKnownUser(userChain, userAddress), "user is not known");
         return _userIdByChainAddress[userChain][userAddress];
     }
 
-    function balance(uint userId) public view override returns (uint) {
+    function balance(uint userId) external view override returns (uint) {
         return _balance[userId];
     }
 
-    function balance(string calldata userChain, bytes calldata userAddress) public view override returns (uint) {
+    function balance(string calldata userChain, bytes calldata userAddress) external view override returns (uint) {
         return _balance[_userIdByChainAddress[userChain][userAddress]];
     }
 
-    function open(string calldata userChain, bytes calldata userAddress) public override {
+    function open(string calldata userChain, bytes calldata userAddress) external override  {
         require(canOpen[msg.sender], "not allowed to open");
         if (!isKnownUser(userChain, userAddress)) {
             uint userId = totalUsers;
@@ -131,13 +130,13 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IShares {
     }
 
     // add user balance
-    function add(uint userId, uint amount) public override {
+    function add(uint userId, uint amount) external override  {
         require(canAdd[msg.sender], "not allowed to add");
         require(isKnownUser(userId), "user is not known");
         _add(userId, amount);
     }
 
-    function add(string calldata userChain, bytes calldata userAddress, uint amount) public override {
+    function add(string calldata userChain, bytes calldata userAddress, uint amount) external override  {
         require(canAdd[msg.sender], "not allowed to add");
         require(isKnownUser(userChain, userAddress), "user is not known");
         _add(_userIdByChainAddress[userChain][userAddress], amount);
@@ -150,13 +149,13 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IShares {
     }
 
     // subtract user balance
-    function subtract(uint userId, uint amount) public override {
+    function subtract(uint userId, uint amount) external override  {
         require(canSubtract[msg.sender], "not allowed to subtract");
         require(isKnownUser(userId), "user is not known");
         _subtract(userId, amount);
     }
 
-    function subtract(string calldata userChain, bytes calldata userAddress, uint amount) public override {
+    function subtract(string calldata userChain, bytes calldata userAddress, uint amount) external override  {
         require(canSubtract[msg.sender], "not allowed to subtract");
         require(isKnownUser(userChain, userAddress), "user is not known");
         _subtract(_userIdByChainAddress[userChain][userAddress], amount);
@@ -168,11 +167,11 @@ contract BalanceKeeperV2 is IBalanceKeeperV2, IShares {
         emit Subtract(msg.sender, userId, amount);
     }
     
-    function shareById(uint userId) public view override returns (uint) {
+    function shareById(uint userId) external view override returns (uint) {
         return _balance[userId];
     }
 
-    function totalShares() public view override returns (uint) {
+    function totalShares() external view override returns (uint) {
         return totalBalance;
     }
 }

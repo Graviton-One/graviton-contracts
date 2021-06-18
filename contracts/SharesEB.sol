@@ -1,29 +1,26 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IShares.sol";
-import "./interfaces/IBalanceKeeperV2.sol";
-import "./interfaces/IImpactKeeper.sol";
-import "hardhat/console.sol";
+import "./interfaces/ISharesEB.sol";
 
 /// @title SharesEB
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract SharesEB is IShares {
+contract SharesEB is ISharesEB {
 
-    mapping (uint => uint) impactById;
-    uint public totalSupply;
-    uint public lastUser;
+    mapping (uint => uint) public override impactById;
+    uint public override totalSupply;
+    uint public override lastUser;
 
-    IBalanceKeeperV2 public balanceKeeper;
-    IImpactKeeper public impactEB;
+    IBalanceKeeperV2 public override balanceKeeper;
+    IImpactKeeper public override impactEB;
 
     constructor(IBalanceKeeperV2 _balanceKeeper, IImpactKeeper _impactEB) {
         balanceKeeper = _balanceKeeper;
         impactEB = _impactEB;
     }
 
-    function migrate(uint step) public {
+    function migrate(uint step) external override {
         uint toUser = lastUser + step;
         if (toUser > balanceKeeper.totalUsers()) {
             toUser = balanceKeeper.totalUsers();
@@ -42,11 +39,11 @@ contract SharesEB is IShares {
         lastUser = toUser;
     }
 
-    function shareById(uint userId) public view override returns (uint) {
+    function shareById(uint userId) external view override returns (uint) {
         return impactById[userId];
     }
 
-    function totalShares() public view override returns (uint) {
+    function totalShares() external view override returns (uint) {
         return totalSupply;
     }
 }

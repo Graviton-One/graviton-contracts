@@ -8,17 +8,17 @@ import "./interfaces/IFarm.sol";
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract FarmLinear is IFarm {
 
-    address public owner;
+    address public override owner;
 
     uint public override totalUnlocked;
 
-    uint public lastClaimedTimestamp;
-    uint public startTimestampOffset;
+    uint public override lastClaimedTimestamp;
+    uint public override startTimestampOffset;
     uint public amount;
     uint public period;
 
-    bool public deprecated = false;
-    bool public farmingStarted = false;
+    bool public override deprecated = false;
+    bool public override farmingStarted = false;
 
     modifier isOwner() {
         require(msg.sender == owner, "Caller is not owner");
@@ -27,13 +27,13 @@ contract FarmLinear is IFarm {
 
     event SetOwner(address ownerOld, address ownerNew);
 
-    function setOwner(address _owner) public isOwner {
+    function setOwner(address _owner) public override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
-    function setDeprecated() public isOwner {
+    function setDeprecated() public override isOwner {
         deprecated = true;
     }
 
@@ -48,7 +48,7 @@ contract FarmLinear is IFarm {
         return block.timestamp;
     }
 
-    function startFarming() public isOwner {
+    function startFarming() public override isOwner {
         if (!farmingStarted) {
           farmingStarted = true;
           startTimestampOffset = _blockTimestamp();
@@ -56,7 +56,7 @@ contract FarmLinear is IFarm {
         }
     }
 
-    function unlockAsset() public {
+    function unlockAsset() public override {
         require(farmingStarted, "farming is not started yet");
         require(!deprecated, "This contract is deprecated.");
 

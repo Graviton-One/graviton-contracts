@@ -26,74 +26,62 @@ describe('ImpactKeeper', () => {
   it('constructor initializes variables', async () => {
     expect(await impactKeeper.owner()).to.eq(wallet.address)
     expect(await impactKeeper.nebula()).to.eq(nebula.address)
-    expect(await impactKeeper.tokenIsAllowed(token1.address)).to.eq(true)
-    expect(await impactKeeper.tokenIsAllowed(token2.address)).to.eq(true)
+    expect(await impactKeeper.allowedTokens(token1.address)).to.eq(true)
+    expect(await impactKeeper.allowedTokens(token2.address)).to.eq(true)
   })
 
   it('starting state after deployment', async () => {
     expect(await impactKeeper.totalSupply()).to.eq(0)
-    expect(await impactKeeper.totalUsers()).to.eq(0)
+    expect(await impactKeeper.userCount()).to.eq(0)
   })
 
-  describe('#setOwner', () => {
+  describe('#transferOwnership', () => {
     it('fails if caller is not owner', async () => {
-      await expect(impactKeeper.connect(other).setOwner(wallet.address)).to.be.reverted
-    })
-
-    it('emits a SetOwner event', async () => {
-      expect(await impactKeeper.setOwner(other.address))
-        .to.emit(impactKeeper, 'SetOwner')
-        .withArgs(wallet.address, other.address)
+      await expect(impactKeeper.connect(other).transferOwnership(wallet.address)).to.be.reverted
     })
 
     it('updates owner', async () => {
-      await impactKeeper.setOwner(other.address)
+      await impactKeeper.transferOwnership(other.address)
       expect(await impactKeeper.owner()).to.eq(other.address)
     })
 
     it('cannot be called by original owner', async () => {
-      await impactKeeper.setOwner(other.address)
-      await expect(impactKeeper.setOwner(wallet.address)).to.be.reverted
+      await impactKeeper.transferOwnership(other.address)
+      await expect(impactKeeper.transferOwnership(wallet.address)).to.be.reverted
     })
   })
 
-  describe('#setNebula', () => {
+  describe('#transferNebula', () => {
     it('fails if caller is not owner', async () => {
-      await expect(impactKeeper.connect(other).setNebula(other.address)).to.be.reverted
-    })
-
-    it('emits a SetNebula event', async () => {
-      expect(await impactKeeper.setNebula(other.address))
-        .to.emit(impactKeeper, 'SetNebula')
-        .withArgs(nebula.address, other.address)
+      await expect(impactKeeper.connect(other).transferNebula(other.address)).to.be.reverted
     })
 
     it('updates nebula', async () => {
-      await impactKeeper.setNebula(other.address)
+      await impactKeeper.transferNebula(other.address)
       await expect(await impactKeeper.nebula()).to.eq(other.address)
     })
   })
 
-  describe('#allowToken', () => {
+  describe('#addNewToken', () => {
     it('fails if caller is not owner', async () => {
-      await expect(impactKeeper.connect(other).allowToken(other.address)).to.be.reverted
+      await expect(impactKeeper.connect(other).addNewToken(other.address)).to.be.reverted
     })
 
     it('updates token', async () => {
-      await expect(await impactKeeper.tokenIsAllowed(other.address)).to.eq(false)
-      await impactKeeper.allowToken(other.address)
-      await expect(await impactKeeper.tokenIsAllowed(other.address)).to.eq(true)
+      await expect(await impactKeeper.allowedTokens(other.address)).to.eq(false)
+      await impactKeeper.addNewToken(other.address)
+      await expect(await impactKeeper.allowedTokens(other.address)).to.eq(true)
     })
   })
 
-  describe('#forbidToken', () => {
+  describe('#removeToken', () => {
     it('fails if caller is not owner', async () => {
-      await expect(impactKeeper.connect(other).forbidToken(token1.address)).to.be.reverted
+      await expect(impactKeeper.connect(other).removeToken(token1.address)).to.be.reverted
     })
 
     it('updates token', async () => {
-      await impactKeeper.forbidToken(token1.address)
-      await expect(await impactKeeper.tokenIsAllowed(token1.address)).to.eq(false)
+      await impactKeeper.removeToken(token1.address)
+      await expect(await impactKeeper.allowedTokens(token1.address)).to.eq(false)
     })
   })
 

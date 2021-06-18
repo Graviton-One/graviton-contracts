@@ -1,23 +1,23 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IERC20.sol";
+import "./interfaces/ILockGTON.sol";
 
 /// @title LockGTON
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract LockGTON {
+contract LockGTON is ILockGTON {
 
-    address public owner;
+    address public override owner;
 
     modifier isOwner() {
         require(msg.sender == owner, "Caller is not owner");
         _;
     }
 
-    IERC20 public governanceToken;
+    IERC20 public override governanceToken;
 
-    bool public canLock = false;
+    bool public override canLock = false;
 
     event Lock
         (address indexed governanceToken,
@@ -31,21 +31,21 @@ contract LockGTON {
         governanceToken = _governanceToken;
     }
 
-    function setOwner(address _owner) public isOwner {
+    function setOwner(address _owner) external override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
-    function setCanLock(bool _canLock) public isOwner {
+    function setCanLock(bool _canLock) external override isOwner {
         canLock = _canLock;
     }
 
-    function migrate(address to, uint amount) public isOwner {
+    function migrate(address to, uint amount) external override isOwner {
         governanceToken.transfer(to, amount);
     }
 
-    function lock(address receiver, uint amount) public {
+    function lock(address receiver, uint amount) external override {
         require(canLock, "lock is not allowed");
         governanceToken.transferFrom(msg.sender, address(this), amount);
         emit Lock(address(governanceToken), msg.sender, receiver, amount);

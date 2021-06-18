@@ -1,7 +1,26 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-interface IBalanceKeeperV2 {
+import "./IShares.sol";
+
+interface IBalanceKeeperV2 is IShares {
+    function owner() external returns (address);
+    function canAdd(address user) external returns (bool);
+    function canSubtract(address user) external returns (bool);
+    function canOpen(address user) external returns (bool);
+    function totalUsers() external returns (uint);
+    function totalBalance() external returns (uint);
+    function setOwner(address _owner) external;
+    function setCanOpen(address opener, bool _canOpen) external;
+    function setCanAdd(address adder, bool _canAdd) external;
+    function setCanSubtract(address subtractor, bool _canSubtract) external;
+    function isKnownUser
+        (string calldata userChain,
+         bytes calldata userAddress)
+        external view returns (bool);
+    function isKnownUser
+        (uint userId)
+        external view returns (bool);
     function userChainById
         (uint userId)
         external view returns (string memory);
@@ -15,14 +34,6 @@ interface IBalanceKeeperV2 {
         (string calldata userChain,
          bytes calldata userAddress)
         external view returns (uint);
-    function isKnownUser
-        (string calldata userChain,
-         bytes calldata userAddress)
-        external view returns (bool);
-    function isKnownUser
-        (uint userId)
-        external view returns (bool);
-    function totalUsers() external view returns (uint);
     function balance
         (uint userId)
         external view returns (uint);
@@ -30,7 +41,6 @@ interface IBalanceKeeperV2 {
         (string calldata userChain,
          bytes calldata userAddress)
         external view returns (uint);
-    function totalBalance() external view returns (uint);
     function open
         (string calldata userChain,
          bytes calldata userAddress)

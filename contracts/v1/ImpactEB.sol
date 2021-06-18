@@ -3,28 +3,40 @@ pragma solidity >=0.8.0;
 
 import "./ImpactKeeper.sol";
 
-/// @title ImpactEB
+/// @title BirdsEB
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract ImpactEB is ImpactKeeper {
 
-    bool public canWithdraw = false;
-    bool public canAttach = true;
-
     constructor(address _owner, address _nebula, address[] memory _allowedTokens)
-        ImpactKeeper(_owner, _nebula, _allowedTokens) {}
+        ImpactKeeper(_owner,_nebula,_allowedTokens) {
+            withdrawAllowance = false;
+            attachAllowance = true;
+        }
 
-    function setCanWithdraw(bool _canWithdraw) public isOwner {
-        canWithdraw = _canWithdraw;
+    event withdrawEvent(address user,uint amount);
+    bool public withdrawAllowance;
+    bool public attachAllowance;
+
+    function toggleWithdraw(bool allowance) public isOwner {
+        withdrawAllowance = allowance;
     }
 
-    function setCanAttach(bool _canAttach) public isOwner {
-        canAttach = _canAttach;
+    function toggleAttach(bool allowance) public isOwner {
+        attachAllowance = allowance;
+    }
+
+    function withdraw(uint amount) public {
+        require(withdrawAllowance,"withdraw not allowed");
+        require(amount <= impact[msg.sender], "you don't have so much impact");
+        impact[msg.sender] -= amount;
+        totalSupply -= amount;
+        emit withdrawEvent(msg.sender,amount);
     }
 
     // called from gravity to add impact to users
     function attachValue(bytes calldata impactData) external override isNebula {
-        if (!canAttach) { return; } // do nothing if attach is no longer allowed (early birds is over)
+        if (!attachAllowance) { return; } // do nothing if attach is no longer allowed (early birds is over)
         address lockTokenAddress = this.deserializeAddress(impactData, 0);
         address depositerAddress = this.deserializeAddress(impactData, 20);
         uint amount = this.deserializeUint(impactData, 40, 32);
@@ -34,10 +46,10 @@ contract ImpactEB is ImpactKeeper {
         dataId[id] = true;
         emit Transfer(lockTokenAddress, depositerAddress, amount, id, action);
 
-        if (!tokenIsAllowed[lockTokenAddress]) { return; } // do nothing if this token is not supported by treasury
+        if (!allowedTokens[lockTokenAddress]) { return; } // do nothing if this token is not supported by treasury
         if (impact[depositerAddress] == 0) {
-            users[totalUsers] = depositerAddress;
-            totalUsers += 1;
+            users[userCount] = depositerAddress;
+            userCount += 1;
         }
         impact[depositerAddress] += amount;
         totalSupply += amount;
