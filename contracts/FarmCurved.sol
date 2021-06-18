@@ -17,8 +17,8 @@ contract FarmCurved is IFarm {
     uint public c;
     uint public a;
 
-    bool public override deprecated = false;
-    bool public override farmingStarted = false;
+    bool public override deprecated;
+    bool public override farmingStarted;
 
     modifier isOwner() {
         require(msg.sender == owner, "Caller is not owner");
@@ -37,10 +37,15 @@ contract FarmCurved is IFarm {
         deprecated = true;
     }
 
-    constructor(address _owner, uint _a, uint _c) {
+    constructor(address _owner, uint _a, uint _c, uint _startTimestampOffset) {
         owner = _owner;
         a = _a;
         c = _c;
+        if (_startTimestampOffset != 0) {
+            farmingStarted = true;
+            startTimestampOffset = _startTimestampOffset;
+            lastClaimedTimestamp = startTimestampOffset;
+        }
     }
 
     /// @dev Returns the block timestamp. This method is overridden in tests.
