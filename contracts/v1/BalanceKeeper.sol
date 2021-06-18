@@ -16,8 +16,8 @@ contract BalanceKeeper is IBalanceKeeper {
     }
 
     // oracles for changing user balances
-    mapping (address=>bool) public canAdd;
-    mapping (address=>bool) public canSubtract;
+    mapping (address => bool) public canAdd;
+    mapping (address => bool) public canSubtract;
 
     address[] public override users;
     mapping (address => bool) public isKnownUser;

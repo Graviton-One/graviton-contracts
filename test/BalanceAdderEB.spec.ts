@@ -40,7 +40,7 @@ describe('BalanceAdderEB', () => {
   })
 
   it('starting state after deployment', async () => {
-    expect(await balanceAdderEB.counter()).to.eq(0)
+    expect(await balanceAdderEB.lastUser()).to.eq(0)
     expect(await balanceAdderEB.lastPortion(wallet.address)).to.eq(0)
     expect(await balanceAdderEB.lastPortion(other.address)).to.eq(0)
   })
@@ -59,17 +59,17 @@ describe('BalanceAdderEB', () => {
       expect(await balanceKeeper.userBalance(other.address)).to.eq(0)
     })
 
-    it('updates counter when step is less than total users', async () => {
+    it('updates lastUser when step is less than total users', async () => {
       await balanceKeeper.setCanAdd(balanceAdderEB.address, true)
       await balanceAdderEB.processBalances(1)
-      expect(await balanceAdderEB.counter()).to.eq(1)
+      expect(await balanceAdderEB.lastUser()).to.eq(1)
     })
 
-    it('does not change counter if step is zero', async () => {
+    it('does not change lastUser if step is zero', async () => {
       await balanceKeeper.setCanAdd(balanceAdderEB.address, true)
       await balanceAdderEB.processBalances(1)
       await balanceAdderEB.processBalances(0)
-      expect(await balanceAdderEB.counter()).to.eq(1)
+      expect(await balanceAdderEB.lastUser()).to.eq(1)
     })
 
     it('does not add values if step is zero', async () => {
@@ -84,16 +84,16 @@ describe('BalanceAdderEB', () => {
       expect(await balanceKeeper.userBalance(other.address)).to.eq(0)
     })
 
-    it('sets counter to zero when step is equal to total users', async () => {
+    it('sets lastUser to zero when step is equal to total users', async () => {
       await balanceKeeper.setCanAdd(balanceAdderEB.address, true)
       await balanceAdderEB.processBalances(2)
-      expect(await balanceAdderEB.counter()).to.eq(0)
+      expect(await balanceAdderEB.lastUser()).to.eq(0)
     })
 
-    it('sets counter to zero when step is larger than total users', async () => {
+    it('sets lastUser to zero when step is larger than total users', async () => {
       await balanceKeeper.setCanAdd(balanceAdderEB.address, true)
       await balanceAdderEB.processBalances(3)
-      expect(await balanceAdderEB.counter()).to.eq(0)
+      expect(await balanceAdderEB.lastUser()).to.eq(0)
     })
 
     it('adds value to users if caled once', async () => {

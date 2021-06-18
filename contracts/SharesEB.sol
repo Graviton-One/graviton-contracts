@@ -4,6 +4,7 @@ pragma solidity >=0.8.0;
 import "./interfaces/IShares.sol";
 import "./interfaces/IBalanceKeeperV2.sol";
 import "./interfaces/IImpactKeeper.sol";
+import "hardhat/console.sol";
 
 /// @title SharesEB
 /// @author Artemij Artamonov - <array.clean@gmail.com>
@@ -20,12 +21,9 @@ contract SharesEB is IShares {
     constructor(IBalanceKeeperV2 _balanceKeeper, IImpactKeeper _impactEB) {
         balanceKeeper = _balanceKeeper;
         impactEB = _impactEB;
-        totalSupply = impactEB.totalSupply();
-        migrate(1);
     }
 
-    function migrate(uint step) internal {
-        require(lastUser != 0, "migration is finished");
+    function migrate(uint step) public {
         uint toUser = lastUser + step;
         if (toUser > balanceKeeper.totalUsers()) {
             toUser = balanceKeeper.totalUsers();
@@ -39,11 +37,9 @@ contract SharesEB is IShares {
             uint userId = balanceKeeper.userIdByChainAddress("EVM", userAddress);
             impactById[userId] = impactEB.impact(user);
         }
-        if (toUser == balanceKeeper.totalUsers()) {
-            lastUser = 0;
-        } else {
-            lastUser = toUser;
-        }
+        // moved here from the constructor to test different impactEB states
+        totalSupply = impactEB.totalSupply();
+        lastUser = toUser;
     }
 
     function shareById(uint userId) public view override returns (uint) {

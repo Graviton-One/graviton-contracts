@@ -21,10 +21,10 @@ contract OracleRouter is IOracleRouter {
     ILPKeeper public lpKeeper;
     bytes32 public gtonAddTopic;
     bytes32 public gtonSubTopic;
-    bytes32 public __lpAddTopic;
-    bytes32 public __lpSubTopic;
+    bytes32 public lpAddTopic;
+    bytes32 public lpSubTopic;
 
-    mapping (address=>bool) public canRoute;
+    mapping (address => bool) public canRoute;
 
     event SetCanRoute(address indexed owner,
                       address indexed parser,
@@ -43,20 +43,20 @@ contract OracleRouter is IOracleRouter {
                   address sender,
                   address receiver,
                   uint256 amount);
-    event __LPAdd(bytes16 uuid,
-                  string chain,
-                  address emiter,
-                  address token,
-                  address sender,
-                  address receiver,
-                  uint256 amount);
-    event __LPSub(bytes16 uuid,
-                  string chain,
-                  address emiter,
-                  address token,
-                  address sender,
-                  address receiver,
-                  uint256 amount);
+    event LPAdd(bytes16 uuid,
+                string chain,
+                address emiter,
+                address token,
+                address sender,
+                address receiver,
+                uint256 amount);
+    event LPSub(bytes16 uuid,
+                string chain,
+                address emiter,
+                address token,
+                address sender,
+                address receiver,
+                uint256 amount);
     event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner,
@@ -64,16 +64,16 @@ contract OracleRouter is IOracleRouter {
                 ILPKeeper _lpKeeper,
                 bytes32 _gtonAddTopic,
                 bytes32 _gtonSubTopic,
-                bytes32 ___lpAddTopic,
-                bytes32 ___lpSubTopic
+                bytes32 _lpAddTopic,
+                bytes32 _lpSubTopic
                 ) {
         owner = _owner;
         balanceKeeper = _balanceKeeper;
         lpKeeper = _lpKeeper;
         gtonAddTopic = _gtonAddTopic;
         gtonSubTopic = _gtonSubTopic;
-        __lpAddTopic = ___lpAddTopic;
-        __lpSubTopic = ___lpSubTopic;
+        lpAddTopic = _lpAddTopic;
+        lpSubTopic = _lpSubTopic;
     }
 
     function setGTONAddTopic(bytes32 newTopic) public isOwner {
@@ -82,11 +82,11 @@ contract OracleRouter is IOracleRouter {
     function setGTONSubTopic(bytes32 newTopic) public isOwner {
         gtonSubTopic = newTopic;
     }
-    function __setLPAddTopic(bytes32 newTopic) public isOwner {
-        __lpAddTopic = newTopic;
+    function setLPAddTopic(bytes32 newTopic) public isOwner {
+        lpAddTopic = newTopic;
     }
-    function __setLPSubTopic(bytes32 newTopic) public isOwner {
-        __lpSubTopic = newTopic;
+    function setLPSubTopic(bytes32 newTopic) public isOwner {
+        lpSubTopic = newTopic;
     }
 
     // permit/forbid a parser to send data to router
@@ -117,13 +117,13 @@ contract OracleRouter is IOracleRouter {
             balanceKeeper.subtract(sender, amount);
             emit GTONSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
-        if (equal(topic0, __lpAddTopic)) {
+        if (equal(topic0, lpAddTopic)) {
             lpKeeper.add(token, receiver, amount);
-            emit __LPAdd(uuid, chain, emiter, token, sender, receiver, amount);
+            emit LPAdd(uuid, chain, emiter, token, sender, receiver, amount);
         }
-        if (equal(topic0, __lpSubTopic)) {
+        if (equal(topic0, lpSubTopic)) {
             lpKeeper.subtract(token, sender, amount);
-            emit __LPSub(uuid, chain, emiter, token, sender, receiver, amount);
+            emit LPSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
     }
 }

@@ -40,7 +40,7 @@ describe('BalanceAdderStaking', () => {
   })
 
   it('starting state after deployment', async () => {
-    expect(await balanceAdderStaking.counter()).to.eq(0)
+    expect(await balanceAdderStaking.lastUser()).to.eq(0)
     expect(await balanceAdderStaking.totalUsers()).to.eq(0)
     expect(await balanceAdderStaking.lastPortion()).to.eq(0)
     expect(await balanceAdderStaking.currentPortion()).to.eq(0)
@@ -97,7 +97,7 @@ describe('BalanceAdderStaking', () => {
       await give100ToEach()
       await balanceKeeper.setCanAdd(balanceAdderStaking.address, true)
       await balanceAdderStaking.processBalances(1)
-      expect(await balanceAdderStaking.counter()).to.eq(1)
+      expect(await balanceAdderStaking.lastUser()).to.eq(1)
     })
 
     it('does not change final value if step is zero', async () => {
@@ -106,7 +106,7 @@ describe('BalanceAdderStaking', () => {
       await balanceKeeper.setCanAdd(balanceAdderStaking.address, true)
       await balanceAdderStaking.processBalances(1)
       await balanceAdderStaking.processBalances(0)
-      expect(await balanceAdderStaking.counter()).to.eq(1)
+      expect(await balanceAdderStaking.lastUser()).to.eq(1)
     })
 
     it('does not update balances if step is zero', async () => {
@@ -123,7 +123,7 @@ describe('BalanceAdderStaking', () => {
       await give100ToEach()
       await balanceKeeper.setCanAdd(balanceAdderStaking.address, true)
       await balanceAdderStaking.processBalances(2)
-      expect(await balanceAdderStaking.counter()).to.eq(0)
+      expect(await balanceAdderStaking.lastUser()).to.eq(0)
     })
 
     it('sets final value to zero when step is larger than total users', async () => {
@@ -131,7 +131,7 @@ describe('BalanceAdderStaking', () => {
       await give100ToEach()
       await balanceKeeper.setCanAdd(balanceAdderStaking.address, true)
       await balanceAdderStaking.processBalances(3)
-      expect(await balanceAdderStaking.counter()).to.eq(0)
+      expect(await balanceAdderStaking.lastUser()).to.eq(0)
     })
 
     it('adds value to users if caled once', async () => {

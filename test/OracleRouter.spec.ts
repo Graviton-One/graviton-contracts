@@ -7,8 +7,8 @@ import { oracleRouterFixture } from './shared/fixtures'
 import { expect } from './shared/expect'
 import { GTON_ADD_TOPIC,
          GTON_SUB_TOPIC,
-         __LP_ADD_TOPIC,
-         __LP_SUB_TOPIC,
+         LP_ADD_TOPIC,
+         LP_SUB_TOPIC,
          OTHER_TOPIC,
          MOCK_UUID,
          MOCK_CHAIN } from "./shared/utilities";
@@ -39,8 +39,8 @@ describe('OracleRouter', () => {
     expect(await oracleRouter.lpKeeper()).to.eq(lpKeeper.address)
     expect(await oracleRouter.gtonAddTopic()).to.eq(GTON_ADD_TOPIC)
     expect(await oracleRouter.gtonSubTopic()).to.eq(GTON_SUB_TOPIC)
-    expect(await oracleRouter.__lpAddTopic()).to.eq(__LP_ADD_TOPIC)
-    expect(await oracleRouter.__lpSubTopic()).to.eq(__LP_SUB_TOPIC)
+    expect(await oracleRouter.lpAddTopic()).to.eq(LP_ADD_TOPIC)
+    expect(await oracleRouter.lpSubTopic()).to.eq(LP_SUB_TOPIC)
   })
 
   it('starting state after deployment', async () => {
@@ -98,17 +98,17 @@ describe('OracleRouter', () => {
     })
   })
 
-  describe('#__setLPAddTopic', () => {
+  describe('#setLPAddTopic', () => {
     it('updates topic', async () => {
-      await oracleRouter.__setLPAddTopic(OTHER_TOPIC)
-      expect(await oracleRouter.__lpAddTopic()).to.eq(OTHER_TOPIC)
+      await oracleRouter.setLPAddTopic(OTHER_TOPIC)
+      expect(await oracleRouter.lpAddTopic()).to.eq(OTHER_TOPIC)
     })
   })
 
-  describe('#__setLPAddTopic', () => {
+  describe('#setLPAddTopic', () => {
     it('updates topic', async () => {
-      await oracleRouter.__setLPSubTopic(OTHER_TOPIC)
-      expect(await oracleRouter.__lpSubTopic()).to.eq(OTHER_TOPIC)
+      await oracleRouter.setLPSubTopic(OTHER_TOPIC)
+      expect(await oracleRouter.lpSubTopic()).to.eq(OTHER_TOPIC)
     })
   })
 
@@ -220,7 +220,7 @@ describe('OracleRouter', () => {
       await expect(oracleRouter.routeValue(MOCK_UUID
                                           ,MOCK_CHAIN
                                           ,other.address
-                                          ,__LP_ADD_TOPIC
+                                          ,LP_ADD_TOPIC
                                           ,token0.address
                                           ,wallet.address
                                           ,wallet.address
@@ -233,7 +233,7 @@ describe('OracleRouter', () => {
       await oracleRouter.routeValue(MOCK_UUID
                                    ,MOCK_CHAIN
                                    ,other.address
-                                   ,__LP_ADD_TOPIC
+                                   ,LP_ADD_TOPIC
                                    ,token1.address
                                    ,wallet.address
                                    ,wallet.address
@@ -247,12 +247,12 @@ describe('OracleRouter', () => {
       await expect(oracleRouter.routeValue(MOCK_UUID
                                           ,MOCK_CHAIN
                                           ,other.address
-                                          ,__LP_ADD_TOPIC
+                                          ,LP_ADD_TOPIC
                                           ,token1.address
                                           ,wallet.address
                                           ,wallet.address
                                           ,1000))
-          .to.emit(oracleRouter, '__LPAdd')
+          .to.emit(oracleRouter, 'LPAdd')
           .withArgs(MOCK_UUID, MOCK_CHAIN, other.address, token1.address
                    ,wallet.address, wallet.address, 1000)
     })
@@ -264,7 +264,7 @@ describe('OracleRouter', () => {
       await expect(oracleRouter.routeValue(MOCK_UUID
                                           ,MOCK_CHAIN
                                           ,other.address
-                                          ,__LP_SUB_TOPIC
+                                          ,LP_SUB_TOPIC
                                           ,token1.address
                                           ,wallet.address
                                           ,wallet.address
@@ -279,7 +279,7 @@ describe('OracleRouter', () => {
       await oracleRouter.routeValue(MOCK_UUID
                                    ,MOCK_CHAIN
                                    ,other.address
-                                   ,__LP_SUB_TOPIC
+                                   ,LP_SUB_TOPIC
                                    ,token1.address
                                    ,wallet.address
                                    ,wallet.address
@@ -295,12 +295,12 @@ describe('OracleRouter', () => {
       await expect(oracleRouter.routeValue(MOCK_UUID
                                           ,MOCK_CHAIN
                                           ,other.address
-                                          ,__LP_SUB_TOPIC
+                                          ,LP_SUB_TOPIC
                                           ,token1.address
                                           ,wallet.address
                                           ,wallet.address
                                           ,500))
-          .to.emit(oracleRouter, '__LPSub')
+          .to.emit(oracleRouter, 'LPSub')
           .withArgs(MOCK_UUID, MOCK_CHAIN, other.address, token1.address
                    ,wallet.address, wallet.address, 500)
     })

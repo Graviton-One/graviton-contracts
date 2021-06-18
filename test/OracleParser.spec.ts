@@ -9,8 +9,8 @@ import { expect } from './shared/expect'
 import { makeValueParser,
          GTON_ADD_TOPIC,
          GTON_SUB_TOPIC,
-         __LP_ADD_TOPIC,
-         __LP_SUB_TOPIC,
+         LP_ADD_TOPIC,
+         LP_SUB_TOPIC,
          OTHER_TOPIC,
          MOCK_UUID,
          MOCK_CHAIN } from "./shared/utilities";
@@ -221,7 +221,7 @@ describe('OracleParser', () => {
       await lpKeeper.setCanAdd(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
       await oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
-                                                    ,"0x04", __LP_ADD_TOPIC, token1.address
+                                                    ,"0x04", LP_ADD_TOPIC, token1.address
                                                     ,wallet.address, wallet.address, "1000"))
       expect(await lpKeeper.userBalance(token1.address, wallet.address)).to.eq(1000)
     })
@@ -233,7 +233,7 @@ describe('OracleParser', () => {
       await lpKeeper.setCanSubtract(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
       await oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
-                                                    ,"0x04", __LP_SUB_TOPIC, token1.address
+                                                    ,"0x04", LP_SUB_TOPIC, token1.address
                                                     ,wallet.address, wallet.address, "500"))
       expect(await lpKeeper.userBalance(token1.address, wallet.address)).to.eq(500)
     })

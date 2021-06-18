@@ -37,8 +37,8 @@ import {
   STAKING_PERIOD,
   GTON_ADD_TOPIC,
   GTON_SUB_TOPIC,
-  __LP_ADD_TOPIC,
-  __LP_SUB_TOPIC,
+  LP_ADD_TOPIC,
+  LP_SUB_TOPIC,
   MOCK_CHAIN
 } from "./utilities"
 
@@ -294,8 +294,8 @@ export const oracleRouterFixture: Fixture<OracleRouterFixture> =
       lpKeeper.address,
       GTON_ADD_TOPIC,
       GTON_SUB_TOPIC,
-      __LP_ADD_TOPIC,
-      __LP_SUB_TOPIC
+      LP_ADD_TOPIC,
+      LP_SUB_TOPIC
     )) as OracleRouter
     return {
       token0,
@@ -437,8 +437,8 @@ export const oracleRouterV2Fixture: Fixture<OracleRouterV2Fixture> =
       lpKeeper.address,
       GTON_ADD_TOPIC,
       GTON_SUB_TOPIC,
-      __LP_ADD_TOPIC,
-      __LP_SUB_TOPIC
+      LP_ADD_TOPIC,
+      LP_SUB_TOPIC
     )) as OracleRouterV2
     return {
       token0,

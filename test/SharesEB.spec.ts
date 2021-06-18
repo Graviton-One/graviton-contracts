@@ -43,18 +43,6 @@ describe('SharesEB', () => {
       expect(await sharesEB.shareById(0)).to.eq(0)
     })
 
-    it('returns 0 if user chain is not EVM', async () => {
-      await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open("WRONG_CHAIN", wallet.address)
-      expect(await sharesEB.shareById(0)).to.eq(0)
-    })
-
-    it('returns 0 if user address is not valid length', async () => {
-      await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open("EVM", "0x000f")
-      expect(await sharesEB.shareById(0)).to.eq(0)
-    })
-
     it('returns 0 if user has no impact', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
       await balanceKeeper.open("EVM", wallet.address)
@@ -67,6 +55,7 @@ describe('SharesEB', () => {
       await impactEB
         .connect(nebula)
         .attachValue(makeValueImpact(token1.address, wallet.address, "1000", "0", "0"));
+      await sharesEB.migrate(1)
       expect(await sharesEB.shareById(0)).to.eq(1000)
     })
   })
@@ -82,6 +71,7 @@ describe('SharesEB', () => {
       await impactEB
         .connect(nebula)
         .attachValue(makeValueImpact(token1.address, other.address, "1000", "1", "0"));
+      await sharesEB.migrate(2)
       expect(await sharesEB.totalShares()).to.eq(2000)
     })
   })
