@@ -11,7 +11,7 @@ import { SharesEB } from "../typechain/SharesEB"
 import { SharesLP } from "../typechain/SharesLP"
 import { BalanceAdderV2 } from '../typechain/BalanceAdderV2'
 import { balanceAdderV2Fixture } from './shared/fixtures'
-import { MOCK_CHAIN } from './shared/utilities'
+import { MOCK_CHAIN, makeValueImpact } from './shared/utilities'
 
 describe('BalanceAdderV2', () => {
   const [wallet, other, nebula] = waffle.provider.getWallets()
@@ -91,6 +91,11 @@ describe('BalanceAdderV2', () => {
     await balanceKeeper.setCanSubtract(wallet.address, true)
     await balanceKeeper['subtract(string,bytes,uint256)'](MOCK_CHAIN, user, amount)
   }
+  async function addEB(user: string, amount: string) {
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, user, amount, Math.floor(Math.random() * 1000).toString(), "0"));
+  }
   async function addLP(token: string, user: string, amount: number) {
     await lpKeeper.setCanAdd(wallet.address, true)
     await lpKeeper['add(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token, MOCK_CHAIN, user, amount)
@@ -98,6 +103,21 @@ describe('BalanceAdderV2', () => {
   async function subtractLP(token: string, user: string, amount: number) {
     await lpKeeper.setCanSubtract(wallet.address, true)
     await lpKeeper['subtract(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token, MOCK_CHAIN, user, amount)
+  }
+  async function farmEBForAWeek() {
+    await farmEB.startFarming()
+    farmEB.advanceTime(604800)
+    await farmEB.unlockAsset()
+  }
+  async function farmLP1ForAWeek() {
+    await farmLP1.startFarming()
+    farmLP1.advanceTime(604800)
+    await farmLP1.unlockAsset()
+  }
+  async function farmStakingForAWeek() {
+    await farmStaking.startFarming()
+    farmStaking.advanceTime(604800)
+    await farmStaking.unlockAsset()
   }
 
   it('constructor initializes variables', async () => {
@@ -225,83 +245,263 @@ describe('BalanceAdderV2', () => {
 
     it('updates total users at the start of each loop', async () => {
       await openWallet()
-      await add(wallet.address, 1)
       expect(await balanceAdder.totalUsers()).to.eq(0)
-      // await balanceAdder.addFarm(sharesStaking.address, farmStaking.address)
-      // await balanceKeeper.setCanAdd(balanceAdder.address, true)
-      // await balanceAdder.processBalances(1)
-      // expect(await balanceAdder.totalUsers()).to.eq(1)
-      // await openOther()
-      // await balanceAdder.processBalances(1)
-      // expect(await balanceAdder.totalUsers()).to.eq(2)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceKeeper.setCanAdd(balanceAdder.address, true)
+      await balanceAdder.processBalances(1)
+      expect(await balanceAdder.totalUsers()).to.eq(1)
+      await openOther()
+      await balanceAdder.processBalances(1)
+      expect(await balanceAdder.totalUsers()).to.eq(2)
     })
 
     it('updates total unlocked at the start of each loop', async () => {
+      await openWallet()
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceKeeper.setCanAdd(balanceAdder.address, true)
+      await balanceAdder.processBalances(1)
+      expect(await balanceAdder.totalUnlocked()).to.eq(1000)
     })
 
-    it('updates total current portion at the start of each loop', async () => {
+    it('updates current portion at the start of each loop', async () => {
+      await openWallet()
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceKeeper.setCanAdd(balanceAdder.address, true)
+      await balanceAdder.processBalances(1)
+      expect(await balanceAdder.currentPortion()).to.eq(1000)
     })
 
-    it('updates final value when step is less than total users', async () => {
+    it('updates last user when step is less than total users', async () => {
+      await openWallet()
+      await openOther()
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceKeeper.setCanAdd(balanceAdder.address, true)
+      await balanceAdder.processBalances(1)
+      expect(await balanceAdder.lastUser()).to.eq(1)
+      await balanceAdder.processBalances(1)
+      expect(await balanceAdder.lastUser()).to.eq(0)
     })
 
-    it('does not change final value if step is zero', async () => {
+    it('does not change last user if step is zero', async () => {
+      await openWallet()
+      await openOther()
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceKeeper.setCanAdd(balanceAdder.address, true)
+      await balanceAdder.processBalances(0)
+      expect(await balanceAdder.lastUser()).to.eq(0)
+      await balanceAdder.processBalances(1)
+      expect(await balanceAdder.lastUser()).to.eq(1)
+      await balanceAdder.processBalances(0)
+      expect(await balanceAdder.lastUser()).to.eq(1)
     })
 
-    it('sets final value to zero when step is equal to total users', async () => {
+    it('sets last user to zero when step is equal to total users', async () => {
+      await openWallet()
+      await openOther()
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceKeeper.setCanAdd(balanceAdder.address, true)
+      await balanceAdder.processBalances(2)
+      expect(await balanceAdder.lastUser()).to.eq(0)
     })
 
-    it('sets final value to zero when step is larger than total users', async () => {
+    it('sets last user to zero when step is larger than total users', async () => {
+      await openWallet()
+      await openOther()
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceKeeper.setCanAdd(balanceAdder.address, true)
+      await balanceAdder.processBalances(3)
+      expect(await balanceAdder.lastUser()).to.eq(0)
     })
 
     describe('#EB', () => {
+      it('fails if the shares contract is empty', async () => {
+        await openWallet()
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await expect(balanceAdder.processBalances(1)).to.be.reverted
+      })
+
       it('does not add values if farm is not started', async () => {
+        await openWallet()
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await addEB(wallet.address, "100")
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(1)
+        expect(await balanceKeeper['balance(uint256)'](0)).to.eq(0)
       })
 
       it('does not add values if step is zero', async () => {
+        await openWallet()
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await addEB(wallet.address, "100")
+        await farmEBForAWeek()
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(0)
+        expect(await balanceKeeper['balance(uint256)'](0)).to.eq(0)
       })
 
       it('adds value to only one user if step is 1', async () => {
+        await openWallet()
+        await openOther()
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await addEB(wallet.address, "100")
+        await farmEBForAWeek()
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(1)
+        expect(await balanceKeeper['balance(uint256)'](0)).to.eq("96044673105003010055905")
+        expect(await balanceKeeper['balance(uint256)'](1)).to.eq(0)
       })
 
       it('adds value to users', async () => {
+        await openWallet()
+        await openOther()
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await addEB(wallet.address, "100")
+        await addEB(other.address, "100")
+        await farmEBForAWeek()
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(2)
+        expect(await balanceKeeper['balance(uint256)'](0)).to.eq("48022336552501505027952")
+        expect(await balanceKeeper['balance(uint256)'](1)).to.eq("48022336552501505027952")
       })
 
       it('updates last portion', async () => {
+        await openWallet()
+        await openOther()
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await addEB(wallet.address, "100")
+        await farmEBForAWeek()
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(2)
+        expect(await balanceAdder.lastPortions(0)).to.eq("96044673105003010055905")
       })
     })
 
     describe('#LP', () => {
+      it('fails if the shares contract is empty', async () => {
+        await openWallet()
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await expect(balanceAdder.processBalances(1)).to.be.reverted
+      })
+
       it('does not add values if farm is not started', async () => {
+        await openWallet()
+        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address)
+        await addLP(token1.address, wallet.address, 10)
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(1)
+        expect(await balanceKeeper['balance(uint256)'](0)).to.eq(0)
       })
 
       it('does not add values if step is zero', async () => {
+        await openWallet()
+        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address)
+        await addLP(token1.address, wallet.address, 10)
+        await farmLP1ForAWeek()
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(0)
+        expect(await balanceKeeper['balance(uint256)'](0)).to.eq(0)
       })
 
       it('adds value to only one user if step is 1', async () => {
+        await openWallet()
+        await openOther()
+        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address)
+        await addLP(token1.address, wallet.address, 10)
+        await farmLP1ForAWeek()
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(1)
+        expect(await balanceKeeper['balance(uint256)'](0)).to.eq("7000000000000000000000")
+        expect(await balanceKeeper['balance(uint256)'](1)).to.eq(0)
       })
 
       it('adds value to users', async () => {
+        await openWallet()
+        await openOther()
+        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address)
+        await addLP(token1.address, wallet.address, 10)
+        await addLP(token1.address, other.address, 10)
+        await farmLP1ForAWeek()
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(2)
+        expect(await balanceKeeper['balance(uint256)'](0)).to.eq("3500000000000000000000")
+        expect(await balanceKeeper['balance(uint256)'](1)).to.eq("3500000000000000000000")
       })
 
       it('updates last portion', async () => {
+        await openWallet()
+        await openOther()
+        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address)
+        await addLP(token1.address, wallet.address, 10)
+        await farmLP1ForAWeek()
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(2)
+        expect(await balanceAdder.lastPortions(0)).to.eq("7000000000000000000000")
       })
     })
 
     describe('#Staking', () => {
+      it('fails if the shares contract is empty', async () => {
+        await openWallet()
+        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address)
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await expect(balanceAdder.processBalances(1)).to.be.reverted
+      })
+
       it('does not add values if farm is not started', async () => {
+        await openWallet()
+        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address)
+        await add(wallet.address, 10)
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(1)
+        expect(await balanceKeeper['balance(uint256)'](0)).to.eq(10)
       })
 
       it('does not add values if step is zero', async () => {
+        await openWallet()
+        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address)
+        await add(wallet.address, 10)
+        await farmStakingForAWeek()
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(0)
+        expect(await balanceKeeper['balance(uint256)'](0)).to.eq(10)
       })
 
       it('adds value to only one user if step is 1', async () => {
+        await openWallet()
+        await openOther()
+        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address)
+        await add(wallet.address, 10)
+        await farmStakingForAWeek()
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(1)
+        expect(await balanceKeeper['balance(uint256)'](0)).to.eq("7000000000000000000010")
+        expect(await balanceKeeper['balance(uint256)'](1)).to.eq(0)
       })
 
       it('adds value to users', async () => {
+        await openWallet()
+        await openOther()
+        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address)
+        await add(wallet.address, 10)
+        await add(other.address, 10)
+        await farmStakingForAWeek()
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(2)
+        expect(await balanceKeeper['balance(uint256)'](0)).to.eq("3500000000000000000010")
+        expect(await balanceKeeper['balance(uint256)'](1)).to.eq("3500000000000000000010")
       })
 
       it('updates last portion', async () => {
+        await openWallet()
+        await openOther()
+        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address)
+        await add(wallet.address, 10)
+        await farmStakingForAWeek()
+        await balanceKeeper.setCanAdd(balanceAdder.address, true)
+        await balanceAdder.processBalances(2)
+        expect(await balanceAdder.lastPortions(0)).to.eq("7000000000000000000000")
       })
     })
   })

@@ -103,25 +103,11 @@ describe('FarmLinear', () => {
       await expect(farm.unlockAsset()).to.be.reverted
     })
 
-    it('unlocks after a year', async () => {
+    it('unlocks after one week', async () => {
       await farm.startFarming()
-      farm.advanceTime(31536000)
+      farm.advanceTime(604800)
       await farm.unlockAsset()
-      await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(365000))
-    })
-
-    it('unlocks after six months', async () => {
-      await farm.startFarming()
-      farm.advanceTime(14515200)
-      await farm.unlockAsset()
-      await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(168000))
-    })
-
-    it('unlocks after four weeks', async () => {
-      await farm.startFarming()
-      farm.advanceTime(2419200)
-      await farm.unlockAsset()
-      await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(28000))
+      await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(7000))
     })
 
     it('unlocks after two weeks', async () => {
@@ -131,11 +117,25 @@ describe('FarmLinear', () => {
       await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(14000))
     })
 
-    it('unlocks after one week', async () => {
+    it('unlocks after four weeks', async () => {
       await farm.startFarming()
-      farm.advanceTime(604800)
+      farm.advanceTime(2419200)
       await farm.unlockAsset()
-      await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(7000))
+      await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(28000))
+    })
+
+    it('unlocks after six months', async () => {
+      await farm.startFarming()
+      farm.advanceTime(14515200)
+      await farm.unlockAsset()
+      await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(168000))
+    })
+
+    it('unlocks after a year', async () => {
+      await farm.startFarming()
+      farm.advanceTime(31536000)
+      await farm.unlockAsset()
+      await expect(await farm.totalUnlocked()).to.be.eq(expandTo18Decimals(365000))
     })
   })
 })

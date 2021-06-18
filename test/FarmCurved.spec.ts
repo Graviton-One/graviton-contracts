@@ -104,25 +104,20 @@ describe('FarmCurved', () => {
       await expect(farm.unlockAsset()).to.be.reverted
     })
 
-    it('unlocks after a year', async () => {
+    it('unlocks after one week', async () => {
       await farm.startFarming()
-      farm.advanceTime(31536000)
+      farm.advanceTime(604800)
       await farm.unlockAsset()
-      await expect(await farm.totalUnlocked()).to.be.eq("1499842209403393520254556")
+      await expect(await farm.totalUnlocked()).to.be.eq("96044673105003010055905")
     })
 
-    it('unlocks after six months', async () => {
+    it('unlocks after one week', async () => {
       await farm.startFarming()
-      farm.advanceTime(14515200)
+      farm.advanceTime(604800)
       await farm.unlockAsset()
-      await expect(await farm.totalUnlocked()).to.be.eq("1123374512487256187667572")
-    })
-
-    it('unlocks after four weeks', async () => {
-      await farm.startFarming()
-      farm.advanceTime(2419200)
+      farm.advanceTime(604800)
       await farm.unlockAsset()
-      await expect(await farm.totalUnlocked()).to.be.eq("337826626283123222944472")
+      await expect(await farm.totalUnlocked()).to.be.eq("183688261375906802671116")
     })
 
     it('unlocks after two weeks', async () => {
@@ -132,11 +127,25 @@ describe('FarmCurved', () => {
       await expect(await farm.totalUnlocked()).to.be.eq("183688261375906802671116")
     })
 
-    it('unlocks after one week', async () => {
+    it('unlocks after four weeks', async () => {
       await farm.startFarming()
-      farm.advanceTime(604800)
+      farm.advanceTime(2419200)
       await farm.unlockAsset()
-      await expect(await farm.totalUnlocked()).to.be.eq("96044673105003010055905")
+      await expect(await farm.totalUnlocked()).to.be.eq("337826626283123222944472")
+    })
+
+    it('unlocks after six months', async () => {
+      await farm.startFarming()
+      farm.advanceTime(14515200)
+      await farm.unlockAsset()
+      await expect(await farm.totalUnlocked()).to.be.eq("1123374512487256187667572")
+    })
+
+    it('unlocks after a year', async () => {
+      await farm.startFarming()
+      farm.advanceTime(31536000)
+      await farm.unlockAsset()
+      await expect(await farm.totalUnlocked()).to.be.eq("1499842209403393520254556")
     })
   })
 })

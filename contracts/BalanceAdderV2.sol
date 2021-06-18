@@ -21,14 +21,16 @@ contract BalanceAdderV2 is IBalanceAdder {
     IShares[] public shares;
     IFarm[] public farms;
     uint[] public lastPortions;
+    uint public totalFarms;
+
+    uint public lastUser;
+    uint public currentFarm;
+    uint public currentPortion;
+    uint public totalUnlocked;
+    uint public totalBalance;
+    uint public totalUsers;
 
     IBalanceKeeperV2 public balanceKeeper;
-
-    uint public totalUnlocked;
-    uint public lastUser;
-    uint public totalUsers;
-    uint public currentPortion;
-    uint public currentFarm;
 
     mapping (uint => bool) public isProcessing;
 
@@ -49,6 +51,7 @@ contract BalanceAdderV2 is IBalanceAdder {
         shares.push(_share);
         farms.push(_farm);
         lastPortions.push(0);
+        totalFarms++;
     }
 
     // remove index from arrays
@@ -87,6 +90,7 @@ contract BalanceAdderV2 is IBalanceAdder {
             j++;
         }
         lastPortions = newLastPortions;
+        totalFarms--;
     }
 
     // iterates over all users and then increment current farm index
@@ -98,6 +102,7 @@ contract BalanceAdderV2 is IBalanceAdder {
         if (lastUser == 0) {
             isProcessing[currentFarm] = true;
             totalUsers = balanceKeeper.totalUsers();
+            totalBalance = shares[currentFarm].totalShares();
             totalUnlocked = farms[currentFarm].totalUnlocked();
             currentPortion = totalUnlocked - lastPortions[currentFarm];
         }
@@ -111,7 +116,7 @@ contract BalanceAdderV2 is IBalanceAdder {
 
         for(uint i = fromUser; i < toUser; i++) {
             require(shares[currentFarm].totalShares() > 0, "there are no shares");
-            uint add = shares[currentFarm].shareById(i) * currentPortion / shares[currentFarm].totalShares();
+            uint add = shares[currentFarm].shareById(i) * currentPortion / totalBalance;
             balanceKeeper.add(i, add);
         }
 

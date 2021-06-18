@@ -49,9 +49,11 @@ contract FarmCurved is IFarm {
     }
 
     function startFarming() public isOwner {
-        farmingStarted = true;
-        startTimestampOffset = _blockTimestamp();
-        lastClaimedTimestamp = startTimestampOffset;
+        if (!farmingStarted) {
+          farmingStarted = true;
+          startTimestampOffset = _blockTimestamp();
+          lastClaimedTimestamp = startTimestampOffset;
+        }
     }
 
     function unlockAsset() public {
