@@ -27,6 +27,7 @@ describe('VoterV2', () => {
 
   it('constructor initializes variables', async () => {
     expect(await voter.owner()).to.eq(wallet.address)
+    expect(await voter.admin()).to.eq(wallet.address)
     expect(await voter.balanceKeeper()).to.eq(balanceKeeper.address)
   })
 
@@ -87,10 +88,34 @@ describe('VoterV2', () => {
     })
   })
 
+  describe('#setAdmin', () => {
+    it('fails if caller is not admin', async () => {
+      await expect(voter.connect(other).setAdmin(wallet.address)).to.be.reverted
+    })
+
+    it('emits a SetAdmin event', async () => {
+      expect(await voter.setAdmin(other.address))
+        .to.emit(voter, 'SetAdmin')
+        .withArgs(wallet.address, other.address)
+    })
+
+    it('updates admin', async () => {
+      await voter.setAdmin(other.address)
+      expect(await voter.admin()).to.eq(other.address)
+    })
+
+    it('cannot be called by original admin', async () => {
+      await voter.setAdmin(other.address)
+      await expect(voter.setAdmin(wallet.address)).to.be.reverted
+    })
+  })
+
+
   describe('#startRound', () => {
-    it('fails if caller is not owner', async () => {
+    it('fails if caller is not admin', async () => {
       await expect(voter.connect(other).startRound("name", ["option1", "option2"])).to.be.reverted
     })
+
     it('sets round name', async () => {
       await voter.startRound("name", ["option1", "option2"])
       expect(await voter.roundName(0)).to.eq("name")
@@ -127,7 +152,7 @@ describe('VoterV2', () => {
   })
 
   describe('#finalizeRound', () => {
-    it('fails if caller is not owner', async () => {
+    it('fails if caller is not admin', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await expect(voter.connect(other).finalizeRound(0)).to.be.reverted
     })

@@ -16,6 +16,13 @@ contract VoterV2 is IVoter {
         _;
     }
 
+    address public admin;
+
+    modifier isAdmin() {
+        require(msg.sender == admin, "Caller is not admin");
+        _;
+    }
+
     address public balanceKeeper;
 
     uint public totalRounds;
@@ -43,9 +50,11 @@ contract VoterV2 is IVoter {
     event CheckVoteBalances(address indexed checker, address indexed user, uint newBalance);
     event FinalizeRound(address indexed owner, uint roundId);
     event SetOwner(address ownerOld, address ownerNew);
+    event SetAdmin(address adminOld, address adminNew);
 
     constructor(address _owner, address _balanceKeeper) {
         owner = _owner;
+        admin = _owner;
         balanceKeeper = _balanceKeeper;
     }
 
@@ -112,7 +121,13 @@ contract VoterV2 is IVoter {
         emit SetOwner(ownerOld, _owner);
     }
 
-    function startRound(string memory name, string[] memory options) public isOwner {
+    function setAdmin(address _admin) public isAdmin {
+        address adminOld = admin;
+        admin = _admin;
+        emit SetAdmin(adminOld, _admin);
+    }
+
+    function startRound(string memory name, string[] memory options) public isAdmin {
         _roundName[totalRounds] = name;
         _roundOptions[totalRounds] = options;
         _votesForOption[totalRounds] = new uint[](options.length);
@@ -231,7 +246,7 @@ contract VoterV2 is IVoter {
     }
 
     // move roundId from activeRounds to pastRounds
-    function finalizeRound(uint roundId) public isOwner {
+    function finalizeRound(uint roundId) public isAdmin {
         uint[] memory filteredRounds = new uint[](activeRounds.length-1);
         uint j = 0;
         for (uint i = 0; i < activeRounds.length; i++) {
