@@ -22,8 +22,8 @@ contract ClaimGTON {
     IVoter public voter;
     address public wallet;
 
-    bool public claimActivated = false;
-    bool public limitActivated = false;
+    bool public claimActivated;
+    bool public limitActivated;
 
     event Claim(address indexed sender, address indexed receiver, uint amount);
     event SetOwner(address ownerOld, address ownerNew);

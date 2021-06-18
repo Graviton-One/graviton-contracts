@@ -20,8 +20,8 @@ contract ClaimGTONV2 is IClaimGTONV2 {
     IVoter public override voter;
     address public override wallet;
 
-    bool public override claimActivated = false;
-    bool public override limitActivated = false;
+    bool public override claimActivated;
+    bool public override limitActivated;
 
     mapping (address => uint) public override lastLimitTimestamp;
     mapping (address => uint) public override limitMax;

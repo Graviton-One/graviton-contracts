@@ -17,9 +17,9 @@ contract LockGTON is ILockGTON {
 
     IERC20 public override governanceToken;
 
-    bool public override canLock = false;
+    bool public override canLock;
 
-    event Lock
+    event LockGTON
         (address indexed governanceToken,
          address indexed sender,
          address indexed receiver,
@@ -48,6 +48,6 @@ contract LockGTON is ILockGTON {
     function lock(address receiver, uint amount) external override {
         require(canLock, "lock is not allowed");
         governanceToken.transferFrom(msg.sender, address(this), amount);
-        emit Lock(address(governanceToken), msg.sender, receiver, amount);
+        emit LockGTON(address(governanceToken), msg.sender, receiver, amount);
     }
 }

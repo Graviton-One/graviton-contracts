@@ -90,7 +90,7 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
         totalFarms--;
     }
 
-    // iterates over all users and then increment current farm index
+    // iterates over all users and then increments current farm index
     function processBalances(uint step) external override {
         if (currentFarm >= farms.length) {
             return;

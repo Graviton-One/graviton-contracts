@@ -4,12 +4,12 @@ pragma solidity >=0.8.0;
 import "./IShares.sol";
 
 interface IBalanceKeeperV2 is IShares {
-    function owner() external returns (address);
-    function canAdd(address user) external returns (bool);
-    function canSubtract(address user) external returns (bool);
-    function canOpen(address user) external returns (bool);
-    function totalUsers() external returns (uint);
-    function totalBalance() external returns (uint);
+    function owner() external view returns (address);
+    function canAdd(address user) external view returns (bool);
+    function canSubtract(address user) external view returns (bool);
+    function canOpen(address user) external view returns (bool);
+    function totalUsers() external view returns (uint);
+    function totalBalance() external view returns (uint);
     function setOwner(address _owner) external;
     function setCanOpen(address opener, bool _canOpen) external;
     function setCanAdd(address adder, bool _canAdd) external;

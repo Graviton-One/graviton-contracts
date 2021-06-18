@@ -22,8 +22,8 @@ contract SharesEB is ISharesEB {
 
     function migrate(uint step) external override {
         uint toUser = lastUser + step;
-        if (toUser > balanceKeeper.totalUsers()) {
-            toUser = balanceKeeper.totalUsers();
+        if (toUser > impactEB.userCount()) {
+            toUser = impactEB.userCount();
         }
         for (uint i = lastUser; i < toUser; i++) {
             address user = impactEB.users(i);
