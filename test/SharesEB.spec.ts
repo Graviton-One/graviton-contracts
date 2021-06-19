@@ -33,9 +33,58 @@ describe('SharesEB', () => {
     expect(await sharesEB.impactEB()).to.eq(impactEB.address)
   })
 
-  it('constructor fails if token is not known', async () => {
-    expect(await sharesEB.balanceKeeper()).to.eq(balanceKeeper.address)
-    expect(await sharesEB.impactEB()).to.eq(impactEB.address)
+  describe('#migrate', () => {
+    it('processes no more users than step', async () => {
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, wallet.address, "1000", "0", "0"));
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, other.address, "2000", "1", "0"));
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, nebula.address, "2000", "2", "0"));
+      await sharesEB.migrate(2)
+      expect(await balanceKeeper.totalUsers()).to.eq(2)
+    })
+
+    it('processes no more than the the number of users', async () => {
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, wallet.address, "1000", "0", "0"));
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, other.address, "2000", "1", "0"));
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, nebula.address, "2000", "2", "0"));
+      await sharesEB.migrate(4)
+      expect(await balanceKeeper.totalUsers()).to.eq(3)
+    })
+
+    it('opens a new account if user is not known', async () => {
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, wallet.address, "1000", "0", "0"));
+      await sharesEB.migrate(1)
+      expect(await balanceKeeper.totalUsers()).to.eq(1)
+    })
+
+    it('copies impact from the old impact contract', async () => {
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, wallet.address, "1000", "0", "0"));
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, other.address, "2000", "1", "0"));
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, nebula.address, "2000", "2", "0"));
+      await sharesEB.migrate(4)
+      expect(await sharesEB.impactById(0)).to.eq(1000)
+      expect(await sharesEB.impactById(1)).to.eq(2000)
+      expect(await sharesEB.impactById(2)).to.eq(2000)
+    })
   })
 
   describe('#shareByid', () => {

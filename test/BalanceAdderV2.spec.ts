@@ -159,6 +159,13 @@ describe('BalanceAdderV2', () => {
   })
 
   describe('#addFarm', () => {
+    it('returns the number of farms', async () => {
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      expect(await balanceAdder.totalFarms()).to.eq(1)
+    })
+  })
+
+  describe('#addFarm', () => {
     it('fails if caller is not owner', async () => {
       await expect(balanceAdder.connect(other).addFarm(mockShares1.address, mockFarm1.address)).to.be.reverted
     })

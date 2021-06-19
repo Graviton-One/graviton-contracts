@@ -133,7 +133,8 @@ async function farmCurvedFixture(owner: string): Promise<FarmCurvedFixture> {
   const farm = (await farmFactory.deploy(
     owner,
     EARLY_BIRDS_A,
-    EARLY_BIRDS_C
+    EARLY_BIRDS_C,
+    0
   )) as MockTimeFarmCurved
   return { farm }
 }
@@ -147,7 +148,8 @@ async function farmLinearFixture(owner: string): Promise<FarmLinearFixture> {
   const farm = (await farmFactory.deploy(
     owner,
     STAKING_AMOUNT,
-    STAKING_PERIOD
+    STAKING_PERIOD,
+    0
   )) as MockTimeFarmLinear
   return { farm }
 }

@@ -48,6 +48,28 @@ describe('OracleRouterV2', () => {
     expect(await oracleRouter.canRoute(other.address)).to.eq(false)
   })
 
+  describe('#setOwner', () => {
+    it('fails if caller is not owner', async () => {
+      await expect(oracleRouter.connect(other).setOwner(wallet.address)).to.be.reverted
+    })
+
+    it('emits a SetOwner event', async () => {
+      expect(await oracleRouter.setOwner(other.address))
+        .to.emit(oracleRouter, 'SetOwner')
+        .withArgs(wallet.address, other.address)
+    })
+
+    it('updates owner', async () => {
+      await oracleRouter.setOwner(other.address)
+      expect(await oracleRouter.owner()).to.eq(other.address)
+    })
+
+    it('cannot be called by original owner', async () => {
+      await oracleRouter.setOwner(other.address)
+      await expect(oracleRouter.setOwner(wallet.address)).to.be.reverted
+    })
+  })
+
   describe('#setCanRoute', () => {
     it('fails if caller is not owner', async () => {
       await expect(oracleRouter.connect(other).setCanRoute(wallet.address, true)).to.be.reverted
