@@ -66,6 +66,12 @@ describe('LockUnlockLP', () => {
       await lockUnlockLP.setIsAllowedToken(token1.address, false)
       expect(await lockUnlockLP.isAllowedToken(token1.address)).to.eq(false)
     })
+
+    it('emits event', async () => {
+      await expect(lockUnlockLP.setIsAllowedToken(token1.address, false))
+        .to.emit(lockUnlockLP, 'SetIsAllowedToken')
+        .withArgs(wallet.address, token1.address, false)
+    })
   })
 
   describe('#balance', () => {

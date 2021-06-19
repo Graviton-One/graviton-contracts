@@ -58,12 +58,16 @@ contract ClaimGTONV2 is IClaimGTONV2 {
 
     /// @inheritdoc IClaimGTONV2
     function setWallet(address _wallet) public override isOwner {
+        address walletOld = wallet;
         wallet = _wallet;
+        emit SetWallet(walletOld, _wallet);
     }
 
     /// @inheritdoc IClaimGTONV2
     function setVoter(IVoterV2 _voter) public override isOwner {
+        IVoterV2 voterOld = voter;
         voter = _voter;
+        emit SetVoter(voterOld, _voter);
     }
 
     /// @inheritdoc IClaimGTONV2

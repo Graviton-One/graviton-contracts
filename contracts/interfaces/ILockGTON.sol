@@ -50,4 +50,12 @@ interface ILockGTON {
         address indexed receiver,
         uint256 amount
     );
+
+    /// @notice Event emitted when the permission to lock is updated via `#setCanLock`
+    /// @param owner The owner account at the time of change
+    /// @param newBool Updated permission
+    event SetCanLock(
+        address indexed owner,
+        bool indexed newBool
+    );
 }

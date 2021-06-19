@@ -94,6 +94,12 @@ describe('OracleParserV2', () => {
       await oracleParser.setOracleRouter(other.address)
       expect(await oracleParser.oracleRouter()).to.eq(other.address)
     })
+
+    it('emits event', async () => {
+      await expect(oracleParser.setOracleRouter(other.address))
+        .to.emit(oracleParser, 'SetOracleRouter')
+        .withArgs(oracleRouter.address, other.address)
+    })
   })
 
   describe('#deserializeUint', () => {

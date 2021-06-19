@@ -77,6 +77,12 @@ describe('ClaimGTON', () => {
       await claimGTON.setWallet(wallet.address)
       expect(await claimGTON.wallet()).to.eq(wallet.address)
     })
+
+    it('emits event', async () => {
+      await expect(claimGTON.setWallet(other.address))
+        .to.emit(claimGTON, 'SetWallet')
+        .withArgs(wallet.address, other.address)
+    })
   })
 
   describe('#setVoter', () => {
@@ -87,6 +93,12 @@ describe('ClaimGTON', () => {
     it('updates voter', async () => {
       await claimGTON.setVoter(other.address)
       expect(await claimGTON.voter()).to.eq(other.address)
+    })
+
+    it('emits event', async () => {
+      await expect(claimGTON.setVoter(other.address))
+        .to.emit(claimGTON, 'SetVoter')
+        .withArgs(voter.address, other.address)
     })
   })
 

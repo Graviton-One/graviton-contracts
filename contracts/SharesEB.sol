@@ -42,6 +42,7 @@ contract SharesEB is ISharesEB {
                 userAddress
             );
             impactById[userId] = impactEB.impact(user);
+            emit Migrate(user, userId, impactById[userId]);
         }
         // @dev moved here from the constructor to test different impactEB states
         totalSupply = impactEB.totalSupply();

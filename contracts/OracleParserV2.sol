@@ -60,7 +60,9 @@ contract OracleParserV2 is IOracleParserV2 {
         override
         isOwner
     {
+        IOracleRouterV2 routerOld = oracleRouter;
         oracleRouter = _oracleRouter;
+        emit SetOracleRouter(routerOld, _oracleRouter);
     }
 
     /// @inheritdoc IOracleParserV2

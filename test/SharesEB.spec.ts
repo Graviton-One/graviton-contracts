@@ -89,6 +89,21 @@ describe('SharesEB', () => {
       expect(await sharesEB.impactById(1)).to.eq(2000)
       expect(await sharesEB.impactById(2)).to.eq(2000)
     })
+
+    it('emits event', async () => {
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, wallet.address, "1000", "0", "0"));
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, other.address, "2000", "1", "0"));
+      await balanceKeeper.setCanOpen(sharesEB.address, true)
+      await expect(sharesEB.migrate(2))
+        .to.emit(sharesEB, 'Migrate')
+        .withArgs(wallet.address, 0, 1000)
+        .to.emit(sharesEB, 'Migrate')
+        .withArgs(other.address, 1, 2000)
+    })
   })
 
   describe('#shareByid', () => {

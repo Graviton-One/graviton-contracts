@@ -80,6 +80,44 @@ interface IOracleRouterV2 {
         bool indexed newBool
     );
 
+    /// @notice Event emitted when the GTONAddTopic is set via '#setGTONAddTopic'
+    /// @param topicOld The previous topic
+    /// @param topicNew The new topic
+    event SetGTONAddTopic(bytes32 topicOld, bytes32 topicNew);
+
+    /// @notice Event emitted when the GTONSubTopic is set via '#setGTONSubTopic'
+    /// @param topicOld The previous topic
+    /// @param topicNew The new topic
+    event SetGTONSubTopic(bytes32 topicOld, bytes32 topicNew);
+
+    /// @notice Event emitted when the LPAddTopic is set via '#setLPAddTopic'
+    /// @param topicOld The previous topic
+    /// @param topicNew The new topic
+    event SetLPAddTopic(bytes32 topicOld, bytes32 topicNew);
+
+    /// @notice Event emitted when the LPSubTopic is set via '#setLPSubTopic'
+    /// @param topicOld The previous topic
+    /// @param topicNew The new topic
+    event SetLPSubTopic(bytes32 topicOld, bytes32 topicNew);
+
+    /// @notice Event emitted when data is routed
+    /// @param uuid Unique identifier of the routed data
+    /// @param chain Type of blockchain associated with the routed event, i.e. "EVM"
+    /// @param emiter The blockchain-specific address where the data event originated
+    /// @param token The blockchain-specific token address
+    /// @param sender The blockchain-specific address that sent the tokens
+    /// @param receiver The blockchain-specific address to receive the tokens
+    /// @param amount The amount of tokens
+    event RouteValue(
+        bytes16 uuid,
+        string chain,
+        bytes emiter,
+        bytes token,
+        bytes sender,
+        bytes receiver,
+        uint256 amount
+    );
+
     /// @notice Event emitted when the data is routed to add to a governance balance
     /// @param uuid Unique identifier of the routed data
     /// @param chain Type of blockchain associated with the routed event, i.e. "EVM"

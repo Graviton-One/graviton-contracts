@@ -59,22 +59,30 @@ contract OracleRouterV2 is IOracleRouterV2 {
 
     /// @inheritdoc IOracleRouterV2
     function setGTONAddTopic(bytes32 _gtonAddTopic) external override isOwner {
+        bytes32 topicOld = gtonAddTopic;
         gtonAddTopic = _gtonAddTopic;
+        emit SetGTONAddTopic(topicOld, _gtonAddTopic);
     }
 
     /// @inheritdoc IOracleRouterV2
     function setGTONSubTopic(bytes32 _gtonSubTopic) external override isOwner {
+        bytes32 topicOld = gtonSubTopic;
         gtonSubTopic = _gtonSubTopic;
+        emit SetGTONSubTopic(topicOld, _gtonSubTopic);
     }
 
     /// @inheritdoc IOracleRouterV2
     function setLPAddTopic(bytes32 _lpAddTopic) external override isOwner {
+        bytes32 topicOld = lpAddTopic;
         lpAddTopic = _lpAddTopic;
+        emit SetLPAddTopic(topicOld, _lpAddTopic);
     }
 
     /// @inheritdoc IOracleRouterV2
     function setLPSubTopic(bytes32 _lpSubTopic) external override isOwner {
+        bytes32 topicOld = lpSubTopic;
         lpSubTopic = _lpSubTopic;
+        emit SetLPSubTopic(topicOld, _lpSubTopic);
     }
 
     /// @inheritdoc IOracleRouterV2
@@ -129,5 +137,7 @@ contract OracleRouterV2 is IOracleRouterV2 {
             lpKeeper.subtract(chain, token, chain, sender, amount);
             emit LPSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
+
+        emit RouteValue(uuid, chain, emiter, token, sender, receiver, amount);
     }
 }

@@ -76,6 +76,11 @@ interface IOracleParserV2 {
     /// @param nebulaNew The account that became the nebula
     event SetNebula(address nebulaOld, address nebulaNew);
 
+    /// @notice Event emitted when the router changes via #setOracleRouter`.
+    /// @param routerOld The previous router
+    /// @param routerNew The new router
+    event SetOracleRouter(IOracleRouterV2 routerOld, IOracleRouterV2 routerNew);
+
     /// @notice Event emitted when the data is parsed and forwarded to the oracle router via `#attachValue`
     /// @param nebula The account that sent the parsed data
     /// @param uuid Unique identifier of the parsed data

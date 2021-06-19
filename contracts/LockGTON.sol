@@ -37,6 +37,7 @@ contract LockGTON is ILockGTON {
     /// @inheritdoc ILockGTON
     function setCanLock(bool _canLock) external override isOwner {
         canLock = _canLock;
+        emit SetCanLock(owner, _canLock);
     }
 
     /// @inheritdoc ILockGTON

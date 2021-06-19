@@ -75,4 +75,14 @@ interface ILockUnlockLP {
         address indexed receiver,
         uint256 amount
     );
+
+    /// @notice Event emitted when the permission to lock token is updated via `#setIsAllowedToken`
+    /// @param owner The owner account at the time of change
+    /// @param token The lp-token whose permission was updated
+    /// @param newBool Updated permission
+    event SetIsAllowedToken(
+        address indexed owner,
+        address indexed token,
+        bool indexed newBool
+    );
 }

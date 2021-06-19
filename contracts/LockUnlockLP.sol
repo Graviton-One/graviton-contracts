@@ -45,6 +45,7 @@ contract LockUnlockLP is ILockUnlockLP {
         isOwner
     {
         isAllowedToken[token] = _isAllowedToken;
+        emit SetIsAllowedToken(owner, token, _isAllowedToken);
     }
 
     /// @inheritdoc ILockUnlockLP

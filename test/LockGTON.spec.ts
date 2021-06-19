@@ -59,6 +59,12 @@ describe('LockGTON', () => {
       await lockGTON.setCanLock(true)
       expect(await lockGTON.connect(other).canLock()).to.eq(true)
     })
+
+    it('emits event', async () => {
+      await expect(lockGTON.setCanLock(true))
+        .to.emit(lockGTON, 'SetCanLock')
+        .withArgs(wallet.address, true)
+    })
   })
 
   describe('#lock', () => {

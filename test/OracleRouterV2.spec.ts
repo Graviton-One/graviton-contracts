@@ -111,12 +111,24 @@ describe('OracleRouterV2', () => {
       await oracleRouter.setGTONAddTopic(OTHER_TOPIC)
       expect(await oracleRouter.gtonAddTopic()).to.eq(OTHER_TOPIC)
     })
+
+    it('emits event', async () => {
+      await expect(oracleRouter.setGTONAddTopic(OTHER_TOPIC))
+        .to.emit(oracleRouter, 'SetGTONAddTopic')
+        .withArgs(GTON_ADD_TOPIC, OTHER_TOPIC)
+    })
   })
 
   describe('#setGTONSubTopic', () => {
     it('updates topic', async () => {
       await oracleRouter.setGTONSubTopic(OTHER_TOPIC)
       expect(await oracleRouter.gtonSubTopic()).to.eq(OTHER_TOPIC)
+    })
+
+    it('emits event', async () => {
+      await expect(oracleRouter.setGTONSubTopic(OTHER_TOPIC))
+        .to.emit(oracleRouter, 'SetGTONSubTopic')
+        .withArgs(GTON_SUB_TOPIC, OTHER_TOPIC)
     })
   })
 
@@ -125,12 +137,24 @@ describe('OracleRouterV2', () => {
       await oracleRouter.setLPAddTopic(OTHER_TOPIC)
       expect(await oracleRouter.lpAddTopic()).to.eq(OTHER_TOPIC)
     })
+
+    it('emits event', async () => {
+      await expect(oracleRouter.setLPAddTopic(OTHER_TOPIC))
+        .to.emit(oracleRouter, 'SetLPAddTopic')
+        .withArgs(LP_ADD_TOPIC, OTHER_TOPIC)
+    })
   })
 
   describe('#setLPAddTopic', () => {
     it('updates topic', async () => {
       await oracleRouter.setLPSubTopic(OTHER_TOPIC)
       expect(await oracleRouter.lpSubTopic()).to.eq(OTHER_TOPIC)
+    })
+
+    it('emits event', async () => {
+      await expect(oracleRouter.setLPSubTopic(OTHER_TOPIC))
+        .to.emit(oracleRouter, 'SetLPSubTopic')
+        .withArgs(LP_SUB_TOPIC, OTHER_TOPIC)
     })
   })
 

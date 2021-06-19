@@ -27,4 +27,10 @@ interface ISharesEB is IShares {
 
     /// @notice Copies impact data for `step` users from the previous early birds contract
     function migrate(uint256 step) external;
+
+    /// @notice Event emitted when data is routed
+    /// @param user Address of the user whose impact was migrated
+    /// @param userId Unique id of the user whose impact was migrated
+    /// @param impact The amount of stable coins the user deposited in the early birds campaign
+    event Migrate(address user, uint userId, uint impact);
 }
