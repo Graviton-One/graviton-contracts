@@ -44,12 +44,6 @@ interface IClaimGTONV2 {
     /// @dev Updates to 50% of user's balance at the start of the new limit term
     function limitMax(address user) external view returns (uint256);
 
-    /// @notice Sets the address of the governance token
-    function setGovernanceToken(IERC20 _governanceToken) external;
-
-    /// @notice Sets the address of the contract that tracks governance balances
-    function setBalanceKeeper(IBalanceKeeperV2 _balanceKeeper) external;
-
     /// @notice Sets the address of the voting contract
     function setVoter(IVoterV2 _voter) external;
 

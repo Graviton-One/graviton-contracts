@@ -90,28 +90,6 @@ describe('ClaimGTON', () => {
     })
   })
 
-  describe('#setGovernanceToken', () => {
-    it('fails if caller is not owner', async () => {
-      await expect(claimGTON.connect(other).setGovernanceToken(other.address)).to.be.reverted
-    })
-
-    it('updates governance token', async () => {
-      await claimGTON.setGovernanceToken(other.address)
-      expect(await claimGTON.governanceToken()).to.eq(other.address)
-    })
-  })
-
-  describe('#setBalanceKeeper', () => {
-    it('fails if caller is not owner', async () => {
-      await expect(claimGTON.connect(other).setBalanceKeeper(other.address)).to.be.reverted
-    })
-
-    it('updates governance token', async () => {
-      await claimGTON.setBalanceKeeper(other.address)
-      expect(await claimGTON.balanceKeeper()).to.eq(other.address)
-    })
-  })
-
   describe('#setClaimActivated', () => {
     it('fails if caller is not owner', async () => {
       await expect(claimGTON.connect(other).setClaimActivated(true)).to.be.reverted

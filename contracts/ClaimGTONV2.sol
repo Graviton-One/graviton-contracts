@@ -67,24 +67,6 @@ contract ClaimGTONV2 is IClaimGTONV2 {
     }
 
     /// @inheritdoc IClaimGTONV2
-    function setGovernanceToken(IERC20 _governanceToken)
-        public
-        override
-        isOwner
-    {
-        governanceToken = _governanceToken;
-    }
-
-    /// @inheritdoc IClaimGTONV2
-    function setBalanceKeeper(IBalanceKeeperV2 _balanceKeeper)
-        public
-        override
-        isOwner
-    {
-        balanceKeeper = _balanceKeeper;
-    }
-
-    /// @inheritdoc IClaimGTONV2
     function setClaimActivated(bool _claimActivated) public override isOwner {
         claimActivated = _claimActivated;
     }
