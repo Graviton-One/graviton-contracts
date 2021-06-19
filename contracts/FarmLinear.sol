@@ -32,12 +32,11 @@ contract FarmLinear is IFarm {
     uint256 public period;
 
     constructor(
-        address _owner,
         uint256 _amount,
         uint256 _period,
         uint256 _startTimestamp
     ) {
-        owner = _owner;
+        owner = msg.sender;
         amount = _amount;
         period = _period;
         if (_startTimestamp != 0) {

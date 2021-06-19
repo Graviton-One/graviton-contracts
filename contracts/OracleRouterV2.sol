@@ -33,7 +33,6 @@ contract OracleRouterV2 is IOracleRouterV2 {
     mapping(address => bool) public override canRoute;
 
     constructor(
-        address _owner,
         IBalanceKeeperV2 _balanceKeeper,
         ILPKeeperV2 _lpKeeper,
         bytes32 _gtonAddTopic,
@@ -41,7 +40,7 @@ contract OracleRouterV2 is IOracleRouterV2 {
         bytes32 _lpAddTopic,
         bytes32 _lpSubTopic
     ) {
-        owner = _owner;
+        owner = msg.sender;
         balanceKeeper = _balanceKeeper;
         lpKeeper = _lpKeeper;
         gtonAddTopic = _gtonAddTopic;

@@ -10,7 +10,7 @@ describe('BalanceKeeperV2', () => {
 
   const fixture = async () => {
     const balanceKeeperFactory = await ethers.getContractFactory('BalanceKeeperV2')
-    return (await balanceKeeperFactory.deploy(wallet.address)) as BalanceKeeperV2
+    return (await balanceKeeperFactory.deploy()) as BalanceKeeperV2
   }
 
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>

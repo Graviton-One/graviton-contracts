@@ -127,10 +127,9 @@ interface FarmCurvedFixture {
   farm: MockTimeFarmCurved
 }
 
-async function farmCurvedFixture(owner: string): Promise<FarmCurvedFixture> {
+async function farmCurvedFixture(): Promise<FarmCurvedFixture> {
   const farmFactory = await ethers.getContractFactory("MockTimeFarmCurved")
   const farm = (await farmFactory.deploy(
-    owner,
     EARLY_BIRDS_A,
     EARLY_BIRDS_C,
     0
@@ -142,10 +141,9 @@ interface FarmLinearFixture {
   farm: MockTimeFarmLinear
 }
 
-async function farmLinearFixture(owner: string): Promise<FarmLinearFixture> {
+async function farmLinearFixture(): Promise<FarmLinearFixture> {
   const farmFactory = await ethers.getContractFactory("MockTimeFarmLinear")
   const farm = (await farmFactory.deploy(
-    owner,
     STAKING_AMOUNT,
     STAKING_PERIOD,
     0
@@ -158,11 +156,9 @@ interface BalanceKeeperFixture {
 }
 
 async function balanceKeeperFixture(
-  owner: string
 ): Promise<BalanceKeeperFixture> {
   const balanceKeeperFactory = await ethers.getContractFactory("BalanceKeeper")
   const balanceKeeper = (await balanceKeeperFactory.deploy(
-    owner
   )) as BalanceKeeper
   return { balanceKeeper }
 }
@@ -179,12 +175,12 @@ export const balanceAdderEBFixture: Fixture<BalanceAdderEBFixture> = async funct
   [wallet, other, nebula],
   provider
 ): Promise<BalanceAdderEBFixture> {
-  const { farm } = await farmCurvedFixture(wallet.address)
+  const { farm } = await farmCurvedFixture()
   const { token0, token1, token2, impactEB } = await impactEBFixture(
     [wallet, other, nebula],
     provider
   )
-  const { balanceKeeper } = await balanceKeeperFixture(wallet.address)
+  const { balanceKeeper } = await balanceKeeperFixture()
 
   await impactEB
     .connect(nebula)
@@ -218,11 +214,10 @@ export const voterFixture: Fixture<VoterFixture> = async function (
   [wallet, other],
   provider
 ): Promise<VoterFixture> {
-  const { balanceKeeper } = await balanceKeeperFixture(wallet.address)
+  const { balanceKeeper } = await balanceKeeperFixture()
 
   const voterFactory = await ethers.getContractFactory("Voter")
   const voter = (await voterFactory.deploy(
-    wallet.address,
     balanceKeeper.address
   )) as Voter
   return {
@@ -239,8 +234,8 @@ interface BalanceAdderStakingFixture extends FarmLinearAndBalanceKeeperFixture {
 
 export const balanceAdderStakingFixture: Fixture<BalanceAdderStakingFixture> =
   async function ([wallet, other], provider): Promise<BalanceAdderStakingFixture> {
-    const { balanceKeeper } = await balanceKeeperFixture(wallet.address)
-    const { farm } = await farmLinearFixture(wallet.address)
+    const { balanceKeeper } = await balanceKeeperFixture()
+    const { farm } = await farmLinearFixture()
 
     const balanceAdderStakingFactory = await ethers.getContractFactory(
       "BalanceAdderStaking"
@@ -267,7 +262,6 @@ export const lpKeeperFixture: Fixture<LPKeeperFixture> =
       "LPKeeper"
     )
     const lpKeeper = (await lpKeeperFactory.deploy(
-      wallet.address
     )) as LPKeeper
     return {
       token0,
@@ -285,12 +279,11 @@ interface OracleRouterFixture extends BalanceKeeperAndLPKeeperFixture {
 
 export const oracleRouterFixture: Fixture<OracleRouterFixture> =
   async function ([wallet, other], provider): Promise<OracleRouterFixture> {
-    const { balanceKeeper } = await balanceKeeperFixture(wallet.address)
+    const { balanceKeeper } = await balanceKeeperFixture()
     const { token0, token1, token2, lpKeeper } = await lpKeeperFixture([wallet, other], provider)
 
     const oracleRouterFactory = await ethers.getContractFactory("OracleRouter")
     const oracleRouter = (await oracleRouterFactory.deploy(
-      wallet.address,
       balanceKeeper.address,
       lpKeeper.address,
       GTON_ADD_TOPIC,
@@ -318,7 +311,6 @@ export const oracleParserFixture: Fixture<OracleParserFixture> =
 
     const oracleParserFactory = await ethers.getContractFactory("OracleParser")
     const oracleParser = (await oracleParserFactory.deploy(
-      wallet.address,
       oracleRouter.address,
       nebula.address
     )) as OracleParser
@@ -346,7 +338,6 @@ export const claimGTONFixture: Fixture<ClaimGTONFixture> =
 
     const claimGTONFactory = await ethers.getContractFactory("MockTimeClaimGTON")
     const claimGTON = (await claimGTONFactory.deploy(
-      wallet.address,
       token0.address,
       wallet.address,
       balanceKeeper.address,
@@ -367,11 +358,9 @@ interface BalanceKeeperV2Fixture {
 }
 
 async function balanceKeeperV2Fixture(
-  owner: string
 ): Promise<BalanceKeeperV2Fixture> {
   const balanceKeeperFactory = await ethers.getContractFactory("BalanceKeeperV2")
   const balanceKeeper = (await balanceKeeperFactory.deploy(
-    owner
   )) as BalanceKeeperV2
   return { balanceKeeper }
 }
@@ -384,11 +373,10 @@ export const voterV2Fixture: Fixture<VoterV2Fixture> = async function (
   [wallet, other],
   provider
 ): Promise<VoterV2Fixture> {
-  const { balanceKeeper } = await balanceKeeperV2Fixture(wallet.address)
+  const { balanceKeeper } = await balanceKeeperV2Fixture()
 
   const voterFactory = await ethers.getContractFactory("VoterV2")
   const voter = (await voterFactory.deploy(
-    wallet.address,
     balanceKeeper.address
   )) as VoterV2
   return {
@@ -406,12 +394,11 @@ interface LPKeeperV2Fixture extends TokensAndBalanceKeeperV2Fixture {
 export const lpKeeperV2Fixture: Fixture<LPKeeperV2Fixture> =
   async function ([wallet, other], provider): Promise<LPKeeperV2Fixture> {
     const { token0, token1, token2 } = await tokensFixture()
-    const { balanceKeeper } = await balanceKeeperV2Fixture(wallet.address)
+    const { balanceKeeper } = await balanceKeeperV2Fixture()
     const lpKeeperFactory = await ethers.getContractFactory(
       "LPKeeperV2"
     )
     const lpKeeper = (await lpKeeperFactory.deploy(
-      wallet.address,
       balanceKeeper.address
     )) as LPKeeperV2
     return {
@@ -433,7 +420,6 @@ export const oracleRouterV2Fixture: Fixture<OracleRouterV2Fixture> =
 
     const oracleRouterFactory = await ethers.getContractFactory("OracleRouterV2")
     const oracleRouter = (await oracleRouterFactory.deploy(
-      wallet.address,
       balanceKeeper.address,
       lpKeeper.address,
       GTON_ADD_TOPIC,
@@ -461,7 +447,6 @@ export const oracleParserV2Fixture: Fixture<OracleParserV2Fixture> =
 
     const oracleParserFactory = await ethers.getContractFactory("OracleParserV2")
     const oracleParser = (await oracleParserFactory.deploy(
-      wallet.address,
       oracleRouter.address,
       nebula.address
     )) as OracleParserV2
@@ -489,7 +474,6 @@ export const claimGTONV2Fixture: Fixture<ClaimGTONV2Fixture> =
 
     const claimGTONFactory = await ethers.getContractFactory("MockTimeClaimGTONV2")
     const claimGTON = (await claimGTONFactory.deploy(
-      wallet.address,
       token0.address,
       wallet.address,
       balanceKeeper.address,
@@ -519,7 +503,7 @@ export const sharesEBFixture: Fixture<SharesEBFixture> = async function (
     [wallet, other, nebula],
     provider
   )
-  const { balanceKeeper } = await balanceKeeperV2Fixture(wallet.address)
+  const { balanceKeeper } = await balanceKeeperV2Fixture()
 
   const sharesEBFactory = await ethers.getContractFactory("SharesEB")
   const sharesEB = (await sharesEBFactory.deploy(
@@ -583,7 +567,6 @@ export const lockGTONFixture: Fixture<LockGTONFixture> =
       "LockGTON"
     )
     const lockGTON = (await lockGTONFactory.deploy(
-      wallet.address,
       token0.address,
     )) as LockGTON
     return {
@@ -609,7 +592,6 @@ export const lockUnlockLPFixture: Fixture<LockUnlockLPFixture> =
       "LockUnlockLP"
     )
     const lockUnlockLP = (await lockUnlockLPFactory.deploy(
-      wallet.address,
       [token1.address],
     )) as LockUnlockLP
     return {
@@ -640,9 +622,9 @@ export const balanceAdderV2Fixture: Fixture<BalanceAdderV2Fixture> = async funct
 
   const { token0, token1, token2 } = await tokensFixture()
 
-  const { balanceKeeper } = await balanceKeeperV2Fixture(wallet.address)
+  const { balanceKeeper } = await balanceKeeperV2Fixture()
 
-  const { farm: farmStaking } = await farmLinearFixture(wallet.address)
+  const { farm: farmStaking } = await farmLinearFixture()
 
   const impactEBFactory = await ethers.getContractFactory("ImpactEB")
   const impactEB = (await impactEBFactory.deploy(
@@ -657,11 +639,10 @@ export const balanceAdderV2Fixture: Fixture<BalanceAdderV2Fixture> = async funct
     impactEB.address
   )) as SharesEB
 
-  const { farm: farmEB } = await farmCurvedFixture(wallet.address)
+  const { farm: farmEB } = await farmCurvedFixture()
 
   const lpKeeperFactory = await ethers.getContractFactory("LPKeeperV2")
   const lpKeeper = (await lpKeeperFactory.deploy(
-    wallet.address,
     balanceKeeper.address
   )) as LPKeeperV2
 
@@ -676,7 +657,7 @@ export const balanceAdderV2Fixture: Fixture<BalanceAdderV2Fixture> = async funct
     0
   )) as SharesLP
 
-  const { farm: farmLP1 } = await farmLinearFixture(wallet.address)
+  const { farm: farmLP1 } = await farmLinearFixture()
 
   const sharesLP2 = (await sharesLPFactory.deploy(
     balanceKeeper.address,
@@ -684,11 +665,10 @@ export const balanceAdderV2Fixture: Fixture<BalanceAdderV2Fixture> = async funct
     1
   )) as SharesLP
 
-  const { farm: farmLP2 } = await farmLinearFixture(wallet.address)
+  const { farm: farmLP2 } = await farmLinearFixture()
 
   const balanceAdderFactory = await ethers.getContractFactory("BalanceAdderV2")
   const balanceAdder = (await balanceAdderFactory.deploy(
-    wallet.address,
     balanceKeeper.address
   )) as BalanceAdderV2
   return {

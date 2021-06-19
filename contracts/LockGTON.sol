@@ -22,8 +22,8 @@ contract LockGTON is ILockGTON {
     /// @inheritdoc ILockGTON
     bool public override canLock;
 
-    constructor(address _owner, IERC20 _governanceToken) {
-        owner = _owner;
+    constructor(IERC20 _governanceToken) {
+        owner = msg.sender;
         governanceToken = _governanceToken;
     }
 

@@ -41,8 +41,8 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
     /// @inheritdoc IBalanceAdderV2
     mapping(uint256 => bool) public override isProcessing;
 
-    constructor(address _owner, IBalanceKeeperV2 _balanceKeeper) {
-        owner = _owner;
+    constructor(IBalanceKeeperV2 _balanceKeeper) {
+        owner = msg.sender;
         balanceKeeper = _balanceKeeper;
     }
 

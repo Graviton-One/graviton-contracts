@@ -40,11 +40,10 @@ contract OracleParser {
     event SetNebula(address nebulaOld, address nebulaNew);
 
     constructor(
-        address _owner,
         IOracleRouter _oracleRouter,
         address _nebula
     ) {
-        owner = _owner;
+        owner = msg.sender;
         oracleRouter = _oracleRouter;
         nebula = _nebula;
     }

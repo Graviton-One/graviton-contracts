@@ -69,7 +69,6 @@ contract OracleRouter is IOracleRouter {
     event SetOwner(address ownerOld, address ownerNew);
 
     constructor(
-        address _owner,
         IBalanceKeeper _balanceKeeper,
         ILPKeeper _lpKeeper,
         bytes32 _gtonAddTopic,
@@ -77,7 +76,7 @@ contract OracleRouter is IOracleRouter {
         bytes32 _lpAddTopic,
         bytes32 _lpSubTopic
     ) {
-        owner = _owner;
+        owner = msg.sender;
         balanceKeeper = _balanceKeeper;
         lpKeeper = _lpKeeper;
         gtonAddTopic = _gtonAddTopic;

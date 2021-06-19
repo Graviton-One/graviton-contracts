@@ -13,7 +13,7 @@ describe('FarmLinear', () => {
 
   const fixture = async () => {
     const farmFactory = await ethers.getContractFactory('MockTimeFarmLinear')
-    return (await farmFactory.deploy(wallet.address, STAKING_AMOUNT, STAKING_PERIOD, 0)) as MockTimeFarmLinear
+    return (await farmFactory.deploy(STAKING_AMOUNT, STAKING_PERIOD, 0)) as MockTimeFarmLinear
   }
 
   let loadFixture: ReturnType<typeof createFixtureLoader>
@@ -42,7 +42,6 @@ describe('FarmLinear', () => {
   it('constructor starts farming if _startTimestamp is not 0', async () => {
     const farmFactory = await ethers.getContractFactory("MockTimeFarmLinear")
     farm = (await farmFactory.deploy(
-      wallet.address,
       STAKING_AMOUNT,
       STAKING_PERIOD,
       TEST_START_TIME

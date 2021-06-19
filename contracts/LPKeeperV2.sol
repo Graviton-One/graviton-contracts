@@ -41,8 +41,8 @@ contract LPKeeperV2 is ILPKeeperV2 {
     mapping(uint256 => mapping(uint256 => uint256)) internal _tokenUser;
     mapping(uint256 => mapping(uint256 => bool)) internal _isKnownTokenUser;
 
-    constructor(address _owner, IBalanceKeeperV2 _balanceKeeper) {
-        owner = _owner;
+    constructor(IBalanceKeeperV2 _balanceKeeper) {
+        owner = msg.sender;
         balanceKeeper = _balanceKeeper;
     }
 

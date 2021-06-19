@@ -31,11 +31,10 @@ contract OracleParserV2 is IOracleParserV2 {
     mapping(bytes16 => bool) public override uuidIsProcessed;
 
     constructor(
-        address _owner,
         IOracleRouterV2 _oracleRouter,
         address _nebula
     ) {
-        owner = _owner;
+        owner = msg.sender;
         oracleRouter = _oracleRouter;
         nebula = _nebula;
     }

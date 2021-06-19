@@ -36,13 +36,12 @@ contract ClaimGTONV2 is IClaimGTONV2 {
     mapping(address => uint256) public override limitMax;
 
     constructor(
-        address _owner,
         IERC20 _governanceToken,
         address _wallet,
         IBalanceKeeperV2 _balanceKeeper,
         IVoterV2 _voter
     ) {
-        owner = _owner;
+        owner = msg.sender;
         governanceToken = _governanceToken;
         wallet = _wallet;
         balanceKeeper = _balanceKeeper;

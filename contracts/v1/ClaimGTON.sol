@@ -32,13 +32,12 @@ contract ClaimGTON {
     event SetOwner(address ownerOld, address ownerNew);
 
     constructor(
-        address _owner,
         IERC20 _governanceToken,
         address _wallet,
         IBalanceKeeper _balanceKeeper,
         IVoter _voter
     ) {
-        owner = _owner;
+        owner = msg.sender;
         governanceToken = _governanceToken;
         wallet = _wallet;
         balanceKeeper = _balanceKeeper;

@@ -32,12 +32,11 @@ contract FarmCurved is IFarm {
     uint256 public a;
 
     constructor(
-        address _owner,
         uint256 _a,
         uint256 _c,
         uint256 _startTimestamp
     ) {
-        owner = _owner;
+        owner = msg.sender;
         a = _a;
         c = _c;
         if (_startTimestamp != 0) {

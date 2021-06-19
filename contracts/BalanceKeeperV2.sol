@@ -34,8 +34,8 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
     uint256 public override totalBalance;
     mapping(uint256 => uint256) internal _balance;
 
-    constructor(address _owner) {
-        owner = _owner;
+    constructor() {
+        owner = msg.sender;
     }
 
     /// @inheritdoc IBalanceKeeperV2

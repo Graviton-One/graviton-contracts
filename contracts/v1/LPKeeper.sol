@@ -51,8 +51,8 @@ contract LPKeeper is ILPKeeper {
     );
     event SetOwner(address ownerOld, address ownerNew);
 
-    constructor(address _owner) {
-        owner = _owner;
+    constructor() {
+        owner = msg.sender;
     }
 
     function setOwner(address _owner) public isOwner {

@@ -47,8 +47,8 @@ contract VoterV2 is IVoterV2 {
     /// @inheritdoc IVoterV2
     mapping(address => bool) public override canCheck;
 
-    constructor(address _owner, address _balanceKeeper) {
-        owner = _owner;
+    constructor(address _balanceKeeper) {
+        owner = msg.sender;
         balanceKeeper = _balanceKeeper;
     }
     /// @inheritdoc IVoterV2

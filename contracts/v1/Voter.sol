@@ -60,8 +60,8 @@ contract Voter is IVoter {
     event FinalizeRound(address indexed owner, uint256 roundId);
     event SetOwner(address ownerOld, address ownerNew);
 
-    constructor(address _owner, address _balanceKeeper) {
-        owner = _owner;
+    constructor(address _balanceKeeper) {
+        owner = msg.sender;
         balanceKeeper = _balanceKeeper;
     }
 

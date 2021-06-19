@@ -24,11 +24,11 @@ contract LockUnlockLP is ILockUnlockLP {
     /// @inheritdoc ILockUnlockLP
     uint256 public override totalSupply;
 
-    constructor(address _owner, address[] memory allowedTokens) {
+    constructor(address[] memory allowedTokens) {
+        owner = msg.sender;
         for (uint256 i = 0; i < allowedTokens.length; i++) {
             isAllowedToken[allowedTokens[i]] = true;
         }
-        owner = _owner;
     }
 
     /// @inheritdoc ILockUnlockLP

@@ -13,7 +13,7 @@ describe('FarmCurved', () => {
 
   const fixture = async () => {
     const farmFactory = await ethers.getContractFactory('MockTimeFarmCurved')
-    return (await farmFactory.deploy(wallet.address, EARLY_BIRDS_A, EARLY_BIRDS_C, 0)) as MockTimeFarmCurved
+    return (await farmFactory.deploy(EARLY_BIRDS_A, EARLY_BIRDS_C, 0)) as MockTimeFarmCurved
   }
 
   let loadFixture: ReturnType<typeof createFixtureLoader>
@@ -42,7 +42,6 @@ describe('FarmCurved', () => {
   it('constructor starts farming if _startTimestamp is not 0', async () => {
     const farmFactory = await ethers.getContractFactory("MockTimeFarmCurved")
     farm = (await farmFactory.deploy(
-      wallet.address,
       EARLY_BIRDS_A,
       EARLY_BIRDS_C,
       TEST_START_TIME
