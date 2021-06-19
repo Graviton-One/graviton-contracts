@@ -94,7 +94,7 @@ describe('LockGTON', () => {
 
   describe('#migrate', () => {
     it('fails if caller is not owner', async () => {
-      await expect(lockGTON.connect(other).migrate(wallet.address, 0)).to.be.reverted
+      await expect(lockGTON.connect(other).migrate(wallet.address)).to.be.reverted
     })
 
     it('migrates locked tokens', async () => {
@@ -102,8 +102,18 @@ describe('LockGTON', () => {
       await token0.approve(lockGTON.address, 1)
       await lockGTON.setCanLock(true)
       await lockGTON.lock(wallet.address, 1)
-      await lockGTON.migrate(other.address, 1)
+      await lockGTON.migrate(other.address)
       expect(await token0.balanceOf(other.address)).to.eq(1)
+    })
+
+    it('emits event', async () => {
+      expect(await token0.balanceOf(other.address)).to.eq(0)
+      await token0.approve(lockGTON.address, 1)
+      await lockGTON.setCanLock(true)
+      await lockGTON.lock(wallet.address, 1)
+      await expect(lockGTON.migrate(other.address))
+        .to.emit(lockGTON, 'Migrate')
+        .withArgs(other.address, 1)
     })
   })
 })

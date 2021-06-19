@@ -41,12 +41,14 @@ contract LockGTON is ILockGTON {
     }
 
     /// @inheritdoc ILockGTON
-    function migrate(address newLock, uint256 amount)
+    function migrate(address newLock)
         external
         override
         isOwner
     {
+        uint amount = governanceToken.balanceOf(address(this));
         governanceToken.transfer(newLock, amount);
+        emit Migrate(newLock, amount);
     }
 
     /// @inheritdoc ILockGTON

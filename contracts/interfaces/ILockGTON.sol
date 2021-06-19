@@ -25,7 +25,7 @@ interface ILockGTON {
     function governanceToken() external view returns (IERC20);
 
     /// @notice Transfers locked governance tokens to the next version of LockGTON
-    function migrate(address newLock, uint256 amount) external;
+    function migrate(address newLock) external;
 
     /// @notice Locks `amount` of governance tokens in the name of `receiver`
     function lock(address receiver, uint256 amount) external;
@@ -58,4 +58,9 @@ interface ILockGTON {
         address indexed owner,
         bool indexed newBool
     );
+
+    /// @notice Event emitted when the locked governance tokens are transfered the another version of LockGTON
+    /// @param newLock The new Lock contract
+    /// @param amount Amount of tokens migrated
+    event Migrate(address newLock, uint amount);
 }
