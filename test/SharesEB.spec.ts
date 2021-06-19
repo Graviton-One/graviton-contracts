@@ -44,6 +44,7 @@ describe('SharesEB', () => {
       await impactEB
         .connect(nebula)
         .attachValue(makeValueImpact(token1.address, nebula.address, "2000", "2", "0"));
+      await balanceKeeper.setCanOpen(sharesEB.address, true)
       await sharesEB.migrate(2)
       expect(await balanceKeeper.totalUsers()).to.eq(2)
     })
@@ -58,6 +59,7 @@ describe('SharesEB', () => {
       await impactEB
         .connect(nebula)
         .attachValue(makeValueImpact(token1.address, nebula.address, "2000", "2", "0"));
+      await balanceKeeper.setCanOpen(sharesEB.address, true)
       await sharesEB.migrate(4)
       expect(await balanceKeeper.totalUsers()).to.eq(3)
     })
@@ -66,6 +68,7 @@ describe('SharesEB', () => {
       await impactEB
         .connect(nebula)
         .attachValue(makeValueImpact(token1.address, wallet.address, "1000", "0", "0"));
+      await balanceKeeper.setCanOpen(sharesEB.address, true)
       await sharesEB.migrate(1)
       expect(await balanceKeeper.totalUsers()).to.eq(1)
     })
@@ -80,6 +83,7 @@ describe('SharesEB', () => {
       await impactEB
         .connect(nebula)
         .attachValue(makeValueImpact(token1.address, nebula.address, "2000", "2", "0"));
+      await balanceKeeper.setCanOpen(sharesEB.address, true)
       await sharesEB.migrate(4)
       expect(await sharesEB.impactById(0)).to.eq(1000)
       expect(await sharesEB.impactById(1)).to.eq(2000)

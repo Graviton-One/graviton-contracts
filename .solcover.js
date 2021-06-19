@@ -1,6 +1,6 @@
 module.exports = {
-  skipFiles: ['tokens/ERC20PresetFixedSupply.sol',
-              'tokens/ERC20PresetMinterPauser.sol',
-              'test/TestERC20.sol',
+  skipFiles: ['interfaces/',
+              'test/',
+              'tokens/',
               'v1/']
 };
