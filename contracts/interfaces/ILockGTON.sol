@@ -3,18 +3,51 @@ pragma solidity >=0.8.0;
 
 import "./IERC20.sol";
 
+/// @title The interface for Graviton governance token lock
+/// @notice Locks governance tokens
+/// @author Artemij Artamonov - <array.clean@gmail.com>
+/// @author Anton Davydov - <fetsorn@gmail.com>
 interface ILockGTON {
+    /// @notice User that can grant access permissions and perform privileged actions
     function owner() external view returns (address);
 
-    function governanceToken() external view returns (IERC20);
-
-    function canLock() external view returns (bool);
-
+    /// @notice Transfers ownership of the contract to a new account (`_owner`).
+    /// @dev Can only be called by the current owner.
     function setOwner(address _owner) external;
 
+    /// @notice Look up if locking is allowed
+    function canLock() external view returns (bool);
+
+    /// @notice Sets the permission to claim to `_canLock`
     function setCanLock(bool _canLock) external;
 
-    function migrate(address to, uint256 amount) external;
+    /// @notice Address of the governance token
+    function governanceToken() external view returns (IERC20);
 
+    /// @notice Transfers locked governance tokens to the next version of LockGTON
+    function migrate(address newLock, uint256 amount) external;
+
+    /// @notice Locks `amount` of governance tokens in the name of `receiver`
     function lock(address receiver, uint256 amount) external;
+
+    /// @notice Event emitted when the owner changes via #setOwner`.
+    /// @param ownerOld The account that was the previous owner of the contract
+    /// @param ownerNew The account that became the owner of the contract
+    event SetOwner(address ownerOld, address ownerNew);
+
+    /// @notice Event emitted when the `sender` locks `amount` of governance tokens in the name of `receiver`
+    /// @dev LockGTON event is not called Lock so the topic0 is different
+    /// from the lp-token locking event when parsed by the oracle parser
+    /// @param governanceToken The address of governance token
+    /// @dev governanceToken is specified so the event had the same number of topics
+    /// as the lp-token locking event when parsed by the oracle parser
+    /// @param sender The account that locked governance tokens
+    /// @param receiver The account to whose governance balance the tokens are added
+    /// @param amount The amount of governance tokens locked
+    event LockGTON(
+        address indexed governanceToken,
+        address indexed sender,
+        address indexed receiver,
+        uint256 amount
+    );
 }

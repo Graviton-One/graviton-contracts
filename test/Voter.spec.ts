@@ -30,7 +30,7 @@ describe('Voter', () => {
   it('starting state after deployment', async () => {
     expect(await voter.totalRounds()).to.eq(0)
     await expect(voter.activeRounds(0)).to.be.reverted
-    await expect(voter.pastRounds(0)).to.be.reverted
+    await expect(voter.finalizedRounds(0)).to.be.reverted
     expect(await voter.roundName(0)).to.eq("")
     expect(await voter.roundName(1)).to.eq("")
     await expect(voter.roundOptions(0, 0)).to.be.reverted
@@ -144,11 +144,11 @@ describe('Voter', () => {
       expect(await voter.totalActiveRounds()).to.eq(1)
     })
 
-    it('adds round to past rounds', async () => {
+    it('adds round to finalized rounds', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.finalizeRound(0)
-      expect(await voter.pastRounds(0)).to.eq(0)
-      expect(await voter.totalPastRounds()).to.eq(1)
+      expect(await voter.finalizedRounds(0)).to.eq(0)
+      expect(await voter.totalFinalizedRounds()).to.eq(1)
     })
 
     it('emits event', async () => {
@@ -302,20 +302,20 @@ describe('Voter', () => {
     })
   })
 
-  describe('#isPastRound', () => {
+  describe('#isFinalizedRound', () => {
     it('returns false if the round has not been started', async () => {
-      expect(await voter.isPastRound(0)).to.eq(false)
+      expect(await voter.isFinalizedRound(0)).to.eq(false)
     })
 
     it('returns false if the round has not been finalized', async () => {
       await voter.startRound("name", ["option1", "option2"])
-      expect(await voter.isPastRound(0)).to.eq(false)
+      expect(await voter.isFinalizedRound(0)).to.eq(false)
     })
 
     it('returns true if the round has been finalized', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.finalizeRound(0)
-      expect(await voter.isPastRound(0)).to.eq(true)
+      expect(await voter.isFinalizedRound(0)).to.eq(true)
     })
 
     it('returns true if the round has been finalized', async () => {
@@ -323,7 +323,7 @@ describe('Voter', () => {
       await voter.finalizeRound(0)
       await voter.startRound("name2", ["option1", "option2"])
       await voter.finalizeRound(1)
-      expect(await voter.isPastRound(1)).to.eq(true)
+      expect(await voter.isFinalizedRound(1)).to.eq(true)
     })
   })
 
@@ -355,15 +355,15 @@ describe('Voter', () => {
     })
   })
 
-  describe('#totalPastRounds', () => {
-    it('returns 0 if there are no past rounds', async () => {
-      expect(await voter.totalPastRounds()).to.eq(0)
+  describe('#totalFinalizedRounds', () => {
+    it('returns 0 if there are no finalized rounds', async () => {
+      expect(await voter.totalFinalizedRounds()).to.eq(0)
     })
 
-    it('returns the number of past rounds', async () => {
+    it('returns the number of finalized rounds', async () => {
       await voter.startRound("name", ["option1", "option2"])
       await voter.finalizeRound(0)
-      expect(await voter.totalPastRounds()).to.eq(1)
+      expect(await voter.totalFinalizedRounds()).to.eq(1)
     })
   })
 

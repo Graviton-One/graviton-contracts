@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 import "../ClaimGTONV2.sol";
 import "../interfaces/IERC20.sol";
 import "../interfaces/IBalanceKeeperV2.sol";
-import "../interfaces/IVoter.sol";
+import "../interfaces/IVoterV2.sol";
 
 // used for testing time dependent behavior
 contract MockTimeClaimGTONV2 is ClaimGTONV2 {
@@ -13,7 +13,7 @@ contract MockTimeClaimGTONV2 is ClaimGTONV2 {
         IERC20 _governanceToken,
         address _wallet,
         IBalanceKeeperV2 _balanceKeeper,
-        IVoter _voter
+        IVoterV2 _voter
     ) ClaimGTONV2(_owner, _governanceToken, _wallet, _balanceKeeper, _voter) {}
 
     // Monday, October 5, 2020 9:00:00 AM GMT-05:00

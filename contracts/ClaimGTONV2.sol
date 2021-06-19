@@ -7,6 +7,8 @@ import "./interfaces/IClaimGTONV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract ClaimGTONV2 is IClaimGTONV2 {
+
+    /// @inheritdoc IClaimGTONV2
     address public override owner;
 
     modifier isOwner() {
@@ -14,30 +16,31 @@ contract ClaimGTONV2 is IClaimGTONV2 {
         _;
     }
 
+    /// @inheritdoc IClaimGTONV2
     IERC20 public override governanceToken;
+    /// @inheritdoc IClaimGTONV2
     IBalanceKeeperV2 public override balanceKeeper;
-    IVoter public override voter;
+    /// @inheritdoc IClaimGTONV2
+    IVoterV2 public override voter;
+    /// @inheritdoc IClaimGTONV2
     address public override wallet;
 
+    /// @inheritdoc IClaimGTONV2
     bool public override claimActivated;
+    /// @inheritdoc IClaimGTONV2
     bool public override limitActivated;
 
+    /// @inheritdoc IClaimGTONV2
     mapping(address => uint256) public override lastLimitTimestamp;
+    /// @inheritdoc IClaimGTONV2
     mapping(address => uint256) public override limitMax;
-
-    event Claim(
-        address indexed sender,
-        address indexed receiver,
-        uint256 amount
-    );
-    event SetOwner(address ownerOld, address ownerNew);
 
     constructor(
         address _owner,
         IERC20 _governanceToken,
         address _wallet,
         IBalanceKeeperV2 _balanceKeeper,
-        IVoter _voter
+        IVoterV2 _voter
     ) {
         owner = _owner;
         governanceToken = _governanceToken;
@@ -46,20 +49,24 @@ contract ClaimGTONV2 is IClaimGTONV2 {
         voter = _voter;
     }
 
+    /// @inheritdoc IClaimGTONV2
     function setOwner(address _owner) public override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
+    /// @inheritdoc IClaimGTONV2
     function setWallet(address _wallet) public override isOwner {
         wallet = _wallet;
     }
 
-    function setVoter(IVoter _voter) public override isOwner {
+    /// @inheritdoc IClaimGTONV2
+    function setVoter(IVoterV2 _voter) public override isOwner {
         voter = _voter;
     }
 
+    /// @inheritdoc IClaimGTONV2
     function setGovernanceToken(IERC20 _governanceToken)
         public
         override
@@ -68,6 +75,7 @@ contract ClaimGTONV2 is IClaimGTONV2 {
         governanceToken = _governanceToken;
     }
 
+    /// @inheritdoc IClaimGTONV2
     function setBalanceKeeper(IBalanceKeeperV2 _balanceKeeper)
         public
         override
@@ -76,10 +84,12 @@ contract ClaimGTONV2 is IClaimGTONV2 {
         balanceKeeper = _balanceKeeper;
     }
 
+    /// @inheritdoc IClaimGTONV2
     function setClaimActivated(bool _claimActivated) public override isOwner {
         claimActivated = _claimActivated;
     }
 
+    /// @inheritdoc IClaimGTONV2
     function setLimitActivated(bool _limitActivated) public override isOwner {
         limitActivated = _limitActivated;
     }
@@ -89,7 +99,8 @@ contract ClaimGTONV2 is IClaimGTONV2 {
         return block.timestamp;
     }
 
-    function claim(uint256 amount, address to) public override {
+    /// @inheritdoc IClaimGTONV2
+    function claim(address receiver, uint256 amount) public override {
         require(claimActivated, "can't claim");
         uint256 balance = balanceKeeper.balance(
             "EVM",
@@ -106,7 +117,7 @@ contract ClaimGTONV2 is IClaimGTONV2 {
         }
         balanceKeeper.subtract("EVM", abi.encodePacked(msg.sender), amount);
         voter.checkVoteBalances(msg.sender);
-        governanceToken.transferFrom(wallet, to, amount);
-        emit Claim(msg.sender, to, amount);
+        governanceToken.transferFrom(wallet, receiver, amount);
+        emit Claim(msg.sender, receiver, amount);
     }
 }

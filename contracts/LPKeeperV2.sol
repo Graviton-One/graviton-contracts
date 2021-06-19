@@ -7,6 +7,8 @@ import "./interfaces/ILPKeeperV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract LPKeeperV2 is ILPKeeperV2 {
+
+    /// @inheritdoc ILPKeeperV2
     address public override owner;
 
     modifier isOwner() {
@@ -14,18 +16,24 @@ contract LPKeeperV2 is ILPKeeperV2 {
         _;
     }
 
-    // oracles for changing user lp balances
+    /// @inheritdoc ILPKeeperV2
+    IBalanceKeeperV2 public override balanceKeeper;
+
+    /// @inheritdoc ILPKeeperV2
     mapping(address => bool) public override canAdd;
+    /// @inheritdoc ILPKeeperV2
     mapping(address => bool) public override canSubtract;
+    /// @inheritdoc ILPKeeperV2
     mapping(address => bool) public override canOpen;
 
-    // chain code => in chain address => user id;
     mapping(uint256 => string) internal _tokenChainById;
     mapping(uint256 => bytes) internal _tokenAddressById;
+    // @dev chain code => in chain address => user id;
     mapping(string => mapping(bytes => uint256))
         internal _tokenIdByChainAddress;
     mapping(string => mapping(bytes => bool)) internal _isKnownToken;
 
+    /// @inheritdoc ILPKeeperV2
     uint256 public override totalTokens;
     mapping(uint256 => uint256) internal _totalUsers;
     mapping(uint256 => uint256) internal _totalBalance;
@@ -33,48 +41,19 @@ contract LPKeeperV2 is ILPKeeperV2 {
     mapping(uint256 => mapping(uint256 => uint256)) internal _tokenUser;
     mapping(uint256 => mapping(uint256 => bool)) internal _isKnownTokenUser;
 
-    IBalanceKeeperV2 public override balanceKeeper;
-
-    event SetOwner(address ownerOld, address ownerNew);
-    event SetCanOpen(
-        address indexed owner,
-        address indexed opener,
-        bool indexed newBool
-    );
-    event SetCanAdd(
-        address indexed owner,
-        address indexed adder,
-        bool indexed newBool
-    );
-    event SetCanSubtract(
-        address indexed owner,
-        address indexed subtractor,
-        bool indexed newBool
-    );
-    event Add(
-        address indexed adder,
-        uint256 indexed tokenId,
-        uint256 indexed userId,
-        uint256 amount
-    );
-    event Subtract(
-        address indexed subtractor,
-        uint256 indexed tokenId,
-        uint256 indexed userId,
-        uint256 amount
-    );
-
     constructor(address _owner, IBalanceKeeperV2 _balanceKeeper) {
         owner = _owner;
         balanceKeeper = _balanceKeeper;
     }
 
+    /// @inheritdoc ILPKeeperV2
     function setOwner(address _owner) external override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
+    /// @inheritdoc ILPKeeperV2
     function setCanOpen(address opener, bool _canOpen)
         external
         override
@@ -84,13 +63,13 @@ contract LPKeeperV2 is ILPKeeperV2 {
         emit SetCanOpen(msg.sender, opener, canOpen[opener]);
     }
 
-    // permit/forbid an oracle to add user balances
+    /// @inheritdoc ILPKeeperV2
     function setCanAdd(address adder, bool _canAdd) external override isOwner {
         canAdd[adder] = _canAdd;
         emit SetCanAdd(msg.sender, adder, canAdd[adder]);
     }
 
-    // permit/forbid an oracle to subtract user balances
+    /// @inheritdoc ILPKeeperV2
     function setCanSubtract(address subtractor, bool _canSubtract)
         external
         override
@@ -100,10 +79,12 @@ contract LPKeeperV2 is ILPKeeperV2 {
         emit SetCanSubtract(msg.sender, subtractor, canSubtract[subtractor]);
     }
 
+    /// @inheritdoc ILPKeeperV2
     function isKnownToken(uint256 tokenId) public view override returns (bool) {
         return tokenId < totalTokens;
     }
 
+    /// @inheritdoc ILPKeeperV2
     function isKnownToken(
         string calldata tokenChain,
         bytes calldata tokenAddress
@@ -111,6 +92,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _isKnownToken[tokenChain][tokenAddress];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function tokenChainById(uint256 tokenId)
         external
         view
@@ -121,6 +103,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _tokenChainById[tokenId];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function tokenAddressById(uint256 tokenId)
         external
         view
@@ -131,6 +114,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _tokenAddressById[tokenId];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function tokenChainAddressById(uint256 tokenId)
         external
         view
@@ -141,6 +125,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return (_tokenChainById[tokenId], _tokenAddressById[tokenId]);
     }
 
+    /// @inheritdoc ILPKeeperV2
     function tokenIdByChainAddress(
         string calldata tokenChain,
         bytes calldata tokenAddress
@@ -149,6 +134,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _tokenIdByChainAddress[tokenChain][tokenAddress];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function isKnownTokenUser(uint256 tokenId, uint256 userId)
         external
         view
@@ -158,6 +144,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _isKnownTokenUser[tokenId][userId];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function isKnownTokenUser(
         string calldata tokenChain,
         bytes calldata tokenAddress,
@@ -167,6 +154,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _isKnownTokenUser[tokenId][userId];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function isKnownTokenUser(
         uint256 tokenId,
         string calldata userChain,
@@ -182,6 +170,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _isKnownTokenUser[tokenId][userId];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function isKnownTokenUser(
         string calldata tokenChain,
         bytes calldata tokenAddress,
@@ -199,6 +188,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _isKnownTokenUser[tokenId][userId];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function tokenUser(uint256 tokenId, uint256 userIndex)
         external
         view
@@ -214,6 +204,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _tokenUser[tokenId][userIndex];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function tokenUser(
         string calldata tokenChain,
         bytes calldata tokenAddress,
@@ -229,6 +220,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _tokenUser[tokenId][userIndex];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function totalTokenUsers(uint256 tokenId)
         public
         view
@@ -238,6 +230,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _totalUsers[tokenId];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function totalTokenUsers(
         string calldata tokenChain,
         bytes calldata tokenAddress
@@ -248,6 +241,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _totalUsers[_tokenIdByChainAddress[tokenChain][tokenAddress]];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function balance(uint256 tokenId, uint256 userId)
         external
         view
@@ -257,6 +251,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _balance[tokenId][userId];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function balance(
         uint256 tokenId,
         string calldata userChain,
@@ -272,6 +267,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _balance[tokenId][userId];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function balance(
         string calldata tokenChain,
         bytes calldata tokenAddress,
@@ -284,6 +280,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _balance[tokenId][userId];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function balance(
         string calldata tokenChain,
         bytes calldata tokenAddress,
@@ -304,6 +301,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _balance[tokenId][userId];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function totalBalance(uint256 tokenId)
         external
         view
@@ -313,6 +311,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _totalBalance[tokenId];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function totalBalance(
         string calldata tokenChain,
         bytes calldata tokenAddress
@@ -320,6 +319,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         return _totalBalance[_tokenIdByChainAddress[tokenChain][tokenAddress]];
     }
 
+    /// @inheritdoc ILPKeeperV2
     function open(string calldata tokenChain, bytes calldata tokenAddress)
         external
         override
@@ -335,6 +335,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         }
     }
 
+    /// @inheritdoc ILPKeeperV2
     function add(
         uint256 tokenId,
         uint256 userId,
@@ -346,6 +347,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         _add(tokenId, userId, amount);
     }
 
+    /// @inheritdoc ILPKeeperV2
     function add(
         uint256 tokenId,
         string calldata userChain,
@@ -361,6 +363,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         _add(tokenId, userId, amount);
     }
 
+    /// @inheritdoc ILPKeeperV2
     function add(
         string calldata tokenChain,
         bytes calldata tokenAddress,
@@ -373,6 +376,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         _add(tokenId, userId, amount);
     }
 
+    /// @inheritdoc ILPKeeperV2
     function add(
         string calldata tokenChain,
         bytes calldata tokenAddress,
@@ -404,6 +408,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         emit Add(msg.sender, tokenId, userId, amount);
     }
 
+    /// @inheritdoc ILPKeeperV2
     function subtract(
         uint256 tokenId,
         uint256 userId,
@@ -415,6 +420,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         _subtract(tokenId, userId, amount);
     }
 
+    /// @inheritdoc ILPKeeperV2
     function subtract(
         uint256 tokenId,
         string calldata userChain,
@@ -430,6 +436,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         _subtract(tokenId, userId, amount);
     }
 
+    /// @inheritdoc ILPKeeperV2
     function subtract(
         string calldata tokenChain,
         bytes calldata tokenAddress,
@@ -442,6 +449,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         _subtract(tokenId, userId, amount);
     }
 
+    /// @inheritdoc ILPKeeperV2
     function subtract(
         string calldata tokenChain,
         bytes calldata tokenAddress,

@@ -19,7 +19,7 @@ contract Voter is IVoter {
 
     uint256 public override totalRounds;
     uint256[] public override activeRounds;
-    uint256[] public override pastRounds;
+    uint256[] public override finalizedRounds;
     mapping(uint256 => string) internal _roundName;
     mapping(uint256 => string[]) internal _roundOptions;
 
@@ -168,9 +168,9 @@ contract Voter is IVoter {
         return activeRounds.length;
     }
 
-    // number of finalized past rounds
-    function totalPastRounds() public view override returns (uint256) {
-        return pastRounds.length;
+    // number of finalized finalized rounds
+    function totalFinalizedRounds() public view override returns (uint256) {
+        return finalizedRounds.length;
     }
 
     // number of options in a round
@@ -220,9 +220,9 @@ contract Voter is IVoter {
         return false;
     }
 
-    function isPastRound(uint256 roundId) public view override returns (bool) {
-        for (uint256 i = 0; i < pastRounds.length; i++) {
-            if (pastRounds[i] == roundId) {
+    function isFinalizedRound(uint256 roundId) public view override returns (bool) {
+        for (uint256 i = 0; i < finalizedRounds.length; i++) {
+            if (finalizedRounds[i] == roundId) {
                 return true;
             }
         }
@@ -352,7 +352,7 @@ contract Voter is IVoter {
         emit CheckVoteBalances(msg.sender, user, newBalance);
     }
 
-    // move roundId from activeRounds to pastRounds
+    // move roundId from activeRounds to finalizedRounds
     function finalizeRound(uint256 roundId) public override isOwner {
         uint256[] memory filteredRounds = new uint256[](
             activeRounds.length - 1
@@ -366,7 +366,7 @@ contract Voter is IVoter {
             j++;
         }
         activeRounds = filteredRounds;
-        pastRounds.push(roundId);
+        finalizedRounds.push(roundId);
         emit FinalizeRound(msg.sender, roundId);
     }
 }

@@ -7,6 +7,8 @@ import "./interfaces/IBalanceKeeperV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract BalanceKeeperV2 is IBalanceKeeperV2 {
+
+    /// @inheritdoc IBalanceKeeperV2
     address public override owner;
 
     modifier isOwner() {
@@ -14,54 +16,36 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         _;
     }
 
-    // oracles for changing user balances
+    /// @inheritdoc IBalanceKeeperV2
     mapping(address => bool) public override canAdd;
+    /// @inheritdoc IBalanceKeeperV2
     mapping(address => bool) public override canSubtract;
+    /// @inheritdoc IBalanceKeeperV2
     mapping(address => bool) public override canOpen;
 
-    // chain code => in chain address => user id;
     mapping(uint256 => string) internal _userChainById;
     mapping(uint256 => bytes) internal _userAddressById;
     mapping(string => mapping(bytes => uint256)) internal _userIdByChainAddress;
     mapping(string => mapping(bytes => bool)) internal _isKnownUser;
 
+    /// @inheritdoc IBalanceKeeperV2
     uint256 public override totalUsers;
+    /// @inheritdoc IBalanceKeeperV2
     uint256 public override totalBalance;
     mapping(uint256 => uint256) internal _balance;
-
-    event SetOwner(address ownerOld, address ownerNew);
-    event SetCanOpen(
-        address indexed owner,
-        address indexed opener,
-        bool indexed newBool
-    );
-    event SetCanAdd(
-        address indexed owner,
-        address indexed adder,
-        bool indexed newBool
-    );
-    event SetCanSubtract(
-        address indexed owner,
-        address indexed subtractor,
-        bool indexed newBool
-    );
-    event Add(address indexed adder, uint256 indexed userId, uint256 amount);
-    event Subtract(
-        address indexed subtractor,
-        uint256 indexed userId,
-        uint256 amount
-    );
 
     constructor(address _owner) {
         owner = _owner;
     }
 
+    /// @inheritdoc IBalanceKeeperV2
     function setOwner(address _owner) external override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
+    /// @inheritdoc IBalanceKeeperV2
     function setCanOpen(address opener, bool _canOpen)
         external
         override
@@ -71,13 +55,13 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         emit SetCanOpen(msg.sender, opener, canOpen[opener]);
     }
 
-    // permit/forbid an oracle to add user balances
+    /// @inheritdoc IBalanceKeeperV2
     function setCanAdd(address adder, bool _canAdd) external override isOwner {
         canAdd[adder] = _canAdd;
         emit SetCanAdd(msg.sender, adder, canAdd[adder]);
     }
 
-    // permit/forbid an oracle to subtract user balances
+    /// @inheritdoc IBalanceKeeperV2
     function setCanSubtract(address subtractor, bool _canSubtract)
         external
         override
@@ -87,10 +71,12 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         emit SetCanSubtract(msg.sender, subtractor, canSubtract[subtractor]);
     }
 
+    /// @inheritdoc IBalanceKeeperV2
     function isKnownUser(uint256 userId) public view override returns (bool) {
         return userId < totalUsers;
     }
 
+    /// @inheritdoc IBalanceKeeperV2
     function isKnownUser(string calldata userChain, bytes calldata userAddress)
         public
         view
@@ -100,6 +86,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         return _isKnownUser[userChain][userAddress];
     }
 
+    /// @inheritdoc IBalanceKeeperV2
     function userChainById(uint256 userId)
         external
         view
@@ -110,6 +97,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         return _userChainById[userId];
     }
 
+    /// @inheritdoc IBalanceKeeperV2
     function userAddressById(uint256 userId)
         external
         view
@@ -120,6 +108,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         return _userAddressById[userId];
     }
 
+    /// @inheritdoc IBalanceKeeperV2
     function userChainAddressById(uint256 userId)
         external
         view
@@ -130,6 +119,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         return (_userChainById[userId], _userAddressById[userId]);
     }
 
+    /// @inheritdoc IBalanceKeeperV2
     function userIdByChainAddress(
         string calldata userChain,
         bytes calldata userAddress
@@ -138,10 +128,12 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         return _userIdByChainAddress[userChain][userAddress];
     }
 
+    /// @inheritdoc IBalanceKeeperV2
     function balance(uint256 userId) external view override returns (uint256) {
         return _balance[userId];
     }
 
+    /// @inheritdoc IBalanceKeeperV2
     function balance(string calldata userChain, bytes calldata userAddress)
         external
         view
@@ -151,6 +143,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         return _balance[_userIdByChainAddress[userChain][userAddress]];
     }
 
+    /// @inheritdoc IBalanceKeeperV2
     function open(string calldata userChain, bytes calldata userAddress)
         external
         override
@@ -166,13 +159,14 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         }
     }
 
-    // add user balance
+    /// @inheritdoc IBalanceKeeperV2
     function add(uint256 userId, uint256 amount) external override {
         require(canAdd[msg.sender], "not allowed to add");
         require(isKnownUser(userId), "user is not known");
         _add(userId, amount);
     }
 
+    /// @inheritdoc IBalanceKeeperV2
     function add(
         string calldata userChain,
         bytes calldata userAddress,
@@ -189,13 +183,14 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         emit Add(msg.sender, userId, amount);
     }
 
-    // subtract user balance
+    /// @inheritdoc IBalanceKeeperV2
     function subtract(uint256 userId, uint256 amount) external override {
         require(canSubtract[msg.sender], "not allowed to subtract");
         require(isKnownUser(userId), "user is not known");
         _subtract(userId, amount);
     }
 
+    /// @inheritdoc IBalanceKeeperV2
     function subtract(
         string calldata userChain,
         bytes calldata userAddress,
@@ -212,6 +207,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         emit Subtract(msg.sender, userId, amount);
     }
 
+    /// @inheritdoc IShares
     function shareById(uint256 userId)
         external
         view
@@ -221,6 +217,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         return _balance[userId];
     }
 
+    /// @inheritdoc IShares
     function totalShares() external view override returns (uint256) {
         return totalBalance;
     }

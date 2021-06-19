@@ -150,35 +150,35 @@ describe('ClaimGTON', () => {
     it('fails if claim has not been activated', async () => {
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
-      await expect(claimGTON.claim(100, other.address)).to.be.reverted
+      await expect(claimGTON.claim(other.address, 100)).to.be.reverted
     })
 
     it('fails if balance is smaller than claim amount', async () => {
       await claimGTON.setClaimActivated(true)
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
-      await expect(claimGTON.claim(101, other.address)).to.be.reverted
+      await expect(claimGTON.claim(other.address, 101)).to.be.reverted
     })
 
     it("fails if claimGTON is not allowed to subtract", async function () {
       await claimGTON.setClaimActivated(true)
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
-      await expect(claimGTON.claim(100, other.address)).to.be.reverted
+      await expect(claimGTON.claim(other.address, 100)).to.be.reverted
     })
 
     it("fails if claimGTON is not allowed to check balances", async function () {
       await claimGTON.setClaimActivated(true)
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
-      await expect(claimGTON.claim(100, other.address)).to.be.reverted
+      await expect(claimGTON.claim(other.address, 100)).to.be.reverted
     })
 
     it("fails if claimGTON is not allowed to transfer token", async function () {
       await claimGTON.setClaimActivated(true)
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
       await voter.setCanCheck(claimGTON.address, true)
-      await expect(claimGTON.claim(100, other.address)).to.be.reverted
+      await expect(claimGTON.claim(other.address, 100)).to.be.reverted
     })
 
     it("transfers 100% if limit is not activated", async function () {
@@ -186,7 +186,7 @@ describe('ClaimGTON', () => {
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
-      await claimGTON.claim(100, other.address)
+      await claimGTON.claim(other.address, 100)
       expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(0)
     })
 
@@ -196,7 +196,7 @@ describe('ClaimGTON', () => {
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
-      await claimGTON.claim(50, other.address)
+      await claimGTON.claim(other.address, 50)
       expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(50)
     })
 
@@ -206,7 +206,7 @@ describe('ClaimGTON', () => {
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
-      await expect(claimGTON.claim(51, other.address)).to.be.reverted
+      await expect(claimGTON.claim(other.address, 51)).to.be.reverted
     })
 
     it("does not transfer more than 50% over the course of a day if limit is activated", async function () {
@@ -215,8 +215,8 @@ describe('ClaimGTON', () => {
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
-      await claimGTON.claim(50, other.address)
-      await expect(claimGTON.claim(1, other.address)).to.be.reverted
+      await claimGTON.claim(other.address, 50)
+      await expect(claimGTON.claim(other.address, 1)).to.be.reverted
     })
 
     it("transfers less than 75% of initial balance over the course of two days if limit is activated", async function () {
@@ -225,9 +225,9 @@ describe('ClaimGTON', () => {
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
-      await claimGTON.claim(50, other.address)
+      await claimGTON.claim(other.address, 50)
       await claimGTON.advanceTime(86401)
-      await claimGTON.claim(25, other.address)
+      await claimGTON.claim(other.address, 25)
       expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(25)
     })
 
@@ -237,7 +237,7 @@ describe('ClaimGTON', () => {
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
-      await claimGTON.claim(45, other.address)
+      await claimGTON.claim(other.address, 45)
       expect(await claimGTON.limitMax(wallet.address)).to.eq(5)
       expect(await claimGTON.lastLimitTimestamp(wallet.address)).to.eq(TEST_START_TIME)
     })
@@ -248,7 +248,7 @@ describe('ClaimGTON', () => {
       await balanceKeeper.setCanSubtract(claimGTON.address, true)
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
-      await expect(claimGTON.claim(50, other.address))
+      await expect(claimGTON.claim(other.address, 50))
           .to.emit(claimGTON, 'Claim')
           .withArgs(wallet.address, other.address, 50)
     })

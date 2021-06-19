@@ -34,8 +34,8 @@ describe('FarmCurved', () => {
 
   it('starting state after deployment', async () => {
     expect(await farm.totalUnlocked()).to.eq(0)
-    expect(await farm.lastClaimedTimestamp()).to.eq(0)
-    expect(await farm.startTimestampOffset()).to.eq(0)
+    expect(await farm.lastTimestamp()).to.eq(0)
+    expect(await farm.startTimestamp()).to.eq(0)
     expect(await farm.farmingStarted()).to.eq(false)
   })
 
@@ -61,15 +61,15 @@ describe('FarmCurved', () => {
     })
   })
 
-  describe('#setDeprecated', () => {
+  describe('#stopFarming', () => {
     it('fails if caller is not owner', async () => {
-      await expect(farm.connect(other).setDeprecated()).to.be.reverted
+      await expect(farm.connect(other).stopFarming()).to.be.reverted
     })
 
     it('updates deprecated', async () => {
-      expect(await farm.deprecated()).to.eq(false)
-      await farm.setDeprecated()
-      expect(await farm.deprecated()).to.eq(true)
+      expect(await farm.farmingStopped()).to.eq(false)
+      await farm.stopFarming()
+      expect(await farm.farmingStopped()).to.eq(true)
     })
   })
 
@@ -81,13 +81,13 @@ describe('FarmCurved', () => {
     it('sets starting timestamp', async () => {
       await farm.startFarming()
       farm.advanceTime(1)
-      await expect(await farm.startTimestampOffset()).to.be.eq(TEST_START_TIME)
+      await expect(await farm.startTimestamp()).to.be.eq(TEST_START_TIME)
     })
 
     it('fails last claimed timestamp', async () => {
       await farm.startFarming()
       farm.advanceTime(1)
-      await expect(await farm.lastClaimedTimestamp()).to.be.eq(TEST_START_TIME)
+      await expect(await farm.lastTimestamp()).to.be.eq(TEST_START_TIME)
     })
   })
 
@@ -100,7 +100,7 @@ describe('FarmCurved', () => {
     it('cannot be called after the contract is deprecated', async () => {
       await farm.startFarming()
       farm.advanceTime(1)
-      await farm.setDeprecated()
+      await farm.stopFarming()
       await expect(farm.unlockAsset()).to.be.reverted
     })
 

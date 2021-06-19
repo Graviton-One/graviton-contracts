@@ -127,7 +127,7 @@ describe('BalanceAdderV2', () => {
 
   it('starting state after deployment', async () => {
     expect(await balanceAdder.totalUnlocked()).to.eq(0)
-    expect(await balanceAdder.lastUser()).to.eq(0)
+    expect(await balanceAdder.currentUser()).to.eq(0)
     expect(await balanceAdder.totalUsers()).to.eq(0)
     expect(await balanceAdder.currentPortion()).to.eq(0)
     expect(await balanceAdder.currentFarm()).to.eq(0)
@@ -286,9 +286,9 @@ describe('BalanceAdderV2', () => {
       await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(1)
-      expect(await balanceAdder.lastUser()).to.eq(1)
+      expect(await balanceAdder.currentUser()).to.eq(1)
       await balanceAdder.processBalances(1)
-      expect(await balanceAdder.lastUser()).to.eq(0)
+      expect(await balanceAdder.currentUser()).to.eq(0)
     })
 
     it('does not change last user if step is zero', async () => {
@@ -297,11 +297,11 @@ describe('BalanceAdderV2', () => {
       await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(0)
-      expect(await balanceAdder.lastUser()).to.eq(0)
+      expect(await balanceAdder.currentUser()).to.eq(0)
       await balanceAdder.processBalances(1)
-      expect(await balanceAdder.lastUser()).to.eq(1)
+      expect(await balanceAdder.currentUser()).to.eq(1)
       await balanceAdder.processBalances(0)
-      expect(await balanceAdder.lastUser()).to.eq(1)
+      expect(await balanceAdder.currentUser()).to.eq(1)
     })
 
     it('sets last user to zero when step is equal to total users', async () => {
@@ -310,7 +310,7 @@ describe('BalanceAdderV2', () => {
       await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(2)
-      expect(await balanceAdder.lastUser()).to.eq(0)
+      expect(await balanceAdder.currentUser()).to.eq(0)
     })
 
     it('sets last user to zero when step is larger than total users', async () => {
@@ -319,7 +319,7 @@ describe('BalanceAdderV2', () => {
       await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(3)
-      expect(await balanceAdder.lastUser()).to.eq(0)
+      expect(await balanceAdder.currentUser()).to.eq(0)
     })
 
     describe('#EB', () => {

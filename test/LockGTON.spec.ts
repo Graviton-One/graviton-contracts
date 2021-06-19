@@ -78,7 +78,7 @@ describe('LockGTON', () => {
       await token0.approve(lockGTON.address, 1)
       await lockGTON.setCanLock(true)
       expect(lockGTON.lock(wallet.address, 1))
-        .to.emit(lockGTON, "Lock")
+        .to.emit(lockGTON, "LockGTON")
         .withArgs(token0.address,
                   wallet.address,
                   wallet.address,

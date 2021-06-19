@@ -16,7 +16,7 @@ abstract contract ImpactKeeper is IImpactKeeper {
         uint256 action
     );
 
-    // priveleged adresses
+    // priveleged addresses
     address public owner;
     address public nebula;
 

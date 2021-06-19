@@ -7,6 +7,8 @@ import "./interfaces/IOracleParserV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract OracleParserV2 is IOracleParserV2 {
+
+    /// @inheritdoc IOracleParserV2
     address public override owner;
 
     modifier isOwner() {
@@ -14,6 +16,7 @@ contract OracleParserV2 is IOracleParserV2 {
         _;
     }
 
+    /// @inheritdoc IOracleParserV2
     address public override nebula;
 
     modifier isNebula() {
@@ -21,23 +24,11 @@ contract OracleParserV2 is IOracleParserV2 {
         _;
     }
 
+    /// @inheritdoc IOracleParserV2
     IOracleRouterV2 public override oracleRouter;
 
+    /// @inheritdoc IOracleParserV2
     mapping(bytes16 => bool) public override uuidIsProcessed;
-
-    event AttachValue(
-        address nebula,
-        bytes16 uuid,
-        string chain,
-        bytes emiter,
-        bytes32 topic0,
-        bytes token,
-        bytes sender,
-        bytes receiver,
-        uint256 amount
-    );
-    event SetOwner(address ownerOld, address ownerNew);
-    event SetNebula(address nebulaOld, address nebulaNew);
 
     constructor(
         address _owner,
@@ -49,18 +40,21 @@ contract OracleParserV2 is IOracleParserV2 {
         nebula = _nebula;
     }
 
+    /// @inheritdoc IOracleParserV2
     function setOwner(address _owner) external override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
+    /// @inheritdoc IOracleParserV2
     function setNebula(address _nebula) external override isOwner {
         address nebulaOld = nebula;
         nebula = _nebula;
         emit SetNebula(nebulaOld, _nebula);
     }
 
+    /// @inheritdoc IOracleParserV2
     function setOracleRouter(IOracleRouterV2 _oracleRouter)
         external
         override
@@ -69,6 +63,7 @@ contract OracleParserV2 is IOracleParserV2 {
         oracleRouter = _oracleRouter;
     }
 
+    /// @inheritdoc IOracleParserV2
     function deserializeUint(
         bytes memory b,
         uint256 startPos,
@@ -81,6 +76,7 @@ contract OracleParserV2 is IOracleParserV2 {
         return v;
     }
 
+    /// @inheritdoc IOracleParserV2
     function deserializeAddress(bytes memory b, uint256 startPos)
         public
         pure
@@ -90,6 +86,7 @@ contract OracleParserV2 is IOracleParserV2 {
         return address(uint160(deserializeUint(b, startPos, 20)));
     }
 
+    /// @inheritdoc IOracleParserV2
     function bytesToBytes32(bytes memory b, uint256 offset)
         public
         pure
@@ -103,6 +100,7 @@ contract OracleParserV2 is IOracleParserV2 {
         return out;
     }
 
+    /// @inheritdoc IOracleParserV2
     function bytesToBytes16(bytes memory b, uint256 offset)
         public
         pure
@@ -116,6 +114,7 @@ contract OracleParserV2 is IOracleParserV2 {
         return out;
     }
 
+    /// @inheritdoc IOracleParserV2
     function equal(string memory a, string memory b)
         public
         pure
@@ -125,33 +124,36 @@ contract OracleParserV2 is IOracleParserV2 {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
+    /// @inheritdoc IOracleParserV2
     function attachValue(bytes calldata impactData) external override isNebula {
+        // @dev ignore data with unexpected length
         if (impactData.length != 200) {
             return;
-        } // ignore data with unexpected length
-
-        bytes16 uuid = bytesToBytes16(impactData, 0); // [  0: 16]
+        }
+        bytes16 uuid = bytesToBytes16(impactData, 0);                      // [  0: 16]
+        // @dev parse data only once
         if (uuidIsProcessed[uuid]) {
             return;
-        } // parse data only once
+        }
         uuidIsProcessed[uuid] = true;
         string memory chain = string(abi.encodePacked(impactData[16:19])); // [ 16: 19]
         if (equal(chain, "EVM")) {
-            bytes memory emiter = impactData[19:39]; // [ 19: 39]
-            bytes1 topics = bytes1(impactData[39]); // [ 39: 40]
+            bytes memory emiter = impactData[19:39];                       // [ 19: 39]
+            bytes1 topics = bytes1(impactData[39]);                        // [ 39: 40]
+            // @dev ignore data with unexpected number of topics
             if (
-                keccak256(abi.encodePacked(topics)) != // ignore data with unexpected number of topics
+                keccak256(abi.encodePacked(topics)) !=
                 keccak256(
                     abi.encodePacked(bytes1(abi.encodePacked(uint256(4))[31]))
                 )
             ) {
                 return;
             }
-            bytes32 topic0 = bytesToBytes32(impactData, 40); // [ 40: 72]
-            bytes memory token = impactData[84:104]; // [ 72:104][12:32]
-            bytes memory sender = impactData[116:136]; // [104:136][12:32]
-            bytes memory receiver = impactData[148:168]; // [136:168][12:32]
-            uint256 amount = deserializeUint(impactData, 168, 32); // [168:200]
+            bytes32 topic0 = bytesToBytes32(impactData, 40);                // [ 40: 72]
+            bytes memory token = impactData[84:104];                        // [ 72:104][12:32]
+            bytes memory sender = impactData[116:136];                      // [104:136][12:32]
+            bytes memory receiver = impactData[148:168];                    // [136:168][12:32]
+            uint256 amount = deserializeUint(impactData, 168, 32);          // [168:200]
 
             oracleRouter.routeValue(
                 uuid,

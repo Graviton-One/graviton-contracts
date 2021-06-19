@@ -7,6 +7,8 @@ import "./interfaces/IOracleRouterV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract OracleRouterV2 is IOracleRouterV2 {
+
+    /// @inheritdoc IOracleRouterV2
     address public override owner;
 
     modifier isOwner() {
@@ -14,57 +16,21 @@ contract OracleRouterV2 is IOracleRouterV2 {
         _;
     }
 
+    /// @inheritdoc IOracleRouterV2
     IBalanceKeeperV2 public override balanceKeeper;
+    /// @inheritdoc IOracleRouterV2
     ILPKeeperV2 public override lpKeeper;
+    /// @inheritdoc IOracleRouterV2
     bytes32 public override gtonAddTopic;
+    /// @inheritdoc IOracleRouterV2
     bytes32 public override gtonSubTopic;
+    /// @inheritdoc IOracleRouterV2
     bytes32 public override lpAddTopic;
+    /// @inheritdoc IOracleRouterV2
     bytes32 public override lpSubTopic;
 
+    /// @inheritdoc IOracleRouterV2
     mapping(address => bool) public override canRoute;
-
-    event SetCanRoute(
-        address indexed owner,
-        address indexed parser,
-        bool indexed newBool
-    );
-    event GTONAdd(
-        bytes16 uuid,
-        string chain,
-        bytes emiter,
-        bytes token,
-        bytes sender,
-        bytes receiver,
-        uint256 amount
-    );
-    event GTONSub(
-        bytes16 uuid,
-        string chain,
-        bytes emiter,
-        bytes token,
-        bytes sender,
-        bytes receiver,
-        uint256 amount
-    );
-    event LPAdd(
-        bytes16 uuid,
-        string chain,
-        bytes emiter,
-        bytes token,
-        bytes sender,
-        bytes receiver,
-        uint256 amount
-    );
-    event LPSub(
-        bytes16 uuid,
-        string chain,
-        bytes emiter,
-        bytes token,
-        bytes sender,
-        bytes receiver,
-        uint256 amount
-    );
-    event SetOwner(address ownerOld, address ownerNew);
 
     constructor(
         address _owner,
@@ -84,23 +50,34 @@ contract OracleRouterV2 is IOracleRouterV2 {
         lpSubTopic = _lpSubTopic;
     }
 
+    /// @inheritdoc IOracleRouterV2
+    function setOwner(address _owner) external override isOwner {
+        address ownerOld = owner;
+        owner = _owner;
+        emit SetOwner(ownerOld, _owner);
+    }
+
+    /// @inheritdoc IOracleRouterV2
     function setGTONAddTopic(bytes32 _gtonAddTopic) external override isOwner {
         gtonAddTopic = _gtonAddTopic;
     }
 
+    /// @inheritdoc IOracleRouterV2
     function setGTONSubTopic(bytes32 _gtonSubTopic) external override isOwner {
         gtonSubTopic = _gtonSubTopic;
     }
 
+    /// @inheritdoc IOracleRouterV2
     function setLPAddTopic(bytes32 _lpAddTopic) external override isOwner {
         lpAddTopic = _lpAddTopic;
     }
 
+    /// @inheritdoc IOracleRouterV2
     function setLPSubTopic(bytes32 _lpSubTopic) external override isOwner {
         lpSubTopic = _lpSubTopic;
     }
 
-    // permit/forbid a parser to send data to router
+    /// @inheritdoc IOracleRouterV2
     function setCanRoute(address parser, bool _canRoute)
         external
         override
@@ -114,6 +91,7 @@ contract OracleRouterV2 is IOracleRouterV2 {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
+    /// @inheritdoc IOracleRouterV2
     function routeValue(
         bytes16 uuid,
         string memory chain,

@@ -7,49 +7,51 @@ import "./interfaces/IFarm.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract FarmCurved is IFarm {
+
+    /// @inheritdoc IFarm
     address public override owner;
-
-    uint256 public override totalUnlocked;
-
-    uint256 public override lastClaimedTimestamp;
-    uint256 public override startTimestampOffset;
-    uint256 public c;
-    uint256 public a;
-
-    bool public override deprecated;
-    bool public override farmingStarted;
 
     modifier isOwner() {
         require(msg.sender == owner, "Caller is not owner");
         _;
     }
 
-    event SetOwner(address ownerOld, address ownerNew);
+    /// @inheritdoc IFarm
+    bool public override farmingStarted;
+    /// @inheritdoc IFarm
+    bool public override farmingStopped;
 
-    function setOwner(address _owner) public override isOwner {
-        address ownerOld = owner;
-        owner = _owner;
-        emit SetOwner(ownerOld, _owner);
-    }
+    /// @inheritdoc IFarm
+    uint256 public override startTimestamp;
+    /// @inheritdoc IFarm
+    uint256 public override lastTimestamp;
+    /// @inheritdoc IFarm
+    uint256 public override totalUnlocked;
 
-    function setDeprecated() public override isOwner {
-        deprecated = true;
-    }
+    uint256 public c;
+    uint256 public a;
 
     constructor(
         address _owner,
         uint256 _a,
         uint256 _c,
-        uint256 _startTimestampOffset
+        uint256 _startTimestamp
     ) {
         owner = _owner;
         a = _a;
         c = _c;
-        if (_startTimestampOffset != 0) {
+        if (_startTimestamp != 0) {
             farmingStarted = true;
-            startTimestampOffset = _startTimestampOffset;
-            lastClaimedTimestamp = startTimestampOffset;
+            startTimestamp = _startTimestamp;
+            lastTimestamp = startTimestamp;
         }
+    }
+
+    /// @inheritdoc IFarm
+    function setOwner(address _owner) public override isOwner {
+        address ownerOld = owner;
+        owner = _owner;
+        emit SetOwner(ownerOld, _owner);
     }
 
     /// @dev Returns the block timestamp. This method is overridden in tests.
@@ -57,29 +59,34 @@ contract FarmCurved is IFarm {
         return block.timestamp;
     }
 
+    /// @inheritdoc IFarm
     function startFarming() public override isOwner {
         if (!farmingStarted) {
             farmingStarted = true;
-            startTimestampOffset = _blockTimestamp();
-            lastClaimedTimestamp = startTimestampOffset;
+            startTimestamp = _blockTimestamp();
+            lastTimestamp = startTimestamp;
         }
     }
 
-    function unlockAsset() public override {
-        require(farmingStarted, "farming is not started yet");
-        require(!deprecated, "This contract is deprecated.");
+    /// @inheritdoc IFarm
+    function stopFarming() public override isOwner {
+        farmingStopped = true;
+    }
 
-        uint256 lastTimestamp = lastClaimedTimestamp;
+    /// @inheritdoc IFarm
+    function unlockAsset() public override {
+        require(farmingStarted, "farming has not started yet");
+        require(!farmingStopped, "farming has been stopped.");
+
         uint256 currentTimestamp = _blockTimestamp();
 
-        uint256 lastY = (a * (1e18)) /
-            (lastTimestamp + a / c - startTimestampOffset);
+        uint256 lastY = (a * (1e18)) / (lastTimestamp + a / c - startTimestamp);
         uint256 currentY = (a * (1e18)) /
-            (currentTimestamp + a / c - startTimestampOffset);
+            (currentTimestamp + a / c - startTimestamp);
 
         uint256 addAmount = lastY - currentY;
 
-        lastClaimedTimestamp = currentTimestamp;
+        lastTimestamp = currentTimestamp;
 
         totalUnlocked += addAmount;
     }

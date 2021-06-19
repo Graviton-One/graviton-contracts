@@ -5,7 +5,7 @@ pragma solidity >=0.8.0;
 /// @notice Tracks voting rounds according to governance balances of users
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-interface IVoter {
+interface IVoterV2 {
     /// @notice User that can grant access permissions and perform privileged actions
     function owner() external view returns (address);
 
@@ -115,4 +115,51 @@ interface IVoter {
 
     /// @notice Decreases votes of `user` when their balance is depleted, preserving proportions
     function checkVoteBalances(address user) external;
+
+    /// @notice Event emitted when the owner changes via #setOwner`.
+    /// @param ownerOld The account that was the previous owner of the contract
+    /// @param ownerNew The account that became the owner of the contract
+    event SetOwner(address ownerOld, address ownerNew);
+
+    /// @notice Event emitted when the `checker` permission is updated via `#setCanCheck`
+    /// @param owner The owner account at the time of change
+    /// @param checker The account whose permission to check voting balances was updated
+    /// @param newBool Updated permission
+    event SetCanCheck(
+        address indexed owner,
+        address indexed checker,
+        bool indexed newBool
+    );
+
+    /// @notice Event emitted when a voting round is started via `#startRound`
+    /// @param owner The owner account at the time of change
+    /// @param totalRounds The total number of voting rounds after the voting round is started
+    /// @param name The voting round name, i.e. "Proposal"
+    /// @param options The array of option names, i.e. ["Approve", "Reject"]
+    event StartRound(
+        address indexed owner,
+        uint256 totalRounds,
+        string name,
+        string[] options
+    );
+
+    /// @notice Event emitted when a voting round is finalized via `#finalizeRound`
+    /// @param owner The owner account at the time of change
+    /// @param roundId Unique id of the voting round
+    event FinalizeRound(address indexed owner, uint256 roundId);
+
+    /// @notice Event emitted when a user sends votes via `#castVotes`
+    /// @param voter The account that cast votes
+    /// @param roundId Unique id of the voting round
+    event CastVotes(address indexed voter, uint256 indexed roundId);
+
+    /// @notice Event emitted when a `checker` decreases a voting balance preserving proportions via `#checkVoteBalances`
+    /// @param checker The account that checked the voting balance
+    /// @param user The account whose voting balance was checked
+    /// @param newBalance The voting balance after checking
+    event CheckVoteBalances(
+        address indexed checker,
+        address indexed user,
+        uint256 newBalance
+    );
 }

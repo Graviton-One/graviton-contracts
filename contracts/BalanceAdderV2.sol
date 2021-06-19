@@ -7,6 +7,7 @@ import "./interfaces/IBalanceAdderV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract BalanceAdderV2 is IBalanceAdderV2 {
+    /// @inheritdoc IBalanceAdderV2
     address public override owner;
 
     modifier isOwner() {
@@ -14,43 +15,58 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
         _;
     }
 
+    /// @inheritdoc IBalanceAdderV2
     IShares[] public override shares;
+    /// @inheritdoc IBalanceAdderV2
     IFarm[] public override farms;
+    /// @inheritdoc IBalanceAdderV2
     uint256[] public override lastPortions;
-    uint256 public override totalFarms;
 
-    uint256 public override lastUser;
+    /// @inheritdoc IBalanceAdderV2
+    uint256 public override currentUser;
+    /// @inheritdoc IBalanceAdderV2
     uint256 public override currentFarm;
+    /// @inheritdoc IBalanceAdderV2
     uint256 public override currentPortion;
+    /// @inheritdoc IBalanceAdderV2
     uint256 public override totalUnlocked;
+    /// @inheritdoc IBalanceAdderV2
     uint256 public override totalBalance;
+    /// @inheritdoc IBalanceAdderV2
     uint256 public override totalUsers;
 
+    /// @inheritdoc IBalanceAdderV2
     IBalanceKeeperV2 public override balanceKeeper;
 
+    /// @inheritdoc IBalanceAdderV2
     mapping(uint256 => bool) public override isProcessing;
-
-    event SetOwner(address ownerOld, address ownerNew);
 
     constructor(address _owner, IBalanceKeeperV2 _balanceKeeper) {
         owner = _owner;
         balanceKeeper = _balanceKeeper;
     }
 
+    /// @inheritdoc IBalanceAdderV2
     function setOwner(address _owner) external override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
+    /// @inheritdoc IBalanceAdderV2
+    function totalFarms() external view override returns (uint256) {
+        return farms.length;
+    }
+
+    /// @inheritdoc IBalanceAdderV2
     function addFarm(IShares _share, IFarm _farm) external override isOwner {
         shares.push(_share);
         farms.push(_farm);
         lastPortions.push(0);
-        totalFarms++;
     }
 
-    // remove index from arrays
+    /// @inheritdoc IBalanceAdderV2
+    /// @dev remove index from arrays
     function removeFarm(uint256 farmId) external override isOwner {
         require(!isProcessing[currentFarm], "farm is processing balances");
 
@@ -88,25 +104,25 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
             j++;
         }
         lastPortions = newLastPortions;
-        totalFarms--;
     }
 
-    // iterates over all users and then increments current farm index
+    /// @inheritdoc IBalanceAdderV2
     function processBalances(uint256 step) external override {
-        if (currentFarm >= farms.length) {
+        /// @dev Return if there are no farming campaigns
+        if (farms.length == 0) {
             return;
         }
 
-        if (lastUser == 0) {
+        uint256 fromUser = currentUser;
+        uint256 toUser = currentUser + step;
+
+        if (!isProcessing[currentFarm] && toUser > 0) {
             isProcessing[currentFarm] = true;
             totalUsers = balanceKeeper.totalUsers();
             totalBalance = shares[currentFarm].totalShares();
             totalUnlocked = farms[currentFarm].totalUnlocked();
             currentPortion = totalUnlocked - lastPortions[currentFarm];
         }
-
-        uint256 toUser = lastUser + step;
-        uint256 fromUser = lastUser;
 
         if (toUser > totalUsers) {
             toUser = totalUsers;
@@ -123,7 +139,6 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
         }
 
         if (toUser == totalUsers) {
-            lastUser = 0;
             lastPortions[currentFarm] = totalUnlocked;
             isProcessing[currentFarm] = false;
             if (currentFarm == farms.length - 1) {
@@ -131,8 +146,9 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
             } else {
                 currentFarm++;
             }
+            currentUser = 0;
         } else {
-            lastUser = toUser;
+            currentUser = toUser;
         }
     }
 }

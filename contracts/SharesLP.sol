@@ -7,8 +7,13 @@ import "./interfaces/ISharesLP.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract SharesLP is ISharesLP {
+
+    /// @inheritdoc ISharesLP
     IBalanceKeeperV2 public override balanceKeeper;
+    /// @inheritdoc ISharesLP
     ILPKeeperV2 public override lpKeeper;
+
+    /// @inheritdoc ISharesLP
     uint256 public override tokenId;
 
     constructor(
@@ -22,6 +27,7 @@ contract SharesLP is ISharesLP {
         tokenId = _tokenId;
     }
 
+    /// @inheritdoc IShares
     function shareById(uint256 userId)
         external
         view
@@ -31,6 +37,7 @@ contract SharesLP is ISharesLP {
         return lpKeeper.balance(tokenId, userId);
     }
 
+    /// @inheritdoc IShares
     function totalShares() external view override returns (uint256) {
         return lpKeeper.totalBalance(tokenId);
     }
