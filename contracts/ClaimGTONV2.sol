@@ -101,7 +101,7 @@ contract ClaimGTONV2 is IClaimGTONV2 {
             limitMax[msg.sender] -= amount;
         }
         balanceKeeper.subtract("EVM", abi.encodePacked(msg.sender), amount);
-        voter.checkVoteBalances(msg.sender);
+        voter.checkVoteBalances(balanceKeeper.userIdByChainAddress("EVM", abi.encodePacked(msg.sender)));
         governanceToken.transferFrom(wallet, receiver, amount);
         emit Claim(msg.sender, receiver, amount);
     }
