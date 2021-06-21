@@ -112,6 +112,15 @@ contract VoterV2 is IVoterV2 {
     }
 
     /// @inheritdoc IVoterV2
+    function votesForOptionByUser(
+        uint roundId,
+        uint optionId,
+        uint userId
+    ) public view override returns (uint) {
+        return rounds[roundId].options[optionId].votes[userId];
+    }
+
+    /// @inheritdoc IVoterV2
     function votesInRoundByUser(uint roundId, uint userId)
         public
         view
@@ -120,18 +129,9 @@ contract VoterV2 is IVoterV2 {
     {
         uint sum;
         for (uint i = 0; i < rounds[roundId].totalOptions; i++) {
-            sum += rounds[roundId].options[i].votes[userId];
+            sum += votesForOptionByUser(roundId, i, userId);
         }
         return sum;
-    }
-
-    /// @inheritdoc IVoterV2
-    function votesForOptionByUser(
-        uint roundId,
-        uint optionId,
-        uint userId
-    ) public view override returns (uint) {
-        return rounds[roundId].options[optionId].votes[userId];
     }
 
     /// @inheritdoc IVoterV2
@@ -186,6 +186,20 @@ contract VoterV2 is IVoterV2 {
     }
 
     /// @inheritdoc IVoterV2
+    function votesForOption(uint roundId, uint optionId)
+        public
+        view
+        override
+        returns (uint)
+    {
+        uint sum;
+        for (uint i = 0; i < users.length; i++) {
+            sum += votesForOptionByUser(roundId, optionId, users[i]);
+        }
+        return sum;
+    }
+
+    /// @inheritdoc IVoterV2
     function votesInRound(uint roundId)
         external
         view
@@ -195,20 +209,6 @@ contract VoterV2 is IVoterV2 {
         uint sum;
         for (uint i; i < rounds[roundId].totalOptions; i++) {
             sum += votesForOption(roundId, i);
-        }
-        return sum;
-    }
-
-    /// @inheritdoc IVoterV2
-    function votesForOption(uint roundId, uint optionId)
-        public
-        view
-        override
-        returns (uint)
-    {
-        uint sum;
-        for (uint i = 0; i < users.length; i++) {
-            sum += rounds[roundId].options[optionId].votes[users[i]];
         }
         return sum;
     }
