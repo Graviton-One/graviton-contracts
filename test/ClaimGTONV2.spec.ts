@@ -4,7 +4,7 @@ import { BalanceKeeperV2 } from '../typechain/BalanceKeeperV2'
 import { VoterV2 } from '../typechain/VoterV2'
 import { MockTimeClaimGTONV2 } from '../typechain/MockTimeClaimGTONV2'
 import { claimGTONV2Fixture, TEST_START_TIME } from './shared/fixtures'
-import { MOCK_CHAIN } from './shared/utilities'
+import { EVM_CHAIN } from './shared/utilities'
 import { expect } from './shared/expect'
 
 describe('ClaimGTON', () => {
@@ -26,9 +26,9 @@ describe('ClaimGTON', () => {
   beforeEach('deploy test contracts', async () => {
     ;({ token0, token1, token2, balanceKeeper, voter, claimGTON } = await loadFixture(claimGTONV2Fixture))
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper['add(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 100)
+      await balanceKeeper['add(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 100)
   })
 
   it('constructor initializes variables', async () => {
@@ -177,7 +177,7 @@ describe('ClaimGTON', () => {
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
       await claimGTON.claim(other.address, 100)
-      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(0)
+      expect(await balanceKeeper['balance(string,bytes)'](EVM_CHAIN, wallet.address)).to.eq(0)
     })
 
     it("transfers less then 50% if limit is activated", async function () {
@@ -187,7 +187,7 @@ describe('ClaimGTON', () => {
       await voter.setCanCheck(claimGTON.address, true)
       await token0.approve(claimGTON.address, 100)
       await claimGTON.claim(other.address, 50)
-      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(50)
+      expect(await balanceKeeper['balance(string,bytes)'](EVM_CHAIN, wallet.address)).to.eq(50)
     })
 
     it("does not transfer more than 50% at once if limit is activated", async function () {
@@ -218,7 +218,7 @@ describe('ClaimGTON', () => {
       await claimGTON.claim(other.address, 50)
       await claimGTON.advanceTime(86401)
       await claimGTON.claim(other.address, 25)
-      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(25)
+      expect(await balanceKeeper['balance(string,bytes)'](EVM_CHAIN, wallet.address)).to.eq(25)
     })
 
     it("updates limit variables if limit is activated", async function () {

@@ -4,7 +4,7 @@ import { SharesEB } from '../typechain/SharesEB'
 import { ImpactEB } from '../typechain/ImpactEB'
 import { BalanceKeeperV2 } from '../typechain/BalanceKeeperV2'
 import { sharesEBFixture } from './shared/fixtures'
-import { makeValueImpact } from './shared/utilities'
+import { makeValueImpact, EVM_CHAIN } from './shared/utilities'
 
 import { expect } from './shared/expect'
 
@@ -113,13 +113,13 @@ describe('SharesEB', () => {
 
     it('returns 0 if user has no impact', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open("EVM", wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       expect(await sharesEB.shareById(0)).to.eq(0)
     })
 
     it('returns user impact', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open("EVM", wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       await impactEB
         .connect(nebula)
         .attachValue(makeValueImpact(token1.address, wallet.address, "1000", "0", "0"));
@@ -131,8 +131,8 @@ describe('SharesEB', () => {
   describe('#totalShares', () => {
     it('returns total impact', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open("EVM", wallet.address)
-      await balanceKeeper.open("EVM", other.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, other.address)
       await impactEB
         .connect(nebula)
         .attachValue(makeValueImpact(token1.address, wallet.address, "1000", "0", "0"));

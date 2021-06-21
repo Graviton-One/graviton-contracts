@@ -13,7 +13,8 @@ import { makeValueParser,
          LP_SUB_TOPIC,
          OTHER_TOPIC,
          MOCK_UUID,
-         MOCK_CHAIN } from "./shared/utilities";
+         EVM_CHAIN,
+         BNB_CHAIN } from "./shared/utilities";
 
 describe('OracleParser', () => {
   const [wallet, other, nebula] = waffle.provider.getWallets()
@@ -155,7 +156,7 @@ describe('OracleParser', () => {
 
   describe('#attachValue', () => {
     it('fails if caller is not nebula', async () => {
-      await expect(oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
+      await expect(oracleParser.attachValue(makeValueParser(MOCK_UUID, BNB_CHAIN, other.address
                                                            ,"0x04", GTON_ADD_TOPIC, token0.address
                                                            ,wallet.address, wallet.address, "1000")))
         .to.be.reverted
@@ -165,7 +166,7 @@ describe('OracleParser', () => {
       await oracleRouter.setCanRoute(oracleParser.address, true)
       await balanceKeeper.setCanAdd(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
-      await expect(oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
+      await expect(oracleParser.attachValue(makeValueParser(MOCK_UUID, BNB_CHAIN, other.address
                                                            ,"0x0104", GTON_ADD_TOPIC, token0.address
                                                            ,wallet.address, wallet.address, "1000")))
           .to.not.emit(oracleParser, 'AttachValue')
@@ -175,7 +176,7 @@ describe('OracleParser', () => {
       await oracleRouter.setCanRoute(oracleParser.address, true)
       await balanceKeeper.setCanAdd(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
-      await expect(oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
+      await expect(oracleParser.attachValue(makeValueParser(MOCK_UUID, BNB_CHAIN, other.address
                                                            ,"0x03", GTON_ADD_TOPIC, token0.address
                                                            ,wallet.address, wallet.address, "1000")))
           .to.not.emit(oracleParser, 'AttachValue')
@@ -185,10 +186,10 @@ describe('OracleParser', () => {
       await oracleRouter.setCanRoute(oracleParser.address, true)
       await balanceKeeper.setCanAdd(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
-      await oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
+      await oracleParser.attachValue(makeValueParser(MOCK_UUID, BNB_CHAIN, other.address
                                                      ,"0x04", GTON_ADD_TOPIC, token0.address
                                                      ,wallet.address, wallet.address, "1000"))
-      await expect(oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
+      await expect(oracleParser.attachValue(makeValueParser(MOCK_UUID, BNB_CHAIN, other.address
                                                            ,"0x04", GTON_ADD_TOPIC, token0.address
                                                            ,wallet.address, wallet.address, "1000")))
           .to.not.emit(oracleParser, 'AttachValue')
@@ -198,7 +199,7 @@ describe('OracleParser', () => {
       await oracleRouter.setCanRoute(oracleParser.address, true)
       await balanceKeeper.setCanAdd(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
-      await oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
+      await oracleParser.attachValue(makeValueParser(MOCK_UUID, BNB_CHAIN, other.address
                                                      ,"0x04", GTON_ADD_TOPIC, token0.address
                                                      ,wallet.address, wallet.address, "1000"))
       expect(await balanceKeeper.userBalance(wallet.address)).to.eq(1000)
@@ -210,7 +211,7 @@ describe('OracleParser', () => {
       await balanceKeeper.add(wallet.address, 1000)
       await balanceKeeper.setCanSubtract(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
-      await oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
+      await oracleParser.attachValue(makeValueParser(MOCK_UUID, BNB_CHAIN, other.address
                                                     ,"0x04", GTON_SUB_TOPIC, token0.address
                                                     ,wallet.address, wallet.address, "500"))
       expect(await balanceKeeper.userBalance(wallet.address)).to.eq(500)
@@ -220,7 +221,7 @@ describe('OracleParser', () => {
       await oracleRouter.setCanRoute(oracleParser.address, true)
       await lpKeeper.setCanAdd(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
-      await oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
+      await oracleParser.attachValue(makeValueParser(MOCK_UUID, BNB_CHAIN, other.address
                                                     ,"0x04", LP_ADD_TOPIC, token1.address
                                                     ,wallet.address, wallet.address, "1000"))
       expect(await lpKeeper.userBalance(token1.address, wallet.address)).to.eq(1000)
@@ -232,7 +233,7 @@ describe('OracleParser', () => {
       await lpKeeper.add(token1.address, wallet.address, 1000)
       await lpKeeper.setCanSubtract(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
-      await oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
+      await oracleParser.attachValue(makeValueParser(MOCK_UUID, BNB_CHAIN, other.address
                                                     ,"0x04", LP_SUB_TOPIC, token1.address
                                                     ,wallet.address, wallet.address, "500"))
       expect(await lpKeeper.userBalance(token1.address, wallet.address)).to.eq(500)
@@ -242,11 +243,11 @@ describe('OracleParser', () => {
       await oracleRouter.setCanRoute(oracleParser.address, true)
       await balanceKeeper.setCanAdd(oracleRouter.address, true)
       oracleParser = oracleParser.connect(nebula)
-      await expect(oracleParser.attachValue(makeValueParser(MOCK_UUID, MOCK_CHAIN, other.address
+      await expect(oracleParser.attachValue(makeValueParser(MOCK_UUID, BNB_CHAIN, other.address
                                                            ,"0x04", GTON_ADD_TOPIC, token0.address
                                                            ,wallet.address, wallet.address, "1000")))
           .to.emit(oracleParser, 'AttachValue')
-          .withArgs(nebula.address, MOCK_UUID, MOCK_CHAIN, other.address
+          .withArgs(nebula.address, MOCK_UUID, BNB_CHAIN, other.address
                    ,GTON_ADD_TOPIC, token0.address, wallet.address, wallet.address, "1000")
     })
   })

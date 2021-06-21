@@ -11,7 +11,7 @@ import { GTON_ADD_TOPIC,
          LP_SUB_TOPIC,
          OTHER_TOPIC,
          MOCK_UUID,
-         MOCK_CHAIN } from "./shared/utilities";
+         EVM_CHAIN } from "./shared/utilities";
 
 describe('OracleRouterV2', () => {
   const [wallet, other] = waffle.provider.getWallets()
@@ -163,7 +163,7 @@ describe('OracleRouterV2', () => {
       await balanceKeeper.setCanAdd(oracleRouter.address, true)
       await balanceKeeper.setCanOpen(oracleRouter.address, true)
       await expect(oracleRouter.connect(other).routeValue(MOCK_UUID
-                                                         ,MOCK_CHAIN
+                                                         ,EVM_CHAIN
                                                          ,other.address
                                                          ,GTON_ADD_TOPIC
                                                          ,token0.address
@@ -175,7 +175,7 @@ describe('OracleRouterV2', () => {
     it('fails if the router is not allowed to add value', async () => {
       await oracleRouter.setCanRoute(other.address, true)
       await expect(oracleRouter.connect(other).routeValue(MOCK_UUID
-                                                         ,MOCK_CHAIN
+                                                         ,EVM_CHAIN
                                                          ,other.address
                                                          ,GTON_ADD_TOPIC
                                                          ,token0.address
@@ -186,19 +186,19 @@ describe('OracleRouterV2', () => {
 
     it('routes to add gton', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       await balanceKeeper.setCanAdd(oracleRouter.address, true)
       await balanceKeeper.setCanOpen(oracleRouter.address, true)
       await oracleRouter.setCanRoute(wallet.address, true)
       await oracleRouter.routeValue(MOCK_UUID
-                                    ,MOCK_CHAIN
+                                    ,EVM_CHAIN
                                     ,other.address
                                     ,GTON_ADD_TOPIC
                                     ,token0.address
                                     ,wallet.address
                                     ,wallet.address
                                     ,1000)
-      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(1000)
+      expect(await balanceKeeper['balance(string,bytes)'](EVM_CHAIN, wallet.address)).to.eq(1000)
     })
 
     it('routes to add gton, opens user', async () => {
@@ -206,14 +206,14 @@ describe('OracleRouterV2', () => {
       await balanceKeeper.setCanOpen(oracleRouter.address, true)
       await oracleRouter.setCanRoute(wallet.address, true)
       await oracleRouter.routeValue(MOCK_UUID
-                                    ,MOCK_CHAIN
+                                    ,EVM_CHAIN
                                     ,other.address
                                     ,GTON_ADD_TOPIC
                                     ,token0.address
                                     ,wallet.address
                                     ,wallet.address
                                     ,1000)
-      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(1000)
+      expect(await balanceKeeper['balance(string,bytes)'](EVM_CHAIN, wallet.address)).to.eq(1000)
     })
 
     it('emits event to add gton', async () => {
@@ -221,7 +221,7 @@ describe('OracleRouterV2', () => {
       await balanceKeeper.setCanAdd(oracleRouter.address, true)
       await balanceKeeper.setCanOpen(oracleRouter.address, true)
       await expect(oracleRouter.routeValue(MOCK_UUID
-                                          ,MOCK_CHAIN
+                                          ,EVM_CHAIN
                                           ,other.address
                                           ,GTON_ADD_TOPIC
                                           ,token0.address
@@ -230,7 +230,7 @@ describe('OracleRouterV2', () => {
                                            ,1000))
           .to.emit(oracleRouter, 'GTONAdd')
           .withArgs(MOCK_UUID,
-                    MOCK_CHAIN,
+                    EVM_CHAIN,
                     other.address.toLowerCase(),
                     token0.address.toLowerCase(),
                     wallet.address.toLowerCase(),
@@ -240,12 +240,12 @@ describe('OracleRouterV2', () => {
 
     it('fails if the router is not allowed to subtract value', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper['add(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 1000)
+      await balanceKeeper['add(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 1000)
       await oracleRouter.setCanRoute(wallet.address, true)
       await expect(oracleRouter.routeValue(MOCK_UUID
-                                          ,MOCK_CHAIN
+                                          ,EVM_CHAIN
                                           ,other.address
                                           ,GTON_SUB_TOPIC
                                           ,token0.address
@@ -256,31 +256,31 @@ describe('OracleRouterV2', () => {
 
     it('routes to subtract gton', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper['add(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 1000)
+      await balanceKeeper['add(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 1000)
       await balanceKeeper.setCanSubtract(oracleRouter.address, true)
       await oracleRouter.setCanRoute(wallet.address, true)
       await oracleRouter.routeValue(MOCK_UUID
-                                   ,MOCK_CHAIN
+                                   ,EVM_CHAIN
                                    ,other.address
                                    ,GTON_SUB_TOPIC
                                    ,token0.address
                                    ,wallet.address
                                    ,wallet.address
                                    ,500)
-      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(500)
+      expect(await balanceKeeper['balance(string,bytes)'](EVM_CHAIN, wallet.address)).to.eq(500)
     })
 
     it('routes event to subtract gton', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper['add(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 1000)
+      await balanceKeeper['add(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 1000)
       await oracleRouter.setCanRoute(wallet.address, true)
       await balanceKeeper.setCanSubtract(oracleRouter.address, true)
       await expect(oracleRouter.routeValue(MOCK_UUID
-                                          ,MOCK_CHAIN
+                                          ,EVM_CHAIN
                                           ,other.address
                                           ,GTON_SUB_TOPIC
                                           ,token0.address
@@ -289,7 +289,7 @@ describe('OracleRouterV2', () => {
                                            ,500))
           .to.emit(oracleRouter, 'GTONSub')
           .withArgs(MOCK_UUID,
-                    MOCK_CHAIN,
+                    EVM_CHAIN,
                     other.address.toLowerCase(),
                     token0.address.toLowerCase(),
                     wallet.address.toLowerCase(),
@@ -300,7 +300,7 @@ describe('OracleRouterV2', () => {
     it('fails if the router is not allowed to add lp', async () => {
       await oracleRouter.setCanRoute(wallet.address, true)
       await expect(oracleRouter.routeValue(MOCK_UUID
-                                          ,MOCK_CHAIN
+                                          ,EVM_CHAIN
                                           ,other.address
                                           ,LP_ADD_TOPIC
                                           ,token0.address
@@ -311,22 +311,22 @@ describe('OracleRouterV2', () => {
 
     it('routes to add lp', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       await balanceKeeper.setCanOpen(oracleRouter.address, true)
       await lpKeeper.setCanOpen(wallet.address, true)
-      await lpKeeper.open(MOCK_CHAIN, token1.address)
+      await lpKeeper.open(EVM_CHAIN, token1.address)
       await lpKeeper.setCanOpen(oracleRouter.address, true)
       await lpKeeper.setCanAdd(oracleRouter.address, true)
       await oracleRouter.setCanRoute(wallet.address, true)
       await oracleRouter.routeValue(MOCK_UUID
-                                   ,MOCK_CHAIN
+                                   ,EVM_CHAIN
                                    ,other.address
                                    ,LP_ADD_TOPIC
                                    ,token1.address
                                    ,wallet.address
                                    ,wallet.address
                                    ,1000)
-      expect(await lpKeeper['balance(string,bytes,string,bytes)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, wallet.address)).to.eq(1000)
+      expect(await lpKeeper['balance(string,bytes,string,bytes)'](EVM_CHAIN, token1.address, EVM_CHAIN, wallet.address)).to.eq(1000)
     })
 
     it('routes to add lp, opens user and token', async () => {
@@ -335,14 +335,14 @@ describe('OracleRouterV2', () => {
       await lpKeeper.setCanAdd(oracleRouter.address, true)
       await oracleRouter.setCanRoute(wallet.address, true)
       await oracleRouter.routeValue(MOCK_UUID
-                                   ,MOCK_CHAIN
+                                   ,EVM_CHAIN
                                    ,other.address
                                    ,LP_ADD_TOPIC
                                    ,token1.address
                                    ,wallet.address
                                    ,wallet.address
                                    ,1000)
-      expect(await lpKeeper['balance(string,bytes,string,bytes)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, wallet.address)).to.eq(1000)
+      expect(await lpKeeper['balance(string,bytes,string,bytes)'](EVM_CHAIN, token1.address, EVM_CHAIN, wallet.address)).to.eq(1000)
     })
 
     it('emits event to add lp', async () => {
@@ -351,7 +351,7 @@ describe('OracleRouterV2', () => {
       await lpKeeper.setCanAdd(oracleRouter.address, true)
       await oracleRouter.setCanRoute(wallet.address, true)
       await expect(oracleRouter.routeValue(MOCK_UUID
-                                          ,MOCK_CHAIN
+                                          ,EVM_CHAIN
                                           ,other.address
                                           ,LP_ADD_TOPIC
                                           ,token1.address
@@ -360,7 +360,7 @@ describe('OracleRouterV2', () => {
                                           ,1000))
           .to.emit(oracleRouter, 'LPAdd')
           .withArgs(MOCK_UUID,
-                    MOCK_CHAIN,
+                    EVM_CHAIN,
                     other.address.toLowerCase(),
                     token1.address.toLowerCase(),
                     wallet.address.toLowerCase(),
@@ -370,14 +370,14 @@ describe('OracleRouterV2', () => {
 
     it('fails if router is not allowed to subtract lp', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       await lpKeeper.setCanOpen(wallet.address, true)
-      await lpKeeper.open(MOCK_CHAIN, token1.address)
+      await lpKeeper.open(EVM_CHAIN, token1.address)
       await lpKeeper.setCanAdd(wallet.address, true)
-      await lpKeeper['add(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, wallet.address, 1000)
+      await lpKeeper['add(string,bytes,string,bytes,uint256)'](EVM_CHAIN, token1.address, EVM_CHAIN, wallet.address, 1000)
       await oracleRouter.setCanRoute(wallet.address, true)
       await expect(oracleRouter.routeValue(MOCK_UUID
-                                          ,MOCK_CHAIN
+                                          ,EVM_CHAIN
                                           ,other.address
                                           ,LP_SUB_TOPIC
                                           ,token1.address
@@ -388,35 +388,35 @@ describe('OracleRouterV2', () => {
 
     it('routes to subtract lp', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       await lpKeeper.setCanOpen(wallet.address, true)
-      await lpKeeper.open(MOCK_CHAIN, token1.address)
+      await lpKeeper.open(EVM_CHAIN, token1.address)
       await lpKeeper.setCanAdd(wallet.address, true)
-      await lpKeeper['add(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, wallet.address, 1000)
+      await lpKeeper['add(string,bytes,string,bytes,uint256)'](EVM_CHAIN, token1.address, EVM_CHAIN, wallet.address, 1000)
       await lpKeeper.setCanSubtract(oracleRouter.address, true)
       await oracleRouter.setCanRoute(wallet.address, true)
       await oracleRouter.routeValue(MOCK_UUID
-                                   ,MOCK_CHAIN
+                                   ,EVM_CHAIN
                                    ,other.address
                                    ,LP_SUB_TOPIC
                                    ,token1.address
                                    ,wallet.address
                                    ,wallet.address
                                    ,500)
-      expect(await lpKeeper['balance(string,bytes,string,bytes)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, wallet.address)).to.eq(500)
+      expect(await lpKeeper['balance(string,bytes,string,bytes)'](EVM_CHAIN, token1.address, EVM_CHAIN, wallet.address)).to.eq(500)
     })
 
     it('emits event to subtract lp', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       await lpKeeper.setCanOpen(wallet.address, true)
-      await lpKeeper.open(MOCK_CHAIN, token1.address)
+      await lpKeeper.open(EVM_CHAIN, token1.address)
       await lpKeeper.setCanAdd(wallet.address, true)
-      await lpKeeper['add(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token1.address, MOCK_CHAIN, wallet.address, 1000)
+      await lpKeeper['add(string,bytes,string,bytes,uint256)'](EVM_CHAIN, token1.address, EVM_CHAIN, wallet.address, 1000)
       await lpKeeper.setCanSubtract(oracleRouter.address, true)
       await oracleRouter.setCanRoute(wallet.address, true)
       await expect(oracleRouter.routeValue(MOCK_UUID
-                                          ,MOCK_CHAIN
+                                          ,EVM_CHAIN
                                           ,other.address
                                           ,LP_SUB_TOPIC
                                           ,token1.address
@@ -425,7 +425,7 @@ describe('OracleRouterV2', () => {
                                           ,500))
           .to.emit(oracleRouter, 'LPSub')
           .withArgs(MOCK_UUID,
-                    MOCK_CHAIN,
+                    EVM_CHAIN,
                     other.address.toLowerCase(),
                     token1.address.toLowerCase(),
                     wallet.address.toLowerCase(),

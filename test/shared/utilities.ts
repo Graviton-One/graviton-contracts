@@ -11,7 +11,11 @@ export const LP_ADD_TOPIC   = "0x00000000000000000000000000000000000000000000000
 export const LP_SUB_TOPIC   = "0x0000000000000000000000000000000000000000000000000000000000000004"
 export const OTHER_TOPIC    = "0x0000000000000000000000000000000000000000000000000000000000000005"
 export const MOCK_UUID = "0x5ae47235f0844e55b26703b7cf385294";
-export const MOCK_CHAIN = "EVM";
+export const EVM_CHAIN = "EVM";
+export const BNB_CHAIN = "BNB";
+export const FTM_CHAIN = "FTM";
+export const ETH_CHAIN = "ETH";
+export const SOL_CHAIN = "SOL";
 
 export function expandTo18Decimals(n: number): BigNumber {
   return BigNumber.from(n).mul(BigNumber.from(10).pow(18))

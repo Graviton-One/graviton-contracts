@@ -1,7 +1,7 @@
 import { ethers, waffle } from 'hardhat'
 import { BalanceKeeperV2 } from '../typechain/BalanceKeeperV2'
 import { expect } from './shared/expect'
-import { MOCK_CHAIN } from './shared/utilities'
+import { EVM_CHAIN } from './shared/utilities'
 
 describe('BalanceKeeperV2', () => {
   const [wallet, other] = waffle.provider.getWallets()
@@ -25,19 +25,19 @@ describe('BalanceKeeperV2', () => {
 
   async function openWallet() {
     await balanceKeeper.setCanOpen(wallet.address, true)
-    await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+    await balanceKeeper.open(EVM_CHAIN, wallet.address)
   }
   async function openOther() {
     await balanceKeeper.setCanOpen(wallet.address, true)
-    await balanceKeeper.open(MOCK_CHAIN, other.address)
+    await balanceKeeper.open(EVM_CHAIN, other.address)
   }
   async function add(user: string, amount: number) {
     await balanceKeeper.setCanAdd(wallet.address, true)
-    await balanceKeeper['add(string,bytes,uint256)'](MOCK_CHAIN, user, amount)
+    await balanceKeeper['add(string,bytes,uint256)'](EVM_CHAIN, user, amount)
   }
   async function subtract(user: string, amount: number) {
     await balanceKeeper.setCanSubtract(wallet.address, true)
-    await balanceKeeper['subtract(string,bytes,uint256)'](MOCK_CHAIN, user, amount)
+    await balanceKeeper['subtract(string,bytes,uint256)'](EVM_CHAIN, user, amount)
   }
 
   it('constructor initializes variables', async () => {
@@ -55,10 +55,10 @@ describe('BalanceKeeperV2', () => {
     expect(await balanceKeeper.totalBalance()).to.eq(0)
     expect(await balanceKeeper['balance(uint256)'](0)).to.eq(0)
     expect(await balanceKeeper['balance(uint256)'](1)).to.eq(0)
-    expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(0)
-    expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, other.address)).to.eq(0)
-    await expect(balanceKeeper.userIdByChainAddress(MOCK_CHAIN, wallet.address)).to.be.reverted
-    await expect(balanceKeeper.userIdByChainAddress(MOCK_CHAIN, other.address)).to.be.reverted
+    expect(await balanceKeeper['balance(string,bytes)'](EVM_CHAIN, wallet.address)).to.eq(0)
+    expect(await balanceKeeper['balance(string,bytes)'](EVM_CHAIN, other.address)).to.eq(0)
+    await expect(balanceKeeper.userIdByChainAddress(EVM_CHAIN, wallet.address)).to.be.reverted
+    await expect(balanceKeeper.userIdByChainAddress(EVM_CHAIN, other.address)).to.be.reverted
     await expect(balanceKeeper.userChainById(0)).to.be.reverted
     await expect(balanceKeeper.userAddressById(0)).to.be.reverted
     await expect(balanceKeeper.userChainAddressById(0)).to.be.reverted
@@ -199,7 +199,7 @@ describe('BalanceKeeperV2', () => {
 
     it('returns chain for the known user', async () => {
       await openWallet()
-      expect(await balanceKeeper.userChainById(0)).to.eq(MOCK_CHAIN)
+      expect(await balanceKeeper.userChainById(0)).to.eq(EVM_CHAIN)
     })
   })
 
@@ -222,19 +222,19 @@ describe('BalanceKeeperV2', () => {
     it('returns chain and address for the known user', async () => {
       await openWallet()
       let chainAddress = await balanceKeeper.userChainAddressById(0)
-      expect(chainAddress[0]).to.eq(MOCK_CHAIN)
+      expect(chainAddress[0]).to.eq(EVM_CHAIN)
       expect(chainAddress[1]).to.eq(wallet.address.toLowerCase())
     })
   })
 
   describe('#userIdByChainAddress', () => {
     it('fails for the user that is not known', async () => {
-      await expect(balanceKeeper.userIdByChainAddress(MOCK_CHAIN, wallet.address)).to.be.reverted
+      await expect(balanceKeeper.userIdByChainAddress(EVM_CHAIN, wallet.address)).to.be.reverted
     })
 
     it('returns id for the known user', async () => {
       await openWallet()
-      expect(await balanceKeeper.userIdByChainAddress(MOCK_CHAIN, wallet.address)).to.eq(0)
+      expect(await balanceKeeper.userIdByChainAddress(EVM_CHAIN, wallet.address)).to.eq(0)
     })
   })
 
@@ -251,12 +251,12 @@ describe('BalanceKeeperV2', () => {
 
   describe('#isKnownUser(string,bytes)', () => {
     it('returns false for the user that is not known', async () => {
-      expect(await balanceKeeper['isKnownUser(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(false)
+      expect(await balanceKeeper['isKnownUser(string,bytes)'](EVM_CHAIN, wallet.address)).to.eq(false)
     })
 
     it('returns true for the known user', async () => {
       await openWallet()
-      expect(await balanceKeeper['isKnownUser(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(true)
+      expect(await balanceKeeper['isKnownUser(string,bytes)'](EVM_CHAIN, wallet.address)).to.eq(true)
     })
   })
 
@@ -279,70 +279,70 @@ describe('BalanceKeeperV2', () => {
 
   describe('#balance', () => {
     it('returns 0 for the user that is not known', async () => {
-      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(0)
+      expect(await balanceKeeper['balance(string,bytes)'](EVM_CHAIN, wallet.address)).to.eq(0)
     })
 
     it('returns 0 when the balance is empty', async () => {
       await openWallet()
-      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(0)
+      expect(await balanceKeeper['balance(string,bytes)'](EVM_CHAIN, wallet.address)).to.eq(0)
     })
 
     it('returns balance for the known user', async () => {
       await openWallet()
       await add(wallet.address, 100)
-      expect(await balanceKeeper['balance(string,bytes)'](MOCK_CHAIN, wallet.address)).to.eq(100)
+      expect(await balanceKeeper['balance(string,bytes)'](EVM_CHAIN, wallet.address)).to.eq(100)
     })
   })
 
   describe('#open', () => {
     it('fails if caller is not allowed to open', async () => {
-      await expect(balanceKeeper.open(MOCK_CHAIN, wallet.address)).to.be.reverted
+      await expect(balanceKeeper.open(EVM_CHAIN, wallet.address)).to.be.reverted
     })
 
     it('sets chain for id', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
-      expect(await balanceKeeper.userChainById(0)).to.eq(MOCK_CHAIN)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
+      expect(await balanceKeeper.userChainById(0)).to.eq(EVM_CHAIN)
     })
 
     it('sets address for id', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       expect(await balanceKeeper.userAddressById(0)).to.eq(wallet.address.toLowerCase())
     })
 
     it('sets id for chain and address', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       let chainAddress = await balanceKeeper.userChainAddressById(0)
-      expect(chainAddress[0]).to.eq(MOCK_CHAIN)
+      expect(chainAddress[0]).to.eq(EVM_CHAIN)
       expect(chainAddress[1]).to.eq(wallet.address.toLowerCase())
     })
 
     it('increments the number of users for the chain and address that are not known', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       expect(await balanceKeeper.totalUsers()).to.eq(1)
     })
 
     it('increments the number of users for the chain and address that are not known', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
-      await balanceKeeper.open(MOCK_CHAIN, other.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, other.address)
       expect(await balanceKeeper.totalUsers()).to.eq(2)
     })
 
     it('does not increment the number of users for the known chain and address', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
       expect(await balanceKeeper.totalUsers()).to.eq(1)
     })
 
     it('does not increment the number of users for the same address in upper and lower case', async () => {
       await balanceKeeper.setCanOpen(wallet.address, true)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address)
-      await balanceKeeper.open(MOCK_CHAIN, wallet.address.toLowerCase())
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address.toLowerCase())
       expect(await balanceKeeper.totalUsers()).to.eq(1)
     })
   })
@@ -376,7 +376,7 @@ describe('BalanceKeeperV2', () => {
       await openWallet()
       await balanceKeeper.setCanAdd(wallet.address, true)
       await balanceKeeper['add(uint256,uint256)'](0, 100)
-      await balanceKeeper.open(MOCK_CHAIN, other.address)
+      await balanceKeeper.open(EVM_CHAIN, other.address)
       await balanceKeeper['add(uint256,uint256)'](1, 100)
       expect(await balanceKeeper.totalBalance()).to.eq(200)
     })
@@ -385,25 +385,25 @@ describe('BalanceKeeperV2', () => {
   describe('#add(string,bytes,uint256)', () => {
     it('fails if caller is not allowed to add', async () => {
       await openWallet()
-      await expect(balanceKeeper['add(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 100)).to.be.reverted
+      await expect(balanceKeeper['add(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 100)).to.be.reverted
     })
 
     it('fails if the chain and address are not known', async () => {
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await expect(balanceKeeper['add(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 100)).to.be.reverted
+      await expect(balanceKeeper['add(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 100)).to.be.reverted
     })
 
     it('adds amount to user balance', async () => {
       await openWallet()
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper['add(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 100)
+      await balanceKeeper['add(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 100)
       expect(await balanceKeeper['balance(uint256)'](0)).to.eq(100)
     })
 
     it('adds amount to total balance', async () => {
       await openWallet()
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper['add(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 100)
+      await balanceKeeper['add(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 100)
       expect(await balanceKeeper.totalBalance()).to.eq(100)
     })
 
@@ -411,8 +411,8 @@ describe('BalanceKeeperV2', () => {
       await openWallet()
       await openOther()
       await balanceKeeper.setCanAdd(wallet.address, true)
-      await balanceKeeper['add(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 100)
-      await balanceKeeper['add(string,bytes,uint256)'](MOCK_CHAIN, other.address, 100)
+      await balanceKeeper['add(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 100)
+      await balanceKeeper['add(string,bytes,uint256)'](EVM_CHAIN, other.address, 100)
       expect(await balanceKeeper.totalBalance()).to.eq(200)
     })
   })
@@ -462,13 +462,13 @@ describe('BalanceKeeperV2', () => {
     it('fails if caller is not allowed to subtract', async () => {
       await openWallet()
       await add(wallet.address, 100)
-      await expect(balanceKeeper['subtract(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 100))
+      await expect(balanceKeeper['subtract(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 100))
         .to.be.reverted
     })
 
     it('fails if the chain and address are not known', async () => {
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await expect(balanceKeeper['subtract(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 0))
+      await expect(balanceKeeper['subtract(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 0))
         .to.be.reverted
     })
 
@@ -476,7 +476,7 @@ describe('BalanceKeeperV2', () => {
       await openWallet()
       await add(wallet.address, 100)
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper['subtract(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 50)
+      await balanceKeeper['subtract(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 50)
       expect(await balanceKeeper['balance(uint256)'](0)).to.eq(50)
     })
 
@@ -484,7 +484,7 @@ describe('BalanceKeeperV2', () => {
       await openWallet()
       await add(wallet.address, 100)
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper['subtract(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 50)
+      await balanceKeeper['subtract(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 50)
       expect(await balanceKeeper.totalBalance()).to.eq(50)
     })
 
@@ -494,8 +494,8 @@ describe('BalanceKeeperV2', () => {
       await openOther()
       await add(other.address, 100)
       await balanceKeeper.setCanSubtract(wallet.address, true)
-      await balanceKeeper['subtract(string,bytes,uint256)'](MOCK_CHAIN, wallet.address, 50)
-      await balanceKeeper['subtract(string,bytes,uint256)'](MOCK_CHAIN, other.address, 75)
+      await balanceKeeper['subtract(string,bytes,uint256)'](EVM_CHAIN, wallet.address, 50)
+      await balanceKeeper['subtract(string,bytes,uint256)'](EVM_CHAIN, other.address, 75)
       expect(await balanceKeeper.totalBalance()).to.eq(75)
     })
   })

@@ -38,7 +38,8 @@ import {
   GTON_SUB_TOPIC,
   LP_ADD_TOPIC,
   LP_SUB_TOPIC,
-  MOCK_CHAIN
+  EVM_CHAIN,
+  BNB_CHAIN
 } from "./utilities"
 
 import { Fixture } from "ethereum-waffle"
@@ -448,7 +449,8 @@ export const oracleParserV2Fixture: Fixture<OracleParserV2Fixture> =
     const oracleParserFactory = await ethers.getContractFactory("OracleParserV2")
     const oracleParser = (await oracleParserFactory.deploy(
       oracleRouter.address,
-      nebula.address
+      nebula.address,
+      [BNB_CHAIN]
     )) as OracleParserV2
     return {
       token0,
@@ -534,7 +536,7 @@ export const sharesLPFixture: Fixture<SharesLPFixture> = async function (
   )
 
   await lpKeeper.setCanOpen(wallet.address, true)
-  await lpKeeper.open(MOCK_CHAIN, token1.address)
+  await lpKeeper.open(EVM_CHAIN, token1.address)
 
   const sharesLPFactory = await ethers.getContractFactory("SharesLP")
   const sharesLP = (await sharesLPFactory.deploy(
@@ -647,8 +649,8 @@ export const balanceAdderV2Fixture: Fixture<BalanceAdderV2Fixture> = async funct
   )) as LPKeeperV2
 
   await lpKeeper.setCanOpen(wallet.address, true)
-  await lpKeeper.open(MOCK_CHAIN, token1.address)
-  await lpKeeper.open(MOCK_CHAIN, token2.address)
+  await lpKeeper.open(EVM_CHAIN, token1.address)
+  await lpKeeper.open(EVM_CHAIN, token2.address)
 
   const sharesLPFactory = await ethers.getContractFactory("SharesLP")
   const sharesLP1 = (await sharesLPFactory.deploy(

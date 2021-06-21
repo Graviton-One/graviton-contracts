@@ -30,13 +30,18 @@ contract OracleParserV2 is IOracleParserV2 {
     /// @inheritdoc IOracleParserV2
     mapping(bytes16 => bool) public override uuidIsProcessed;
 
+    /// @inheritdoc IOracleParserV2
+    string[] public override evmChains;
+
     constructor(
         IOracleRouterV2 _oracleRouter,
-        address _nebula
+        address _nebula,
+        string[] memory _evmChains
     ) {
         owner = msg.sender;
         oracleRouter = _oracleRouter;
         nebula = _nebula;
+        evmChains = _evmChains;
     }
 
     /// @inheritdoc IOracleParserV2
@@ -62,6 +67,12 @@ contract OracleParserV2 is IOracleParserV2 {
         IOracleRouterV2 routerOld = oracleRouter;
         oracleRouter = _oracleRouter;
         emit SetOracleRouter(routerOld, _oracleRouter);
+    }
+
+    /// @inheritdoc IOracleParserV2
+    function setEVMChains(string[] memory _evmChains) external override isOwner {
+        evmChains = _evmChains;
+        emit SetEVMChains(evmChains);
     }
 
     /// @inheritdoc IOracleParserV2
@@ -125,6 +136,15 @@ contract OracleParserV2 is IOracleParserV2 {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
+    function processChain(string memory chain) internal view returns (string memory) {
+        for (uint i; i < evmChains.length; i++) {
+            if (equal(evmChains[i], chain)) {
+                    return "EVM";
+                }
+        }
+        return chain;
+    }
+
     /// @inheritdoc IOracleParserV2
     function attachValue(bytes calldata impactData) external override isNebula {
         // @dev ignore data with unexpected length
@@ -138,6 +158,7 @@ contract OracleParserV2 is IOracleParserV2 {
         }
         uuidIsProcessed[uuid] = true;
         string memory chain = string(abi.encodePacked(impactData[16:19])); // [ 16: 19]
+        chain = processChain(chain);
         if (equal(chain, "EVM")) {
             bytes memory emiter = impactData[19:39];                       // [ 19: 39]
             bytes1 topics = bytes1(impactData[39]);                        // [ 39: 40]

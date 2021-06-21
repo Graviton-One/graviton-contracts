@@ -28,6 +28,13 @@ interface IOracleParserV2 {
     /// @notice Sets address of the oracle router to `_oracleRouter`
     function setOracleRouter(IOracleRouterV2 _oracleRouter) external;
 
+    /// @notice Index from the array of chains parsed as "EVM"
+    function evmChains(uint index) external view returns (string memory);
+
+    /// @notice Sets the array of chains parsed as "EVM"
+    /// @param _evmChains Array of blockchain names, i.e. ["ETH","BNB","FTM"]
+    function setEVMChains(string[] memory _evmChains) external;
+
     /// @notice Look up if the data uuid has already been processed
     function uuidIsProcessed(bytes16 uuid) external view returns (bool);
 
@@ -80,6 +87,10 @@ interface IOracleParserV2 {
     /// @param routerOld The previous router
     /// @param routerNew The new router
     event SetOracleRouter(IOracleRouterV2 routerOld, IOracleRouterV2 routerNew);
+
+    /// @notice Event emitted when the evm chains are set via `#setEVMChains`
+    /// @param _evmChains Array of blockchain names, i.e. ["ETH","BNB","FTM"]
+    event SetEVMChains(string[] _evmChains);
 
     /// @notice Event emitted when the data is parsed and forwarded to the oracle router via `#attachValue`
     /// @param nebula The account that sent the parsed data

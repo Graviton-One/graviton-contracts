@@ -12,7 +12,7 @@ import { SharesEB } from "../typechain/SharesEB"
 import { SharesLP } from "../typechain/SharesLP"
 import { BalanceAdderV2 } from '../typechain/BalanceAdderV2'
 import { balanceAdderV2Fixture } from './shared/fixtures'
-import { MOCK_CHAIN, makeValueImpact, expandTo18Decimals } from './shared/utilities'
+import { EVM_CHAIN, makeValueImpact, expandTo18Decimals } from './shared/utilities'
 
 describe('BalanceAdderV2', () => {
   const [wallet, other, nebula] = waffle.provider.getWallets()
@@ -57,23 +57,23 @@ describe('BalanceAdderV2', () => {
 
   async function openWallet() {
     await balanceKeeper.setCanOpen(wallet.address, true)
-    await balanceKeeper.open(MOCK_CHAIN, wallet.address)
+    await balanceKeeper.open(EVM_CHAIN, wallet.address)
   }
   async function openOther() {
     await balanceKeeper.setCanOpen(wallet.address, true)
-    await balanceKeeper.open(MOCK_CHAIN, other.address)
+    await balanceKeeper.open(EVM_CHAIN, other.address)
   }
   async function openToken1() {
     await lpKeeper.setCanOpen(wallet.address, true)
-    await lpKeeper.open(MOCK_CHAIN, token1.address)
+    await lpKeeper.open(EVM_CHAIN, token1.address)
   }
   async function add(user: string, amount: string) {
     await balanceKeeper.setCanAdd(wallet.address, true)
-    await balanceKeeper['add(string,bytes,uint256)'](MOCK_CHAIN, user, amount)
+    await balanceKeeper['add(string,bytes,uint256)'](EVM_CHAIN, user, amount)
   }
   async function subtract(user: string, amount: string) {
     await balanceKeeper.setCanSubtract(wallet.address, true)
-    await balanceKeeper['subtract(string,bytes,uint256)'](MOCK_CHAIN, user, amount)
+    await balanceKeeper['subtract(string,bytes,uint256)'](EVM_CHAIN, user, amount)
   }
   async function addEB(user: string, amount: string) {
       await impactEB
@@ -82,11 +82,11 @@ describe('BalanceAdderV2', () => {
   }
   async function addLP(token: string, user: string, amount: string) {
     await lpKeeper.setCanAdd(wallet.address, true)
-    await lpKeeper['add(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token, MOCK_CHAIN, user, amount)
+    await lpKeeper['add(string,bytes,string,bytes,uint256)'](EVM_CHAIN, token, EVM_CHAIN, user, amount)
   }
   async function subtractLP(token: string, user: string, amount: string) {
     await lpKeeper.setCanSubtract(wallet.address, true)
-    await lpKeeper['subtract(string,bytes,string,bytes,uint256)'](MOCK_CHAIN, token, MOCK_CHAIN, user, amount)
+    await lpKeeper['subtract(string,bytes,string,bytes,uint256)'](EVM_CHAIN, token, EVM_CHAIN, user, amount)
   }
   async function farmEBFor(duration: number) {
     await farmEB.startFarming()
