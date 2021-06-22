@@ -63,6 +63,7 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
         shares.push(_share);
         farms.push(_farm);
         lastPortions.push(0);
+        emit AddFarm(farms.length, _share, _farm);
     }
 
     /// @inheritdoc IBalanceAdderV2
@@ -70,6 +71,7 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
     function removeFarm(uint256 farmId) external override isOwner {
         require(!isProcessing[currentFarm], "farm is processing balances");
 
+        IShares oldShares = shares[farmId];
         IShares[] memory newShares = new IShares[](shares.length - 1);
         uint256 j = 0;
         for (uint256 i = 0; i < shares.length; i++) {
@@ -81,6 +83,7 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
         }
         shares = newShares;
 
+        IFarm oldFarm = farms[farmId];
         IFarm[] memory newFarms = new IFarm[](farms.length - 1);
         j = 0;
         for (uint256 i = 0; i < farms.length; i++) {
@@ -92,6 +95,7 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
         }
         farms = newFarms;
 
+        uint oldLastPortions = lastPortions[farmId];
         uint256[] memory newLastPortions = new uint256[](
             lastPortions.length - 1
         );
@@ -104,6 +108,8 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
             j++;
         }
         lastPortions = newLastPortions;
+
+        emit RemoveFarm(farmId, oldShares, oldFarm, oldLastPortions);
     }
 
     /// @inheritdoc IBalanceAdderV2
@@ -128,6 +134,8 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
             toUser = totalUsers;
         }
 
+        emit ProcessBalances(currentFarm, shares[currentFarm], farms[currentFarm], step);
+
         for (uint256 i = fromUser; i < toUser; i++) {
             require(
                 shares[currentFarm].totalShares() > 0,
@@ -136,6 +144,7 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
             uint256 add = (shares[currentFarm].shareById(i) * currentPortion) /
                 totalBalance;
             balanceKeeper.add(i, add);
+            emit ProcessBalance(currentFarm, shares[currentFarm], farms[currentFarm], i, add);
         }
 
         if (toUser == totalUsers) {

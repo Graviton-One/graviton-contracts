@@ -40,7 +40,7 @@ interface IFarm {
     /// @dev Can only be called before the farming has stopped
     function unlockAsset() external;
 
-    /// @notice Event emitted when the owner changes via #setOwner`.
+    /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
     event SetOwner(address ownerOld, address ownerNew);

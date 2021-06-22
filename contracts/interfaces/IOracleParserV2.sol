@@ -73,17 +73,17 @@ interface IOracleParserV2 {
     /// @notice Parses data from oracles, forwards data to the oracle router
     function attachValue(bytes calldata impactData) external;
 
-    /// @notice Event emitted when the owner changes via #setOwner`.
+    /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
     event SetOwner(address ownerOld, address ownerNew);
 
-    /// @notice Event emitted when the nebula changes via #setNebula`.
+    /// @notice Event emitted when the nebula changes via `#setNebula`.
     /// @param nebulaOld The account that was the previous nebula
     /// @param nebulaNew The account that became the nebula
     event SetNebula(address nebulaOld, address nebulaNew);
 
-    /// @notice Event emitted when the router changes via #setOracleRouter`.
+    /// @notice Event emitted when the router changes via `#setOracleRouter`.
     /// @param routerOld The previous router
     /// @param routerNew The new router
     event SetOracleRouter(IOracleRouterV2 routerOld, IOracleRouterV2 routerNew);

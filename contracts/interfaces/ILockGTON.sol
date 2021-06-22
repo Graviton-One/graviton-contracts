@@ -30,7 +30,7 @@ interface ILockGTON {
     /// @notice Locks `amount` of governance tokens in the name of `receiver`
     function lock(address receiver, uint256 amount) external;
 
-    /// @notice Event emitted when the owner changes via #setOwner`.
+    /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
     event SetOwner(address ownerOld, address ownerNew);

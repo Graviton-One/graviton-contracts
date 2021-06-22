@@ -158,7 +158,7 @@ describe('BalanceAdderV2', () => {
     })
   })
 
-  describe('#addFarm', () => {
+  describe('#totalFarms', () => {
     it('returns the number of farms', async () => {
       await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
       expect(await balanceAdder.totalFarms()).to.eq(1)
@@ -183,6 +183,12 @@ describe('BalanceAdderV2', () => {
     it('appends last portions', async () => {
       await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
       expect(await balanceAdder.lastPortions(0)).to.eq(0)
+    })
+
+    it('emits event', async () => {
+      await expect(balanceAdder.addFarm(mockShares1.address, mockFarm1.address))
+        .to.emit(balanceAdder, 'AddFarm')
+        .withArgs(1, mockShares1.address, mockFarm1.address)
     })
   })
 
@@ -242,6 +248,15 @@ describe('BalanceAdderV2', () => {
       await balanceAdder.removeFarm(0)
       expect(await balanceAdder.lastPortions(0)).to.eq(0)
       await expect(balanceAdder.lastPortions(1)).to.be.reverted
+    })
+
+    it('removes farms', async () => {
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      expect(await balanceAdder.farms(0)).to.eq(mockFarm1.address)
+      await balanceAdder.addFarm(mockShares2.address, mockFarm2.address)
+      await expect(balanceAdder.removeFarm(0))
+        .to.emit(balanceAdder, 'RemoveFarm')
+        .withArgs(0, mockShares1.address, mockFarm1.address, 0)
     })
   })
 
@@ -326,6 +341,21 @@ describe('BalanceAdderV2', () => {
       await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(3)
+      expect(await balanceAdder.currentUser()).to.eq(0)
+    })
+
+    it('emits event', async () => {
+      await openWallet()
+      await openOther()
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceKeeper.setCanAdd(balanceAdder.address, true)
+      await expect(balanceAdder.processBalances(3))
+        .to.emit(balanceAdder, 'ProcessBalances')
+        .withArgs(0, mockShares1.address, mockFarm1.address, 3)
+        .to.emit(balanceAdder, 'ProcessBalance')
+        .withArgs(0, mockShares1.address, mockFarm1.address, 0, 100)
+        .to.emit(balanceAdder, 'ProcessBalance')
+        .withArgs(0, mockShares1.address, mockFarm1.address, 1, 100)
       expect(await balanceAdder.currentUser()).to.eq(0)
     })
 

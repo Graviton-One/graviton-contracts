@@ -59,17 +59,17 @@ interface IClaimGTONV2 {
     /// @notice Transfers `amount` of governance tokens to `receiver`
     function claim(address receiver, uint256 amount) external;
 
-    /// @notice Event emitted when the owner changes via #setOwner`.
+    /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
     event SetOwner(address ownerOld, address ownerNew);
 
-    /// @notice Event emitted when the voter changes via #setVoter`.
+    /// @notice Event emitted when the voter changes via `#setVoter`.
     /// @param voterOld The previous voting contract
     /// @param voterNew The new voting contract
     event SetVoter(IVoterV2 voterOld, IVoterV2 voterNew);
 
-    /// @notice Event emitted when the wallet changes via #setWallet`.
+    /// @notice Event emitted when the wallet changes via `#setWallet`.
     /// @param walletOld The previous wallet
     /// @param walletNew The new wallet
     event SetWallet(address walletOld, address walletNew);

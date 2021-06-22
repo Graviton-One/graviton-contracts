@@ -131,7 +131,7 @@ interface IVoterV2 {
     /// @notice Decreases votes of `user` when their balance is depleted, preserving proportions
     function checkVoteBalances(uint userId) external;
 
-    /// @notice Event emitted when the owner changes via #setOwner`.
+    /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
     event SetOwner(address ownerOld, address ownerNew);
