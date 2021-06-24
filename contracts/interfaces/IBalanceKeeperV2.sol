@@ -134,7 +134,7 @@ interface IBalanceKeeperV2 is IShares {
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
-    event SetOwner(address ownerOld, address ownerNew);
+    event SetOwner(address indexed ownerOld, address indexed ownerNew);
 
     /// @notice Event emitted when the `opener` permission is updated via `#setCanOpen`
     /// @param owner The owner account at the time of change

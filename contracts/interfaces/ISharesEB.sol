@@ -32,5 +32,5 @@ interface ISharesEB is IShares {
     /// @param user Address of the user whose impact was migrated
     /// @param userId Unique id of the user whose impact was migrated
     /// @param impact The amount of stable coins the user deposited in the early birds campaign
-    event Migrate(address user, uint userId, uint impact);
+    event Migrate(address indexed user, uint indexed userId, uint impact);
 }
