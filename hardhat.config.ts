@@ -25,7 +25,7 @@ export default {
       accounts: { mnemonic: process.env.MNEMONIC }
     },
     polygon: { // 137
-      url: "https://rpc-mainnet.matic.network",
+      url: "https://rpc-mainnet.maticvigil.com/",
       accounts: { mnemonic: process.env.MNEMONIC }
     },
     heco: { // 128
