@@ -13,6 +13,7 @@ import { ClaimGTONV2 } from "../../typechain/ClaimGTONV2"
 import { IShares } from "../../typechain/IShares"
 import { SharesEB } from "../../typechain/SharesEB"
 import { BalanceAdderV2 } from '../../typechain/BalanceAdderV2'
+import { Faucet } from '../../typechain/Faucet'
 
 const IERC20ABI          = require('../../abi/IERC20.json');
 const LockGTONABI        = require('../../abi/LockGTON.json')
@@ -27,6 +28,7 @@ const IFarmABI           = require('../../abi/IFarm.json')
 const ISharesABI         = require('../../abi/IShares.json')
 const SharesEBABI        = require('../../abi/SharesEB.json')
 const ClaimGTONV2ABI     = require('../../abi/ClaimGTONV2.json')
+const FaucetABI          = require('../../abi/Faucet.json')
 
 import {
     GTONBinanceAddress,
@@ -43,12 +45,30 @@ import {
     SharesEBAddress,
     FarmStakingAddress,
     ClaimGTONV2Address,
-    ClaimWalletAddress
+    ClaimWalletAddress,
+    FaucetAddress,
+    testLPBinance
 } from './constants'
 
-
-export const testLPBinance = '0xbFaD5Af864Fcb11bB61671cBB1c9889Cbd78B7DA'
-export const availableLP = [testLPBinance]
+export function formatETHBalance(amount: string): string {
+  return ethers.utils.formatUnits(amount, "ether");
+}
+export function formatAmountToPrecision(
+  value: string,
+  precision: number
+): string {
+  let dotAt = value.indexOf(".");
+  return dotAt !== -1 ? value.slice(0, ++dotAt + precision) : value;
+}
+export function formatToken(num: number): number {
+  let res = num / Math.pow(10, 18);
+  return parseFloat(res.toFixed(4));
+}
+export function numberWithCommas(x: number): string {
+  var parts = x.toString().split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
+}
 
 export default class Invoker {
 
@@ -67,27 +87,32 @@ export default class Invoker {
     async balanceGTONBSC(): Promise<string> {
         const contract = new ethers.Contract(GTONBinanceAddress, IERC20ABI, this.binance) as IERC20
         const balance = await contract.balanceOf(await this.signer.getAddress())
-        return balance.toString()
+        return formatETHBalance(balance.toString())
     }
     async balanceGTONFTM(): Promise<string> {
         const contract = new ethers.Contract(GTONFantomAddress, IERC20ABI, this.fantom) as IERC20
         const balance = await contract.balanceOf(await this.signer.getAddress())
-        return balance.toString()
+        return formatETHBalance(balance.toString())
     }
-    async lockedLP(lptoken: string): Promise<string> {
+    async lockedLPBSC(lptoken: string): Promise<string> {
         const contract = new ethers.Contract(LockUnlockLPAddress, LockUnlockLPABI, this.binance) as LockUnlockLP
-        const balance = await contract.balance(lptoken, await this.signer.getAddress())
-        return balance.toString()
+        const balance = await contract.balance(testLPBinance, await this.signer.getAddress())
+        return formatETHBalance(balance.toString())
     }
-    async balanceLP(tokenId: number): Promise<string> {
+    async balanceLPBSC(): Promise<string> {
+        const contract = new ethers.Contract(testLPBinance, IERC20ABI, this.binance) as IERC20
+        const balance = await contract.balanceOf(await this.signer.getAddress())
+        return formatETHBalance(balance.toString())
+    }
+    async lockedLPFTM(tokenId: number): Promise<string> {
         const contract = new ethers.Contract(LPKeeperV2Address, LPKeeperV2ABI, this.fantom) as LPKeeperV2
         const balance = await contract['balance(uint256,string,bytes)'](tokenId, "EVM", await this.signer.getAddress())
-        return balance.toString()
+        return formatETHBalance(balance.toString())
     }
     async balanceGovernance(): Promise<string> {
         const contract = new ethers.Contract(BalanceKeeperV2Address, BalanceKeeperV2ABI, this.fantom) as BalanceKeeperV2
         const balance = await contract['balance(string,bytes)']("EVM", await this.signer.getAddress())
-        return balance.toString()
+        return formatETHBalance(balance.toString())
     }
     async userAddress(): Promise<string> {
         return await this.signer.getAddress()
@@ -119,7 +144,7 @@ export default class Invoker {
     async totalUnlockedEB(): Promise<string> {
         const contract = new ethers.Contract(FarmEBAddress, IFarmABI, this.fantom) as IFarm
         const totalUnlocked = await contract.totalUnlocked()
-        return totalUnlocked.toString()
+        return formatETHBalance(totalUnlocked.toString())
     }
     async percentEB(): Promise<string> {
         const keeper = new ethers.Contract(BalanceKeeperV2Address, BalanceKeeperV2ABI, this.fantom) as BalanceKeeperV2
@@ -135,7 +160,7 @@ export default class Invoker {
         }
 
     }
-    async totalEB(): Promise<string> {
+    async totalEBshares(): Promise<string> {
         const contract = new ethers.Contract(SharesEBAddress, SharesEBABI, this.fantom) as SharesEB
         const totalShares = await contract.totalShares()
         return totalShares.toString()
@@ -150,12 +175,12 @@ export default class Invoker {
     async totalUnlockedStaking(): Promise<string> {
         const contract = new ethers.Contract(FarmStakingAddress, IFarmABI, this.fantom) as IFarm
         const totalUnlocked = await contract.totalUnlocked()
-        return totalUnlocked.toString()
+        return formatETHBalance(totalUnlocked.toString())
     }
     async claimAllowance(): Promise<string> {
         const contract = new ethers.Contract(GTONFantomAddress, IERC20ABI, this.fantom) as IERC20
         const allowance = await contract.allowance(ClaimWalletAddress, ClaimGTONV2Address)
-        return allowance.toString()
+        return formatETHBalance(allowance.toString())
     }
     async totalLPTokens(): Promise<string> {
         const contract = new ethers.Contract(LPKeeperV2Address, LPKeeperV2ABI, this.fantom) as LPKeeperV2
@@ -167,32 +192,67 @@ export default class Invoker {
         const votingRounds = await contract.totalActiveRounds()
         return votingRounds.toString()
     }
-    async votes(roundId: number): Promise<string> {
-        const keeper = new ethers.Contract(BalanceKeeperV2Address, BalanceKeeperV2ABI, this.fantom) as BalanceKeeperV2
+    async votes(roundId: string, optionId: string, userId: string): Promise<string> {
         try {
-            const userId = await keeper.userIdByChainAddress("EVM", await this.signer.getAddress())
             const contract = new ethers.Contract(VoterV2Address, VoterV2ABI, this.fantom) as VoterV2
-            const votingOptions = await contract.totalRoundOptions(roundId)
-            var res = ""
-            for (var i = 0; i < votingOptions.toNumber(); i++) {
-                const name = contract.optionName(roundId, i)
-                const votes = contract.votesForOptionByUser(roundId, i, userId)
-                res = res + name + ": " + votes + "; "
-            }
-            return res
+            const votes = await contract.votesForOptionByUser(roundId, optionId, userId)
+            return votes.toString()
         } catch {
-            return "no id"
+            return ""
+        }
+    }
+    async voteOption(roundId: string, optionId: string): Promise<string> {
+        try {
+            const contract = new ethers.Contract(VoterV2Address, VoterV2ABI, this.fantom) as VoterV2
+            const name = await contract.optionName(roundId, optionId)
+            return name
+        } catch {
+            return ""
         }
     }
 
-    async approve () {}
-    async approveLP (lptoken: string) {}
-    async lockGTON(amount: number) {}
-    async lockLP(lptoken: string, amount: string) {}
-    async unlockLP(lptoken: string, amount: string) {}
-    async processBalances() {}
-    async unlockAssetEB() {}
-    async unlockAssetStaking() {}
-    async claim(amount: string) {}
-    async castVotes(amount: string) {}
+    async approveGTON(amount: number) {
+        const contract = new ethers.Contract(GTONBinanceAddress, IERC20ABI, this.signer) as IERC20
+        await contract.approve(LockGTONAddress, amount)
+    }
+    async lockGTON(amount: number) {
+        const port = new ethers.Contract(LockGTONAddress, LockGTONABI, this.signer) as LockGTON
+        await port.lock(await this.signer.getAddress(), amount)
+    }
+    async approveLP(lptoken: string, amount: string) {
+        const token = new ethers.Contract(testLPBinance, IERC20ABI, this.signer) as IERC20
+        await token.approve(LockUnlockLPAddress, amount)
+    }
+    async lockLP(lptoken: string, amount: string) {
+        const port = new ethers.Contract(LockUnlockLPAddress, LockUnlockLPABI, this.signer) as LockUnlockLP
+        await port.lock(testLPBinance, await this.signer.getAddress(), amount)
+    }
+    async unlockLP(lptoken: string, amount: string) {
+        const port = new ethers.Contract(LockUnlockLPAddress, LockUnlockLPABI, this.signer) as LockUnlockLP
+        await port.unlock(testLPBinance, await this.signer.getAddress(), amount)
+    }
+    async processBalances() {
+        const contract = new ethers.Contract(BalanceAdderV2Address, BalanceAdderV2ABI, this.signer) as BalanceAdderV2
+        await contract.processBalances(50)
+    }
+    async unlockAssetEB() {
+        const contract = new ethers.Contract(FarmEBAddress, IFarmABI, this.signer) as IFarm
+        await contract.unlockAsset()
+    }
+    async unlockAssetStaking() {
+        const contract = new ethers.Contract(FarmStakingAddress, IFarmABI, this.signer) as IFarm
+        await contract.unlockAsset()
+    }
+    async claim(amount: string) {
+        const contract = new ethers.Contract(ClaimGTONV2Address, ClaimGTONV2ABI, this.signer) as ClaimGTONV2
+        await contract.claim(await this.signer.getAddress(), amount)
+    }
+    async castVotes(roundId: string, votes1: string, votes2: string) {
+        const contract = new ethers.Contract(VoterV2Address, VoterV2ABI, this.signer) as VoterV2
+        await contract['castVotes(uint256,uint256[])'](roundId, [votes1, votes2])
+    }
+    async faucet() {
+        const contract = new ethers.Contract(FaucetAddress, FaucetABI, this.signer) as Faucet
+        await contract.drop(GTONBinanceAddress)
+    }
 }

@@ -1,3 +1,4 @@
+export const Nebula                 = '0xB896F06b6FC783AD25d6551058f630244761CBc9'
 export const GTONBinanceAddress     = '0xbFaD5Af864Fcb11bB61671cBB1c9889Cbd78B7DA'
 export const GTONFantomAddress      = '0x3e72051618f3E16F86a63A371cC59206675C3624'
 export const LockGTONAddress        = '0xf76bB0d728Bd29E3c05005AAf55334011F3606C9'
@@ -13,6 +14,7 @@ export const SharesEBAddress        = '0xC5C59494EB8244550c008bf691219F643087294
 export const FarmStakingAddress     = '0x99587ecA8b1A371e673601E2a4a1be7a65F74867'
 export const ClaimGTONV2Address     = '0x3E0d4077119b6109c80774f1F80Bc949f0fA7853'
 export const ClaimWalletAddress     = '0x8924F7f9eE7571F6F7B49E8a8F46cA2BAd65EddE'
+export const FaucetAddress          = '0x49b6431BDcd6CFaf79a3a5309261cB268642d8C0'
 
-export const testLPBinance = '0xbFaD5Af864Fcb11bB61671cBB1c9889Cbd78B7DA'
+export const testLPBinance = '0xF6aEC436cFe14381d48FcC02C0A13865a2254a9A'
 export const availableLP = [testLPBinance]

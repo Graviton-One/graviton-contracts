@@ -6,9 +6,13 @@
         <div> User Address: {{ userAddress }}</div>
         <div> User Id: {{ userId }}</div>
 
-        <div> GTON balance fantom: {{ balanceGTONBSC }}</div>
+        <div> GTON balance binance: {{ balanceGTONBSC }}</div>
         <div> GTON balance fantom: {{ balanceGTONFTM }}</div>
         <div> Governance balance: {{ balanceGovernance }}</div>
+
+        <div> LP balance: {{ balanceLPBSC }}</div>
+        <div> LP locked BSC: {{ lockedLPBSC }}</div>
+        <div> LP counted on FTM: {{ lockedLPFTM }}</div>
 
         <div> Number of farms: {{ totalFarms }}</div>
         <div> Current farm processing: {{ currentFarm }}</div>
@@ -22,20 +26,33 @@
 
         <div> GTON available to claim: {{ claimAllowance }}</div>
 
-        <!-- <div v-for="(lp, index) in lpaddresses" :key="index">locked LP: {{ lockedLP(lp) }}</div> -->
-        <!-- <div v-for="tokenId in totalLPTokens">{{ balanceLP(tokenId) }}</div> -->
-        <!-- <div v-for="roundId in votingRounds"> {{ votes(roundId) }}</div> -->
+        <div >Votes: {{ votes }} </div>
 
+        <Button class='button--green' size="large" ghost @click="faucet">Faucet</Button>
+        <br>
+        <input v-model="lockGTONAmount" placeholder="amount">
+        <Button class='button--green' size="large" ghost @click="approveGTON">Approve GTON</Button>
         <Button class='button--green' size="large" ghost @click="lockGTON">Lock GTON</Button>
+        <br>
+        <input v-model="lockLPAmount" placeholder="amount">
+        <Button class='button--green' size="large" ghost @click="approveLP">Approve LP</Button>
         <Button class='button--green' size="large" ghost @click="lockLP">Lock LP</Button>
+        <br>
+        <input v-model="unlockLPAmount" placeholder="amount">
         <Button class='button--green' size="large" ghost @click="unlockLP">Unlock LP</Button>
         <br>
+        <br>
+        <input v-model="claimAmount" placeholder="amount">
         <Button class='button--green' size="large" ghost @click="claim">Claim</Button>
+        <br>
         <br>
         <Button class='button--green' size="large" ghost @click="processBalances">Process balances</Button>
         <Button class='button--green' size="large" ghost @click="unlockAssetEB">update EB</Button>
         <Button class='button--green' size="large" ghost @click="unlockAssetStaking">update Staking</Button>
         <br>
+        <br>
+        <input v-model="votes1" placeholder="votes1">
+        <input v-model="votes2" placeholder="votes2">
         <Button class='button--green' size="large" ghost @click="castVotes">Cast votes</Button>
       </div>
     </div>
@@ -66,9 +83,20 @@ import { availableLP } from '../services/constants.ts'
              percentStaking: " ",
              totalUnlockedStaking: " ",
              claimAllowance: " ",
+             balanceLPBSC: "",
+             lockedLPBSC: "",
+             lockedLPFTM: "",
              totalLPTokens: 0,
              votingRounds: 0,
-             lpaddresses: []
+             lpaddresses: [],
+             lockGTONAmount: 0,
+             lockLPAmount: 0,
+             unlockLPAmount: 0,
+             claimAmount: 0,
+             roundId: 0,
+             votes1: 0,
+             votes2: 0,
+             votes: ""
          }
      },
 
@@ -100,40 +128,70 @@ import { availableLP } from '../services/constants.ts'
              this.totalUnlockedStaking = await this.invoker.totalUnlockedStaking()
              this.claimAllowance       = await this.invoker.claimAllowance()
              this.totalLPTokens        = await this.invoker.totalLPTokens()
+             this.balanceLPBSC         = await this.invoker.balanceLPBSC()
+             this.lockedLPBSC          = await this.invoker.lockedLPBSC(this.lpaddresses[0])
+             this.lockedLPFTM          = await this.invoker.lockedLPFTM(1)
              this.votingRounds         = await this.invoker.votingRounds()
+             const votes0              = await this.invoker.votes("0", "0", this.userId)
+             const option0             = await this.invoker.voteOption("0", "0")
+             const votes1              = await this.invoker.votes("0", "1", this.userId)
+             const option1             = await this.invoker.voteOption("0", "1")
+             this.votes                = option0 + ": " + votes0 + "; " + option1 + ": " + votes1
          },
-         async lockedLP (id): string {
-             return await this.invoker.lockedLP(id)
+         async approveGTON () {
+             try {
+             await this.invoker.approveGTON(this.lockGTONAmount)
+             } catch {}
          },
          async lockGTON () {
-             await this.invoker.lockGTON(this.amountLockGTON)
+             try {
+             await this.invoker.lockGTON(this.lockGTONAmount)
+             } catch {}
          },
-         async balanceLP (id): string {
-             return await this.invoker.balanceLP(id)
+         async approveLP () {
+             try {
+             await this.invoker.approveLP(this.lptoken, this.lockLPAmount)
+             } catch {}
          },
          async lockLP () {
-             await this.invoker.lockLP(this.lptoken, this.amountLockGTON)
+             try {
+             await this.invoker.lockLP(this.lptoken, this.lockLPAmount)
+             } catch {}
          },
          async unlockLP () {
-             await this.invoker.unlockLP(this.lptoken, this.amountLockGTON)
+             try {
+             await this.invoker.unlockLP(this.lptoken, this.unlockLPAmount)
+             } catch {}
          },
          async processBalances () {
+             try {
              await this.invoker.processBalances()
+             } catch {}
          },
          async unlockAssetEB () {
-             await this.invoker.unlockAssetEB()
+             try {
+               await this.invoker.unlockAssetEB()
+             } catch {}
          },
          async unlockAssetStaking () {
+             try {
              await this.invoker.unlockAssetStaking()
+             } catch {}
          },
          async claim () {
-             await this.invoker.claim(this.amountClaim)
+             try {
+               await this.invoker.claim(this.amountClaim)
+             } catch {}
          },
          async castVotes () {
-             await this.invoker.castVotes(this.amountVotes)
+             try {
+             await this.invoker.castVotes(0, this.votes1, this.votes2)
+             } catch {}
          },
-         async votes (roundId) {
-             return this.invoker.votes(roundId)
+         async faucet () {
+             try {
+                 await this.invoker.faucet()
+             } catch {}
          }
      }
  })

@@ -1,6 +1,6 @@
 export default {
   head: {
-    title: 'prism',
+    title: 'gravitonV2',
     htmlAttrs: {
       lang: 'en',
     },
