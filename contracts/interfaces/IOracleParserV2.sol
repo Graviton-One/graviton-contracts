@@ -76,17 +76,17 @@ interface IOracleParserV2 {
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
-    event SetOwner(address ownerOld, address ownerNew);
+    event SetOwner(address indexed ownerOld, address indexed ownerNew);
 
     /// @notice Event emitted when the nebula changes via `#setNebula`.
     /// @param nebulaOld The account that was the previous nebula
     /// @param nebulaNew The account that became the nebula
-    event SetNebula(address nebulaOld, address nebulaNew);
+    event SetNebula(address indexed nebulaOld, address indexed nebulaNew);
 
     /// @notice Event emitted when the router changes via `#setOracleRouter`.
     /// @param routerOld The previous router
     /// @param routerNew The new router
-    event SetOracleRouter(IOracleRouterV2 routerOld, IOracleRouterV2 routerNew);
+    event SetOracleRouter(IOracleRouterV2 indexed routerOld, IOracleRouterV2 indexed routerNew);
 
     /// @notice Event emitted when the evm chains are set via `#setEVMChains`
     /// @param _evmChains Array of blockchain names, i.e. ["ETH","BNB","FTM"]
@@ -104,10 +104,10 @@ interface IOracleParserV2 {
     /// @param receiver The blockchain-specific address to receive the tokens
     /// @param amount The amount of tokens
     event AttachValue(
-        address nebula,
-        bytes16 uuid,
+        address indexed nebula,
+        bytes16 indexed uuid,
         string chain,
-        bytes emiter,
+        bytes indexed emiter,
         bytes32 topic0,
         bytes token,
         bytes sender,

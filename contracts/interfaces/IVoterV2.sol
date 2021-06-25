@@ -134,7 +134,7 @@ interface IVoterV2 {
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
-    event SetOwner(address ownerOld, address ownerNew);
+    event SetOwner(address indexed ownerOld, address indexed ownerNew);
 
     /// @notice Event emitted when the `caster` permission is updated via `#setCanCastVotes`
     /// @param owner The owner account at the time of change
@@ -171,14 +171,14 @@ interface IVoterV2 {
     /// @notice Event emitted when a voting round is finalized via `#finalizeRound`
     /// @param owner The owner account at the time of change
     /// @param roundId Unique id of the voting round
-    event FinalizeRound(address indexed owner, uint roundId);
+    event FinalizeRound(address indexed owner, uint indexed roundId);
 
     /// @notice Event emitted when a user sends votes via `#castVotes`
     /// @param caster The account that cast votes
     /// @param roundId Unique id of the voting round
     /// @param userId The account that cast votes
     /// @param votes Array of votes for each option in the round
-    event CastVotes(address caster, uint indexed roundId, uint indexed userId, uint[] votes);
+    event CastVotes(address indexed caster, uint indexed roundId, uint indexed userId, uint[] votes);
 
     /// @notice Event emitted when a `checker` decreases a voting balance preserving proportions via `#checkVoteBalances`
     /// @param checker The account that checked the voting balance

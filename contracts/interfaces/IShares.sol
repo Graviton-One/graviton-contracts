@@ -7,8 +7,8 @@ pragma solidity >=0.8.0;
 /// @author Anton Davydov - <fetsorn@gmail.com>
 interface IShares {
     /// @notice User's share in the farming campaign
-    function shareById(uint256 userId) external returns (uint256);
+    function shareById(uint256 userId) external view returns (uint256);
 
     /// @notice The total number of shares in the farming campaign
-    function totalShares() external returns (uint256);
+    function totalShares() external view returns (uint256);
 }

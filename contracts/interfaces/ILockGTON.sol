@@ -33,7 +33,7 @@ interface ILockGTON {
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
-    event SetOwner(address ownerOld, address ownerNew);
+    event SetOwner(address indexed ownerOld, address indexed ownerNew);
 
     /// @notice Event emitted when the `sender` locks `amount` of governance tokens in the name of `receiver`
     /// @dev LockGTON event is not called Lock so the topic0 is different
@@ -62,5 +62,5 @@ interface ILockGTON {
     /// @notice Event emitted when the locked governance tokens are transfered the another version of LockGTON
     /// @param newLock The new Lock contract
     /// @param amount Amount of tokens migrated
-    event Migrate(address newLock, uint amount);
+    event Migrate(address indexed newLock, uint amount);
 }

@@ -24,6 +24,8 @@ Find documentation for V2 contracts in `contract/interfaces`.
 
 ```bash
 yarn
-yarn test
-yarn coverage
+yarn run hardhat compile
+yarn run hardhat test
+yarn run hardhat coverage
+yarn run nuxt dev
 ```

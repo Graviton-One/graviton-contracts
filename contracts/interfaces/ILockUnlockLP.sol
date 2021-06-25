@@ -50,7 +50,7 @@ interface ILockUnlockLP {
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
-    event SetOwner(address ownerOld, address ownerNew);
+    event SetOwner(address indexed ownerOld, address indexed ownerNew);
 
     /// @notice Event emitted when the `sender` locks `amount` of `token` lp-tokens in the name of `receiver`
     /// @param token The address of the lp-token

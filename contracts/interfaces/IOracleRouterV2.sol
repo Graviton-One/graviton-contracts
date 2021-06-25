@@ -68,7 +68,7 @@ interface IOracleRouterV2 {
     /// @notice Event emitted when the owner changes via #setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
-    event SetOwner(address ownerOld, address ownerNew);
+    event SetOwner(address indexed ownerOld, address indexed ownerNew);
 
     /// @notice Event emitted when the `parser` permission is updated via `#setCanRoute`
     /// @param owner The owner account at the time of change
@@ -83,22 +83,22 @@ interface IOracleRouterV2 {
     /// @notice Event emitted when the GTONAddTopic is set via '#setGTONAddTopic'
     /// @param topicOld The previous topic
     /// @param topicNew The new topic
-    event SetGTONAddTopic(bytes32 topicOld, bytes32 topicNew);
+    event SetGTONAddTopic(bytes32 indexed topicOld, bytes32 indexed topicNew);
 
     /// @notice Event emitted when the GTONSubTopic is set via '#setGTONSubTopic'
     /// @param topicOld The previous topic
     /// @param topicNew The new topic
-    event SetGTONSubTopic(bytes32 topicOld, bytes32 topicNew);
+    event SetGTONSubTopic(bytes32 indexed topicOld, bytes32 indexed topicNew);
 
     /// @notice Event emitted when the LPAddTopic is set via '#setLPAddTopic'
     /// @param topicOld The previous topic
     /// @param topicNew The new topic
-    event SetLPAddTopic(bytes32 topicOld, bytes32 topicNew);
+    event SetLPAddTopic(bytes32 indexed topicOld, bytes32 indexed topicNew);
 
     /// @notice Event emitted when the LPSubTopic is set via '#setLPSubTopic'
     /// @param topicOld The previous topic
     /// @param topicNew The new topic
-    event SetLPSubTopic(bytes32 topicOld, bytes32 topicNew);
+    event SetLPSubTopic(bytes32 indexed topicOld, bytes32 indexed topicNew);
 
     /// @notice Event emitted when data is routed
     /// @param uuid Unique identifier of the routed data
@@ -112,9 +112,9 @@ interface IOracleRouterV2 {
         bytes16 uuid,
         string chain,
         bytes emiter,
-        bytes token,
-        bytes sender,
-        bytes receiver,
+        bytes indexed token,
+        bytes indexed sender,
+        bytes indexed receiver,
         uint256 amount
     );
 
@@ -130,9 +130,9 @@ interface IOracleRouterV2 {
         bytes16 uuid,
         string chain,
         bytes emiter,
-        bytes token,
-        bytes sender,
-        bytes receiver,
+        bytes indexed token,
+        bytes indexed sender,
+        bytes indexed receiver,
         uint256 amount
     );
 
@@ -166,9 +166,9 @@ interface IOracleRouterV2 {
         bytes16 uuid,
         string chain,
         bytes emiter,
-        bytes token,
-        bytes sender,
-        bytes receiver,
+        bytes indexed token,
+        bytes indexed sender,
+        bytes indexed receiver,
         uint256 amount
     );
 
@@ -184,9 +184,9 @@ interface IOracleRouterV2 {
         bytes16 uuid,
         string chain,
         bytes emiter,
-        bytes token,
-        bytes sender,
-        bytes receiver,
+        bytes indexed token,
+        bytes indexed sender,
+        bytes indexed receiver,
         uint256 amount
     );
 }

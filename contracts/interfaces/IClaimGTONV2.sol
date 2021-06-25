@@ -62,17 +62,17 @@ interface IClaimGTONV2 {
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
-    event SetOwner(address ownerOld, address ownerNew);
+    event SetOwner(address indexed ownerOld, address indexed ownerNew);
 
     /// @notice Event emitted when the voter changes via `#setVoter`.
     /// @param voterOld The previous voting contract
     /// @param voterNew The new voting contract
-    event SetVoter(IVoterV2 voterOld, IVoterV2 voterNew);
+    event SetVoter(IVoterV2 indexed voterOld, IVoterV2 indexed voterNew);
 
     /// @notice Event emitted when the wallet changes via `#setWallet`.
     /// @param walletOld The previous wallet
     /// @param walletNew The new wallet
-    event SetWallet(address walletOld, address walletNew);
+    event SetWallet(address indexed walletOld, address indexed walletNew);
 
     /// @notice Event emitted when the `sender` claims `amount` of governance tokens in the name of `receiver`
     /// @param sender The account from whose governance balance tokens were claimed
