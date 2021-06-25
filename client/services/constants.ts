@@ -1,0 +1,18 @@
+export const GTONBinanceAddress     = '0xbFaD5Af864Fcb11bB61671cBB1c9889Cbd78B7DA'
+export const GTONFantomAddress      = '0x3e72051618f3E16F86a63A371cC59206675C3624'
+export const LockGTONAddress        = '0xf76bB0d728Bd29E3c05005AAf55334011F3606C9'
+export const LockUnlockLPAddress    = '0xce0A8bbd5c366D188c1a9c5b52690ef5385E4740'
+export const BalanceKeeperV2Address = '0xa7732A26786A8F8bB3899225759F141c5057C516'
+export const VoterV2Address         = '0xBdB72D66326b5edA391938903Dca79aE50BD5Ec7'
+export const LPKeeperV2Address      = '0x0eFe7394f1cfe828302415F6547268e59B117f34'
+export const OracleRouterV2Address  = '0x5dE8d57aF435eccf7345636C6D6774bf185448a1'
+export const OracleParserV2Address  = '0xE0c9fb1C0FFba375F5CecD48AcD545D32E678601'
+export const BalanceAdderV2Address  = '0x8a734821bc968cC076b3E0dB4F49c1242f02e564'
+export const FarmEBAddress          = '0x4Cb8824d45312D5dC9d9B5260fb2B1dEC297015b'
+export const SharesEBAddress        = '0xC5C59494EB8244550c008bf691219F6430872949'
+export const FarmStakingAddress     = '0x99587ecA8b1A371e673601E2a4a1be7a65F74867'
+export const ClaimGTONV2Address     = '0x3E0d4077119b6109c80774f1F80Bc949f0fA7853'
+export const ClaimWalletAddress     = '0x8924F7f9eE7571F6F7B49E8a8F46cA2BAd65EddE'
+
+export const testLPBinance = '0xbFaD5Af864Fcb11bB61671cBB1c9889Cbd78B7DA'
+export const availableLP = [testLPBinance]

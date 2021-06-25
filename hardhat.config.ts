@@ -6,6 +6,7 @@ import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-etherscan";
 import "solidity-coverage";
+import "hardhat-abi-exporter";
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -43,4 +44,9 @@ export default {
   etherscan: {
     apiKey: process.env.APIKEY
   },
+  abiExporter: {
+    clear: true,
+    flat: true,
+    spacing: 2
+  }
 };
