@@ -77,20 +77,45 @@ describe('LockUnlockLP', () => {
   describe('#balance', () => {
     it('returns user token balance', async () => {
       await token1.approve(lockUnlockLP.address, 1)
+      await lockUnlockLP.setCanLock(true)
       await lockUnlockLP.lock(token1.address, wallet.address, 1)
       expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(1)
       expect(await token1.balanceOf(lockUnlockLP.address)).to.eq(1)
     })
   })
 
+  describe('#setCanLock', () => {
+    it('fails if caller is not owner', async () => {
+      await expect(lockUnlockLP.connect(other).setCanLock(true)).to.be.reverted
+    })
+
+    it('updates withdraw permission', async () => {
+      await lockUnlockLP.setCanLock(true)
+      expect(await lockUnlockLP.connect(other).canLock()).to.eq(true)
+    })
+
+    it('emits event', async () => {
+      await expect(lockUnlockLP.setCanLock(true))
+        .to.emit(lockUnlockLP, 'SetCanLock')
+        .withArgs(wallet.address, true)
+    })
+  })
+
   describe('#lock', () => {
+    it('fails if lock is not allowed', async () => {
+      await token1.approve(lockUnlockLP.address, 1)
+      await expect(lockUnlockLP.lock(token1.address, wallet.address, 0)).to.be.reverted
+    })
+
     it('fails if token is not allowed', async () => {
       await token1.approve(lockUnlockLP.address, 1)
+      await lockUnlockLP.setCanLock(true)
       await expect(lockUnlockLP.lock(token2.address, wallet.address, 0)).to.be.reverted
     })
 
     it('locks tokens', async () => {
       await token1.approve(lockUnlockLP.address, 1)
+      await lockUnlockLP.setCanLock(true)
       await lockUnlockLP.lock(token1.address, wallet.address, 1)
       expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(1)
       expect(await token1.balanceOf(lockUnlockLP.address)).to.eq(1)
@@ -98,6 +123,7 @@ describe('LockUnlockLP', () => {
 
     it('emits event', async () => {
       await token1.approve(lockUnlockLP.address, 1)
+      await lockUnlockLP.setCanLock(true)
       await expect(lockUnlockLP.lock(token1.address, wallet.address, 1))
         .to.emit(lockUnlockLP, "Lock")
         .withArgs(token1.address, wallet.address, wallet.address, 1)
@@ -105,21 +131,16 @@ describe('LockUnlockLP', () => {
   })
 
   describe('#unlock', () => {
-    it('fails if token is not allowed', async () => {
-      await token1.approve(lockUnlockLP.address, 2)
-      await lockUnlockLP.lock(token1.address, wallet.address, 2)
-      await lockUnlockLP.setIsAllowedToken(token1.address, false)
-      await expect(lockUnlockLP.unlock(token1.address, wallet.address, 1)).to.be.reverted
-    })
-
     it('fails if balance is smaller than unlock amount', async () => {
       await token1.approve(lockUnlockLP.address, 2)
+      await lockUnlockLP.setCanLock(true)
       await lockUnlockLP.lock(token1.address, wallet.address, 2)
       await expect(lockUnlockLP.unlock(token1.address, wallet.address, 3)).to.be.reverted
     })
 
     it('unlocks tokens', async () => {
       await token1.approve(lockUnlockLP.address, 2)
+      await lockUnlockLP.setCanLock(true)
       await lockUnlockLP.lock(token1.address, wallet.address, 2)
       await lockUnlockLP.unlock(token1.address, wallet.address, 1)
       expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(1)
@@ -127,6 +148,7 @@ describe('LockUnlockLP', () => {
 
     it('emits event', async () => {
       await token1.approve(lockUnlockLP.address, 2)
+      await lockUnlockLP.setCanLock(true)
       await lockUnlockLP.lock(token1.address, wallet.address, 2)
       await expect(lockUnlockLP.unlock(token1.address, wallet.address, 1))
         .to.emit(lockUnlockLP, "Unlock")

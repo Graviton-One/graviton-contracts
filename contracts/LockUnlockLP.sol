@@ -24,6 +24,9 @@ contract LockUnlockLP is ILockUnlockLP {
     /// @inheritdoc ILockUnlockLP
     uint256 public override totalSupply;
 
+    /// @inheritdoc ILockUnlockLP
+    bool public override canLock;
+
     constructor(address[] memory allowedTokens) {
         owner = msg.sender;
         for (uint256 i = 0; i < allowedTokens.length; i++) {
@@ -49,6 +52,12 @@ contract LockUnlockLP is ILockUnlockLP {
     }
 
     /// @inheritdoc ILockUnlockLP
+    function setCanLock(bool _canLock) external override isOwner {
+        canLock = _canLock;
+        emit SetCanLock(owner, _canLock);
+    }
+
+    /// @inheritdoc ILockUnlockLP
     function balance(address token, address depositer)
         external
         view
@@ -64,6 +73,7 @@ contract LockUnlockLP is ILockUnlockLP {
         address receiver,
         uint256 amount
     ) external override {
+        require(canLock, "lock is not allowed");
         require(isAllowedToken[token], "token not allowed");
         _balance[token][receiver] += amount;
         tokenSupply[token] += amount;
@@ -78,7 +88,6 @@ contract LockUnlockLP is ILockUnlockLP {
         address receiver,
         uint256 amount
     ) external override {
-        require(isAllowedToken[token], "token not allowed");
         require(_balance[token][msg.sender] >= amount, "not enough balance");
         _balance[token][msg.sender] -= amount;
         tokenSupply[token] -= amount;
