@@ -18,6 +18,8 @@ contract LockUnlockLP is ILockUnlockLP {
 
     /// @inheritdoc ILockUnlockLP
     mapping(address => bool) public override isAllowedToken;
+    /// @inheritdoc ILockUnlockLP
+    mapping(address => uint256) public override lockLimit;
     mapping(address => mapping(address => uint256)) internal _balance;
     /// @inheritdoc ILockUnlockLP
     mapping(address => uint256) public override tokenSupply;
@@ -52,6 +54,16 @@ contract LockUnlockLP is ILockUnlockLP {
     }
 
     /// @inheritdoc ILockUnlockLP
+    function setLockLimit(address token, uint256 _lockLimit)
+        external
+        override
+        isOwner
+    {
+        lockLimit[token] = _lockLimit;
+        emit SetLockLimit(owner, token, _lockLimit);
+    }
+
+    /// @inheritdoc ILockUnlockLP
     function setCanLock(bool _canLock) external override isOwner {
         canLock = _canLock;
         emit SetCanLock(owner, _canLock);
@@ -75,6 +87,7 @@ contract LockUnlockLP is ILockUnlockLP {
     ) external override {
         require(canLock, "lock is not allowed");
         require(isAllowedToken[token], "token not allowed");
+        require(amount >= lockLimit[token], "limit exceeded");
         _balance[token][receiver] += amount;
         tokenSupply[token] += amount;
         totalSupply += amount;

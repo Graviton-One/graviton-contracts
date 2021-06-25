@@ -24,6 +24,12 @@ interface ILockUnlockLP {
     /// @notice Look up if the locking of `token` is allowed
     function isAllowedToken(address token) external view returns (bool);
 
+    /// @notice Look up if the locking of `token` is allowed
+    function lockLimit(address token) external view returns (uint256);
+
+    /// @notice Sets minimum lock amount limit for `token` to `_lockLimit`
+    function setLockLimit(address token, uint256 _lockLimit) external;
+
     /// @notice The total amount of locked `token`
     function tokenSupply(address token) external view returns (uint256);
 
@@ -90,6 +96,16 @@ interface ILockUnlockLP {
         address indexed owner,
         address indexed token,
         bool indexed newBool
+    );
+
+    /// @notice Event emitted when the minimum lock amount limit updated via `#setLockLimit`
+    /// @param owner The owner account at the time of change
+    /// @param token The lp-token whose permission was updated
+    /// @param _lockLimit New minimum lock amount limit
+    event SetLockLimit(
+        address indexed owner,
+        address indexed token,
+        uint256 indexed _lockLimit
     );
 
     /// @notice Event emitted when the permission to lock is updated via `#setCanLock`

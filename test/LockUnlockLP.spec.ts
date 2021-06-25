@@ -27,6 +27,8 @@ describe('LockUnlockLP', () => {
     expect(await lockUnlockLP.owner()).to.eq(wallet.address)
     expect(await lockUnlockLP.isAllowedToken(token1.address)).to.eq(true)
     expect(await lockUnlockLP.isAllowedToken(token2.address)).to.eq(false)
+    expect(await lockUnlockLP.lockLimit(token1.address)).to.eq(0)
+    expect(await lockUnlockLP.lockLimit(token2.address)).to.eq(0)
     expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(0)
   })
 
@@ -74,6 +76,19 @@ describe('LockUnlockLP', () => {
     })
   })
 
+  describe('#setLockLimit', () => {
+    it('updates lock limit', async () => {
+      await lockUnlockLP.setLockLimit(token2.address, 2)
+      expect(await lockUnlockLP.lockLimit(token2.address)).to.eq(2)
+    })
+
+    it('emits event', async () => {
+      await expect(lockUnlockLP.setLockLimit(token1.address, 2))
+        .to.emit(lockUnlockLP, 'SetLockLimit')
+        .withArgs(wallet.address, token1.address, 2)
+    })
+  })
+
   describe('#balance', () => {
     it('returns user token balance', async () => {
       await token1.approve(lockUnlockLP.address, 1)
@@ -111,6 +126,13 @@ describe('LockUnlockLP', () => {
       await token1.approve(lockUnlockLP.address, 1)
       await lockUnlockLP.setCanLock(true)
       await expect(lockUnlockLP.lock(token2.address, wallet.address, 0)).to.be.reverted
+    })
+
+    it('fails if lock is smaller than the lock limit', async () => {
+      await token1.approve(lockUnlockLP.address, 1)
+      await lockUnlockLP.setCanLock(true)
+      await lockUnlockLP.setLockLimit(token1.address, 2)
+      await expect(lockUnlockLP.lock(token1.address, wallet.address, 0)).to.be.reverted
     })
 
     it('locks tokens', async () => {
