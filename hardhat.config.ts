@@ -16,6 +16,10 @@ export default {
   networks: {
     hardhat: {
     },
+    mainnet: {
+      url: "https://mainnet.infura.io/v3/" + process.env.INFURA,
+      accounts: { mnemonic: process.env.MNEMONIC }
+    },
     fantom: { // 250
       url: "https://rpcapi.fantom.network",
       accounts: { mnemonic: process.env.MNEMONIC }
