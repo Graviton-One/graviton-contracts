@@ -18,7 +18,7 @@ interface ILockGTON {
     /// @notice Look up if locking is allowed
     function canLock() external view returns (bool);
 
-    /// @notice Sets the permission to claim to `_canLock`
+    /// @notice Sets the permission to lock to `_canLock`
     function setCanLock(bool _canLock) external;
 
     /// @notice Address of the governance token

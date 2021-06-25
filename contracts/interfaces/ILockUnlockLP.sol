@@ -15,6 +15,12 @@ interface ILockUnlockLP {
     /// @dev Can only be called by the current owner.
     function setOwner(address _owner) external;
 
+    /// @notice Look up if locking is allowed
+    function canLock() external view returns (bool);
+
+    /// @notice Sets the permission to lock to `_canLock`
+    function setCanLock(bool _canLock) external;
+
     /// @notice Look up if the locking of `token` is allowed
     function isAllowedToken(address token) external view returns (bool);
 
@@ -83,6 +89,14 @@ interface ILockUnlockLP {
     event SetIsAllowedToken(
         address indexed owner,
         address indexed token,
+        bool indexed newBool
+    );
+
+    /// @notice Event emitted when the permission to lock is updated via `#setCanLock`
+    /// @param owner The owner account at the time of change
+    /// @param newBool Updated permission
+    event SetCanLock(
+        address indexed owner,
         bool indexed newBool
     );
 }
