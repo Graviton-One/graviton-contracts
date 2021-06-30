@@ -140,6 +140,9 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         override
         returns (uint256)
     {
+        if (!isKnownUser(userChain, userAddress)) {
+                return 0;
+           }
         return _balance[_userIdByChainAddress[userChain][userAddress]];
     }
 

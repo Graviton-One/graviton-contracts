@@ -265,6 +265,12 @@ describe('BalanceKeeperV2', () => {
       expect(await balanceKeeper['balance(uint256)'](0)).to.eq(0)
     })
 
+    it('returns 0 for the user that is not known when 0 user has balance', async () => {
+      await openWallet()
+      await add(wallet.address, 100)
+      expect(await balanceKeeper['balance(uint256)'](1)).to.eq(0)
+    })
+
     it('returns 0 when the balance is empty', async () => {
       await openWallet()
       expect(await balanceKeeper['balance(uint256)'](0)).to.eq(0)
@@ -280,6 +286,12 @@ describe('BalanceKeeperV2', () => {
   describe('#balance', () => {
     it('returns 0 for the user that is not known', async () => {
       expect(await balanceKeeper['balance(string,bytes)'](EVM_CHAIN, wallet.address)).to.eq(0)
+    })
+
+    it('returns 0 for the user that is not known when 0 user has balance', async () => {
+      await openWallet()
+      await add(wallet.address, 100)
+      expect(await balanceKeeper['balance(string,bytes)'](EVM_CHAIN, other.address)).to.eq(0)
     })
 
     it('returns 0 when the balance is empty', async () => {
