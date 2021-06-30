@@ -11,6 +11,7 @@
         <br>
         <div> binance GTON balance: {{ balanceGTONBSC }}</div>
         <div> binance LP balance: {{ balanceLPBSC }}</div>
+        <div> binance LP locked: {{ lockedLPBSC }}</div>
         <div> binance LP counted on FTM: {{ lockedLPFTMBSC }}</div>
         <Button class='button--green' size="large" ghost @click="faucet('BSC')">Faucet Binance</Button>
         <br>
@@ -28,6 +29,7 @@
         <br>
         <div> ethereum GTON balance: {{ balanceGTONETH }}</div>
         <div> ethereum LP balance: {{ balanceLPETH }}</div>
+        <div> ethereum LP locked: {{ lockedLPETH }}</div>
         <div> ethereum LP counted on FTM: {{ lockedLPFTMETH }}</div>
         <br>
         <Button class='button--green' size="large" ghost @click="faucet('ETH')">Faucet Ethereum</Button>
@@ -46,6 +48,7 @@
         <br>
         <div> polygon GTON balance: {{ balanceGTONETH }}</div>
         <div> polygon LP balance: {{ balanceLPETH }}</div>
+        <div> polygon LP locked: {{ lockedLPPLG }}</div>
         <div> polygon LP counted on FTM: {{ lockedLPFTMPLG }}</div>
         <br>
         <Button class='button--green' size="large" ghost @click="faucet('PLG')">Faucet Polygon</Button>
@@ -252,7 +255,7 @@ import { availableLP } from '../services/constants.ts'
              }
              try {
              await this.invoker.lockGTON(chain, this.lockGTONAmount)
-             } catch {}
+             } catch(e) { console.log(e) }
          },
          async approveLP (chain) {
              var amount: number
@@ -267,7 +270,7 @@ import { availableLP } from '../services/constants.ts'
              }
              try {
              await this.invoker.approveLP(chain, this.lptoken, this.lockLPAmount)
-             } catch {}
+             } catch(e) { console.log(e) }
          },
          async lockLP (chain) {
              var amount: number
@@ -282,7 +285,7 @@ import { availableLP } from '../services/constants.ts'
              }
              try {
              await this.invoker.lockLP(chain, this.lptoken, amount)
-             } catch {}
+             } catch(e) { console.log(e) }
          },
          async unlockLP (chain) {
              var amount: number
@@ -297,37 +300,37 @@ import { availableLP } from '../services/constants.ts'
              }
              try {
              await this.invoker.unlockLP(chain, this.lptoken, amount)
-             } catch {}
+             } catch(e) { console.log(e) }
          },
          async processBalances () {
              try {
              await this.invoker.processBalances()
-             } catch {}
+             } catch(e) { console.log(e) }
          },
          async unlockAssetEB () {
              try {
                await this.invoker.unlockAssetEB()
-             } catch {}
+             } catch(e) { console.log(e) }
          },
          async unlockAssetStaking () {
              try {
              await this.invoker.unlockAssetStaking()
-             } catch {}
+             } catch(e) { console.log(e) }
          },
          async claim () {
              try {
                await this.invoker.claim(this.amountClaim)
-             } catch {}
+             } catch(e) { console.log(e) }
          },
          async castVotes () {
              try {
              await this.invoker.castVotes(0, this.votes1, this.votes2)
-             } catch {}
+             } catch(e) { console.log(e) }
          },
          async faucet () {
              try {
                  await this.invoker.faucet()
-             } catch {}
+             } catch(e) { console.log(e) }
          }
      }
  })
