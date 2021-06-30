@@ -2,18 +2,72 @@
   <div class="container">
       <div>
         <Button class='button--green' size="large" ghost @click="update">Update</Button>
-
         <div> User Address: {{ userAddress }}</div>
         <div> User Id: {{ userId }}</div>
-
-        <div> GTON balance binance: {{ balanceGTONBSC }}</div>
+        <br>
         <div> GTON balance fantom: {{ balanceGTONFTM }}</div>
         <div> Governance balance: {{ balanceGovernance }}</div>
-
-        <div> LP balance: {{ balanceLPBSC }}</div>
-        <div> LP locked BSC: {{ lockedLPBSC }}</div>
-        <div> LP counted on FTM: {{ lockedLPFTM }}</div>
-
+        <br>
+        <br>
+        <div> binance GTON balance: {{ balanceGTONBSC }}</div>
+        <div> binance LP balance: {{ balanceLPBSC }}</div>
+        <div> binance LP counted on FTM: {{ lockedLPFTMBSC }}</div>
+        <Button class='button--green' size="large" ghost @click="faucet('BSC')">Faucet Binance</Button>
+        <br>
+        <input v-model="lockGTONBSCAmount" placeholder="amount">
+        <Button class='button--green' size="large" ghost @click="approveGTON('BSC')">Approve GTON</Button>
+        <Button class='button--green' size="large" ghost @click="lockGTON('BSC')">Lock GTON</Button>
+        <br>
+        <input v-model="lockLPBSCAmount" placeholder="amount">
+        <Button class='button--green' size="large" ghost @click="approveLP('BSC')">Approve LP</Button>
+        <Button class='button--green' size="large" ghost @click="lockLP('BSC')">Lock LP</Button>
+        <br>
+        <input v-model="unlockLPBSCAmount" placeholder="amount">
+        <Button class='button--green' size="large" ghost @click="unlockLP('BSC')">Unlock LP</Button>
+        <br>
+        <br>
+        <div> ethereum GTON balance: {{ balanceGTONETH }}</div>
+        <div> ethereum LP balance: {{ balanceLPETH }}</div>
+        <div> ethereum LP counted on FTM: {{ lockedLPFTMETH }}</div>
+        <br>
+        <Button class='button--green' size="large" ghost @click="faucet('ETH')">Faucet Ethereum</Button>
+        <br>
+        <input v-model="lockGTONETHAmount" placeholder="amount">
+        <Button class='button--green' size="large" ghost @click="approveGTON('ETH')">Approve GTON</Button>
+        <Button class='button--green' size="large" ghost @click="lockGTON('ETH')">Lock GTON</Button>
+        <br>
+        <input v-model="lockLPETHAmount" placeholder="amount">
+        <Button class='button--green' size="large" ghost @click="approveLP('ETH')">Approve LP</Button>
+        <Button class='button--green' size="large" ghost @click="lockLP('ETH')">Lock LP</Button>
+        <br>
+        <input v-model="unlockLPETHAmount" placeholder="amount">
+        <Button class='button--green' size="large" ghost @click="unlockLP('ETH')">Unlock LP</Button>
+        <br>
+        <br>
+        <div> polygon GTON balance: {{ balanceGTONETH }}</div>
+        <div> polygon LP balance: {{ balanceLPETH }}</div>
+        <div> polygon LP counted on FTM: {{ lockedLPFTMPLG }}</div>
+        <br>
+        <Button class='button--green' size="large" ghost @click="faucet('PLG')">Faucet Polygon</Button>
+        <br>
+        <input v-model="lockGTONPLGAmount" placeholder="amount">
+        <Button class='button--green' size="large" ghost @click="approveGTON('PLG')">Approve GTON</Button>
+        <Button class='button--green' size="large" ghost @click="lockGTON('PLG')">Lock GTON</Button>
+        <br>
+        <input v-model="lockLPPLGAmount" placeholder="amount">
+        <Button class='button--green' size="large" ghost @click="approveLP('PLG')">Approve LP</Button>
+        <Button class='button--green' size="large" ghost @click="lockLP('PLG')">Lock LP</Button>
+        <br>
+        <input v-model="unlockLPPLGAmount" placeholder="amount">
+        <Button class='button--green' size="large" ghost @click="unlockLP('PLG')">Unlock LP</Button>
+        <br>
+        <br>
+        <div> GTON available to claim: {{ claimAllowance }}</div>
+        <br>
+        <input v-model="claimAmount" placeholder="amount">
+        <Button class='button--green' size="large" ghost @click="claim">Claim</Button>
+        <br>
+        <br>
         <div> Number of farms: {{ totalFarms }}</div>
         <div> Current farm processing: {{ currentFarm }}</div>
         <div> Processed farm users: {{ processedUsers }}</div>
@@ -23,33 +77,13 @@
 
         <div> Percent Staking: {{ percentStaking }}</div>
         <div> Total Staking distributed: {{ totalUnlockedStaking }}</div>
-
-        <div> GTON available to claim: {{ claimAllowance }}</div>
-
-        <div >Votes: {{ votes }} </div>
-
-        <Button class='button--green' size="large" ghost @click="faucet">Faucet</Button>
-        <br>
-        <input v-model="lockGTONAmount" placeholder="amount">
-        <Button class='button--green' size="large" ghost @click="approveGTON">Approve GTON</Button>
-        <Button class='button--green' size="large" ghost @click="lockGTON">Lock GTON</Button>
-        <br>
-        <input v-model="lockLPAmount" placeholder="amount">
-        <Button class='button--green' size="large" ghost @click="approveLP">Approve LP</Button>
-        <Button class='button--green' size="large" ghost @click="lockLP">Lock LP</Button>
-        <br>
-        <input v-model="unlockLPAmount" placeholder="amount">
-        <Button class='button--green' size="large" ghost @click="unlockLP">Unlock LP</Button>
-        <br>
-        <br>
-        <input v-model="claimAmount" placeholder="amount">
-        <Button class='button--green' size="large" ghost @click="claim">Claim</Button>
-        <br>
         <br>
         <Button class='button--green' size="large" ghost @click="processBalances">Process balances</Button>
         <Button class='button--green' size="large" ghost @click="unlockAssetEB">update EB</Button>
         <Button class='button--green' size="large" ghost @click="unlockAssetStaking">update Staking</Button>
         <br>
+        <br>
+        <div >Votes: {{ votes }} </div>
         <br>
         <input v-model="votes1" placeholder="votes1">
         <input v-model="votes2" placeholder="votes2">
@@ -70,6 +104,8 @@ import { availableLP } from '../services/constants.ts'
          return {
              invoker: {},
              balanceGTONBSC: " ",
+             balanceGTONETH: " ",
+             balanceGTONPLG: " ",
              balanceGTONFTM: " ",
              balanceGovernance: " ",
              userAddress: " ",
@@ -84,14 +120,26 @@ import { availableLP } from '../services/constants.ts'
              totalUnlockedStaking: " ",
              claimAllowance: " ",
              balanceLPBSC: "",
+             balanceLPETH: "",
+             balanceLPPLG: "",
              lockedLPBSC: "",
-             lockedLPFTM: "",
+             lockedLPETH: "",
+             lockedLPPLG: "",
+             lockedLPFTMBSC: "",
+             lockedLPFTMETH: "",
+             lockedLPFTMPLG: "",
              totalLPTokens: 0,
              votingRounds: 0,
              lpaddresses: [],
-             lockGTONAmount: 0,
-             lockLPAmount: 0,
-             unlockLPAmount: 0,
+             lockGTONETHAmount: 0,
+             lockGTONBSCAmount: 0,
+             lockGTONPLGAmount: 0,
+             lockLPBSCAmount: 0,
+             unlockLPBSCAmount: 0,
+             lockLPETHAmount: 0,
+             unlockLPETHAmount: 0,
+             lockLPPLGAmount: 0,
+             unlockLPPLGAmount: 0,
              claimAmount: 0,
              roundId: 0,
              votes1: 0,
@@ -109,12 +157,44 @@ import { availableLP } from '../services/constants.ts'
              await window.ethereum.enable()
              const provider = new ethers.providers.Web3Provider(window.ethereum)
              this.invoker = new Invoker(provider)
-             console.log(this.invoker)
+             console.log("Invoker loaded:", this.invoker)
+         },
+         clear () {
+             this.balanceGTONFTM       = ""
+             this.balanceGTONETH       = ""
+             this.balanceGTONPLG       = ""
+             this.balanceGTONBSC       = ""
+             this.balanceGovernance    = ""
+             this.userAddress          = ""
+             this.userId               = ""
+             this.processedUsers       = ""
+             this.currentFarm          = ""
+             this.totalFarms           = ""
+             this.currentFarm          = ""
+             this.totalUnlockedEB      = ""
+             this.percentEB            = ""
+             this.percentStaking       = ""
+             this.totalUnlockedStaking = ""
+             this.claimAllowance       = ""
+             this.totalLPTokens        = ""
+             this.balanceLPBSC         = ""
+             this.lockedLPBSC          = ""
+             this.balanceLPETH         = ""
+             this.lockedLPETH          = ""
+             this.balanceLPPLG         = ""
+             this.lockedLPPLG          = ""
+             this.lockedLPFTMBSC       = ""
+             this.lockedLPFTMETH       = ""
+             this.lockedLPFTMPLG       = ""
+             this.votingRounds         = ""
+             this.votes                = ""
          },
          async update () {
-             this.lpaddresses          = availableLP
-             this.balanceGTONFTM       = await this.invoker.balanceGTONFTM()
-             this.balanceGTONBSC       = await this.invoker.balanceGTONBSC()
+             this.clear()
+             this.balanceGTONFTM       = await this.invoker.balanceGTON('FTM')
+             this.balanceGTONETH       = await this.invoker.balanceGTON('ETH')
+             this.balanceGTONPLG       = await this.invoker.balanceGTON('PLG')
+             this.balanceGTONBSC       = await this.invoker.balanceGTON('BSC')
              this.balanceGovernance    = await this.invoker.balanceGovernance()
              this.userAddress          = await this.invoker.userAddress()
              this.userId               = await this.invoker.userId()
@@ -128,9 +208,15 @@ import { availableLP } from '../services/constants.ts'
              this.totalUnlockedStaking = await this.invoker.totalUnlockedStaking()
              this.claimAllowance       = await this.invoker.claimAllowance()
              this.totalLPTokens        = await this.invoker.totalLPTokens()
-             this.balanceLPBSC         = await this.invoker.balanceLPBSC()
-             this.lockedLPBSC          = await this.invoker.lockedLPBSC(this.lpaddresses[0])
-             this.lockedLPFTM          = await this.invoker.lockedLPFTM(1)
+             this.balanceLPBSC         = await this.invoker.balanceLP('BSC')
+             this.lockedLPBSC          = await this.invoker.lockedLP('BSC')
+             this.balanceLPETH         = await this.invoker.balanceLP('ETH')
+             this.lockedLPETH          = await this.invoker.lockedLP('ETH')
+             this.balanceLPPLG         = await this.invoker.balanceLP('PLG')
+             this.lockedLPPLG          = await this.invoker.lockedLP('PLG')
+             this.lockedLPFTMBSC       = await this.invoker.lockedLPFTM('BSC')
+             this.lockedLPFTMETH       = await this.invoker.lockedLPFTM('ETH')
+             this.lockedLPFTMPLG       = await this.invoker.lockedLPFTM('PLG')
              this.votingRounds         = await this.invoker.votingRounds()
              const votes0              = await this.invoker.votes("0", "0", this.userId)
              const option0             = await this.invoker.voteOption("0", "0")
@@ -138,29 +224,79 @@ import { availableLP } from '../services/constants.ts'
              const option1             = await this.invoker.voteOption("0", "1")
              this.votes                = option0 + ": " + votes0 + "; " + option1 + ": " + votes1
          },
-         async approveGTON () {
+         async approveGTON (chain) {
+             var amount: number
+             if (chain == "ETH") {
+                 amount = this.lockGTONETHAmount
+             } else if (chain == "BSC") {
+                 amount = this.lockGTONBSCAmount
+             } else if (chain == "PLG") {
+                 amount = this.lockGTONPLGAmount
+             } else {
+                 return
+             }
              try {
-             await this.invoker.approveGTON(this.lockGTONAmount)
+                 await this.invoker.approveGTON(chain, amount)
+             } catch(e) {console.log("error: approveGTON", chain, amount, e)}
+         },
+         async lockGTON (chain) {
+             var amount: number
+             if (chain == "ETH") {
+                 amount = this.lockGTONETHAmount
+             } else if (chain == "BSC") {
+                 amount = this.lockGTONBSCAmount
+             } else if (chain == "PLG") {
+                 amount = this.lockGTONPLGAmount
+             } else {
+                 return
+             }
+             try {
+             await this.invoker.lockGTON(chain, this.lockGTONAmount)
              } catch {}
          },
-         async lockGTON () {
+         async approveLP (chain) {
+             var amount: number
+             if (chain == "ETH") {
+                 amount = this.lockLPETHAmount
+             } else if (chain == "BSC") {
+                 amount = this.lockLPBSCAmount
+             } else if (chain == "PLG") {
+                 amount = this.lockLPPLGAmount
+             } else {
+                 return
+             }
              try {
-             await this.invoker.lockGTON(this.lockGTONAmount)
+             await this.invoker.approveLP(chain, this.lptoken, this.lockLPAmount)
              } catch {}
          },
-         async approveLP () {
+         async lockLP (chain) {
+             var amount: number
+             if (chain == "ETH") {
+                 amount = this.lockLPETHAmount
+             } else if (chain == "BSC") {
+                 amount = this.lockLPBSCAmount
+             } else if (chain == "PLG") {
+                 amount = this.lockLPPLGAmount
+             } else {
+                 return
+             }
              try {
-             await this.invoker.approveLP(this.lptoken, this.lockLPAmount)
+             await this.invoker.lockLP(chain, this.lptoken, amount)
              } catch {}
          },
-         async lockLP () {
+         async unlockLP (chain) {
+             var amount: number
+             if (chain == "ETH") {
+                 amount = this.unlockLPETHAmount
+             } else if (chain == "BSC") {
+                 amount = this.unlockLPBSCAmount
+             } else if (chain == "PLG") {
+                 amount = this.unlockLPPLGAmount
+             } else {
+                 return
+             }
              try {
-             await this.invoker.lockLP(this.lptoken, this.lockLPAmount)
-             } catch {}
-         },
-         async unlockLP () {
-             try {
-             await this.invoker.unlockLP(this.lptoken, this.unlockLPAmount)
+             await this.invoker.unlockLP(chain, this.lptoken, amount)
              } catch {}
          },
          async processBalances () {
