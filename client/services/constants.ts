@@ -32,7 +32,7 @@ export interface Chain {
 export const FTM: Fantom = {
     provider: new ethers.providers.JsonRpcProvider("https://rpcapi.fantom.network"),
     gton: '0xC1Be9a4D5D45BeeACAE296a7BD5fADBfc14602C4',
-    nebula: '0x092010568ea4a34a3fe08a163a84d91b08802875',
+    nebula: '0xa746002fA4E3676d68ec4B800e469A8d93F1d573',
     balanceKeeper: '0x08D751281654cF6E6951E303eC3c55f92a4B22bd',
     voter: '0x238b80A701876b3421599650E9A85A10354363DD',
     lpKeeper: '0xd11577b6994444D3dEf01f145EFAad6393CE224B',
@@ -43,7 +43,7 @@ export const FTM: Fantom = {
     sharesEB: '0x5766AA0199C8d66b662d036ac31864dfa01852Ab',
     farmStaking: '0x99587ecA8b1A371e673601E2a4a1be7a65F74867',
     claim: '0x38F10fdd3B825a51578A5DFA7f21d261e0B8733C',
-    claimWallet: '0xF87A9819ce260FB710C00Bb841bF4b8b311Ec741',
+    claimWallet: '0xCed486E3905F8FE1E8aF5d1791F5E7Ad7915f01a',
     testLP: '0x070AB37714b96f1A938e75CAbbb64ED5F5748170',
     farmLP: '',
     sharesLP: '',

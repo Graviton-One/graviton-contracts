@@ -65,7 +65,7 @@
         <Button class='button--green' size="large" ghost @click="unlockLP('PLG')">Unlock LP</Button>
         <br>
         <br>
-        <div> GTON available to claim: {{ claimAllowance }}</div>
+        <div> Total GTON for claiming: {{ claimAllowance }}</div>
         <br>
         <input v-model="claimAmount" placeholder="amount">
         <Button class='button--green' size="large" ghost @click="claim">Claim</Button>
@@ -254,7 +254,7 @@ import { availableLP } from '../services/constants.ts'
                  return
              }
              try {
-             await this.invoker.lockGTON(chain, this.lockGTONAmount)
+             await this.invoker.lockGTON(chain, amount)
              } catch(e) { console.log(e) }
          },
          async approveLP (chain) {
@@ -319,7 +319,7 @@ import { availableLP } from '../services/constants.ts'
          },
          async claim () {
              try {
-               await this.invoker.claim(this.amountClaim)
+               await this.invoker.claim(this.claimAmount)
              } catch(e) { console.log(e) }
          },
          async castVotes () {

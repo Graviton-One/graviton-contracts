@@ -220,8 +220,14 @@ export default class Invoker {
     async claimAllowance(): Promise<string> {
         const contract = new ethers.Contract(FTM.gton, IERC20ABI, FTM.provider) as IERC20
         const allowance = await contract.allowance(FTM.claimWallet, FTM.claim)
+        console.log(allowance)
         const balance = await contract.balanceOf(FTM.claimWallet)
-        return formatETHBalance(allowance.toString())
+        console.log(balance)
+        if (allowance.lt(balance)) {
+            return formatETHBalance(allowance.toString())
+        } else {
+            return formatETHBalance(balance.toString())
+        }
     }
     async totalLPTokens(): Promise<string> {
         const contract = new ethers.Contract(FTM.lpKeeper, LPKeeperV2ABI, FTM.provider) as LPKeeperV2
