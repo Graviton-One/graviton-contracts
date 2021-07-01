@@ -220,6 +220,7 @@ export default class Invoker {
     async claimAllowance(): Promise<string> {
         const contract = new ethers.Contract(FTM.gton, IERC20ABI, FTM.provider) as IERC20
         const allowance = await contract.allowance(FTM.claimWallet, FTM.claim)
+        const balance = await contract.balanceOf(FTM.claimWallet)
         return formatETHBalance(allowance.toString())
     }
     async totalLPTokens(): Promise<string> {

@@ -46,8 +46,8 @@
         <Button class='button--green' size="large" ghost @click="unlockLP('ETH')">Unlock LP</Button>
         <br>
         <br>
-        <div> polygon GTON balance: {{ balanceGTONETH }}</div>
-        <div> polygon LP balance: {{ balanceLPETH }}</div>
+        <div> polygon GTON balance: {{ balanceGTONPLG }}</div>
+        <div> polygon LP balance: {{ balanceLPPLG }}</div>
         <div> polygon LP locked: {{ lockedLPPLG }}</div>
         <div> polygon LP counted on FTM: {{ lockedLPFTMPLG }}</div>
         <br>
@@ -269,7 +269,7 @@ import { availableLP } from '../services/constants.ts'
                  return
              }
              try {
-             await this.invoker.approveLP(chain, this.lptoken, this.lockLPAmount)
+             await this.invoker.approveLP(chain, this.lptoken, amount)
              } catch(e) { console.log(e) }
          },
          async lockLP (chain) {
