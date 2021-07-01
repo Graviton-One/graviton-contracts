@@ -104,10 +104,10 @@ interface IOracleParserV2 {
     /// @param receiver The blockchain-specific address to receive the tokens
     /// @param amount The amount of tokens
     event AttachValue(
-        address indexed nebula,
-        bytes16 indexed uuid,
+        address nebula,
+        bytes16 uuid,
         string chain,
-        bytes indexed emiter,
+        bytes emiter,
         bytes32 topic0,
         bytes token,
         bytes sender,
