@@ -167,6 +167,11 @@ interface IBalanceKeeperV2 is IShares {
         bool indexed newBool
     );
 
+    /// @notice Event emitted when a new `userId` is opened
+    /// @param opener The account that opens `userId`
+    /// @param userId The user account that was opened
+    event Open(address indexed opener, uint256 indexed userId);
+
     /// @notice Event emitted when the `amount` of governance tokens
     /// is added to `userId` balance via `#add`
     /// @param adder The account that added to the balance

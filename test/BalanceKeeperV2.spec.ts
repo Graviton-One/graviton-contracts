@@ -357,6 +357,16 @@ describe('BalanceKeeperV2', () => {
       await balanceKeeper.open(EVM_CHAIN, wallet.address.toLowerCase())
       expect(await balanceKeeper.totalUsers()).to.eq(1)
     })
+
+    it('emits event', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await expect(balanceKeeper.open(EVM_CHAIN, wallet.address))
+        .to.emit(balanceKeeper, 'Open')
+        .withArgs(wallet.address, 0)
+      await expect(balanceKeeper.open(EVM_CHAIN, other.address))
+        .to.emit(balanceKeeper, 'Open')
+        .withArgs(wallet.address, 1)
+    })
   })
 
   describe('#add(uint256,uint256)', () => {

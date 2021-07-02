@@ -332,6 +332,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
             _tokenIdByChainAddress[tokenChain][tokenAddress] = tokenId;
             _isKnownToken[tokenChain][tokenAddress] = true;
             totalTokens++;
+            emit Open(msg.sender, tokenId);
         }
     }
 

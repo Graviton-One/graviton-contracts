@@ -159,6 +159,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
             _userIdByChainAddress[userChain][userAddress] = userId;
             _isKnownUser[userChain][userAddress] = true;
             totalUsers++;
+            emit Open(msg.sender, userId);
         }
     }
 

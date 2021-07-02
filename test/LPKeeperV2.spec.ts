@@ -603,6 +603,16 @@ describe('LPKeeperV2', () => {
       await lpKeeper.open(EVM_CHAIN, token1.address.toLowerCase())
       expect(await lpKeeper.totalTokens()).to.eq(1)
     })
+
+    it('emits event', async () => {
+      await lpKeeper.setCanOpen(wallet.address, true)
+      await expect(lpKeeper.open(EVM_CHAIN, token1.address))
+        .to.emit(lpKeeper, 'Open')
+        .withArgs(wallet.address, 0)
+      await expect(lpKeeper.open(EVM_CHAIN, token2.address))
+        .to.emit(lpKeeper, 'Open')
+        .withArgs(wallet.address, 1)
+    })
   })
 
   describe('#add(uint256,uint256,uint256)', () => {
