@@ -9,19 +9,15 @@ import "./interfaces/ISharesLP.sol";
 contract SharesLP is ISharesLP {
 
     /// @inheritdoc ISharesLP
-    IBalanceKeeperV2 public override balanceKeeper;
-    /// @inheritdoc ISharesLP
     ILPKeeperV2 public override lpKeeper;
 
     /// @inheritdoc ISharesLP
     uint256 public override tokenId;
 
     constructor(
-        IBalanceKeeperV2 _balanceKeeper,
         ILPKeeperV2 _lpKeeper,
         uint256 _tokenId
     ) {
-        balanceKeeper = _balanceKeeper;
         lpKeeper = _lpKeeper;
         require(lpKeeper.isKnownToken(_tokenId), "token is not known");
         tokenId = _tokenId;

@@ -543,7 +543,6 @@ export const sharesLPFixture: Fixture<SharesLPFixture> = async function (
 
   const sharesLPFactory = await ethers.getContractFactory("SharesLP")
   const sharesLP = (await sharesLPFactory.deploy(
-    balanceKeeper.address,
     lpKeeper.address,
     0
   )) as SharesLP
@@ -657,7 +656,6 @@ export const balanceAdderV2Fixture: Fixture<BalanceAdderV2Fixture> = async funct
 
   const sharesLPFactory = await ethers.getContractFactory("SharesLP")
   const sharesLP1 = (await sharesLPFactory.deploy(
-    balanceKeeper.address,
     lpKeeper.address,
     0
   )) as SharesLP
@@ -665,7 +663,6 @@ export const balanceAdderV2Fixture: Fixture<BalanceAdderV2Fixture> = async funct
   const { farm: farmLP1 } = await farmLinearFixture()
 
   const sharesLP2 = (await sharesLPFactory.deploy(
-    balanceKeeper.address,
     lpKeeper.address,
     1
   )) as SharesLP

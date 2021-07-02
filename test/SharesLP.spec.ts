@@ -29,14 +29,13 @@ describe('SharesLP', () => {
   })
 
   it('constructor initializes variables', async () => {
-    expect(await sharesLP.balanceKeeper()).to.eq(balanceKeeper.address)
     expect(await sharesLP.lpKeeper()).to.eq(lpKeeper.address)
     expect(await sharesLP.tokenId()).to.eq(0)
   })
 
   it('constructor fails if token is not known', async () => {
     const sharesLPFactory = await ethers.getContractFactory("SharesLP");
-    await expect(sharesLPFactory.deploy(balanceKeeper.address, lpKeeper.address, 1)).to.be.reverted
+    await expect(sharesLPFactory.deploy(lpKeeper.address, 1)).to.be.reverted
   })
 
   describe('#shareByid', () => {
