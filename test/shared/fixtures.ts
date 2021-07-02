@@ -28,6 +28,9 @@ import { SharesEB } from "../../typechain/SharesEB"
 import { SharesLP } from "../../typechain/SharesLP"
 import { BalanceAdderV2 } from '../../typechain/BalanceAdderV2'
 
+import { LockGTONOnchain } from "../../typechain/LockGTONOnchain"
+import { LockUnlockLPOnchain } from "../../typechain/LockUnlockLPOnchain"
+
 import {
   makeValueImpact,
   EARLY_BIRDS_A,
@@ -690,3 +693,60 @@ export const balanceAdderV2Fixture: Fixture<BalanceAdderV2Fixture> = async funct
     balanceAdder
   }
 }
+
+interface LockGTONOnchainFixture extends TokensAndBalanceKeeperV2Fixture {
+  lockGTON: LockGTONOnchain
+}
+
+export const lockGTONOnchainFixture: Fixture<LockGTONOnchainFixture> =
+  async function (
+    [wallet, other, nebula],
+    provider
+  ): Promise<LockGTONOnchainFixture> {
+    const { token0, token1, token2 } = await tokensFixture()
+    const { balanceKeeper } = await balanceKeeperV2Fixture()
+
+    const lockGTONFactory = await ethers.getContractFactory(
+      "LockGTONOnchain"
+    )
+    const lockGTON = (await lockGTONFactory.deploy(
+      token0.address,
+      balanceKeeper.address
+    )) as LockGTONOnchain
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeper,
+      lockGTON
+    }
+  }
+
+interface LockUnlockLPOnchainFixture extends LPKeeperV2Fixture {
+  lockUnlockLP: LockUnlockLPOnchain
+}
+
+export const lockUnlockLPOnchainFixture: Fixture<LockUnlockLPOnchainFixture> =
+  async function (
+    [wallet, other, nebula],
+    provider
+  ): Promise<LockUnlockLPOnchainFixture> {
+    const { token0, token1, token2, balanceKeeper, lpKeeper } = await lpKeeperV2Fixture([wallet, other], provider)
+
+    const lockUnlockLPFactory = await ethers.getContractFactory(
+      "LockUnlockLPOnchain"
+    )
+    const lockUnlockLP = (await lockUnlockLPFactory.deploy(
+      [token1.address],
+      balanceKeeper.address,
+      lpKeeper.address
+    )) as LockUnlockLPOnchain
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeper,
+      lpKeeper,
+      lockUnlockLP
+    }
+  }

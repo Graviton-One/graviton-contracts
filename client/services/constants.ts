@@ -17,7 +17,10 @@ export interface Fantom {
     claim: string,
     claimWallet: string,
     voter: string,
-    testLP: string
+    lp: string,
+    testLP: string,
+    lockGTON: string,
+    lockLP: string
 }
 export interface Chain {
     provider: ethers.providers.JsonRpcProvider
@@ -44,7 +47,10 @@ export const FTM: Fantom = {
     farmStaking: '0x99587ecA8b1A371e673601E2a4a1be7a65F74867',
     claim: '0x38F10fdd3B825a51578A5DFA7f21d261e0B8733C',
     claimWallet: '0xCed486E3905F8FE1E8aF5d1791F5E7Ad7915f01a',
+    lp: '0x070AB37714b96f1A938e75CAbbb64ED5F5748170',
     testLP: '0x070AB37714b96f1A938e75CAbbb64ED5F5748170',
+    lockGTON: '0xAA7D9DD236F2E649A431A6ec157065683A60E2d5',
+    lockLP: '0x6093ADe98Ade0a5E0A81A845C7b15158011627fA',
     farmLP: '',
     sharesLP: '',
 }
