@@ -102,6 +102,7 @@ interface IOracleParserV2 {
     /// @param token The blockchain-specific token address
     /// @param sender The blockchain-specific address that sent the tokens
     /// @param receiver The blockchain-specific address to receive the tokens
+    /// @dev receiver is always same as sender, kept for compatibility
     /// @param amount The amount of tokens
     event AttachValue(
         address nebula,

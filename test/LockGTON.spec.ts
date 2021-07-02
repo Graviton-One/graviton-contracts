@@ -69,21 +69,21 @@ describe('LockGTON', () => {
 
   describe('#lock', () => {
     it('fails if lock is not allowed', async () => {
-      await expect(lockGTON.lock(wallet.address, 1)).to.be.reverted
+      await expect(lockGTON.lock(1)).to.be.reverted
     })
 
     it('locks tokens', async () => {
       expect(await token0.balanceOf(lockGTON.address)).to.eq(0)
       await token0.approve(lockGTON.address, 1)
       await lockGTON.setCanLock(true)
-      await lockGTON.lock(wallet.address, 1)
+      await lockGTON.lock(1)
       expect(await token0.balanceOf(lockGTON.address)).to.eq(1)
     })
 
     it('emits event', async () => {
       await token0.approve(lockGTON.address, 1)
       await lockGTON.setCanLock(true)
-      expect(lockGTON.lock(wallet.address, 1))
+      expect(lockGTON.lock(1))
         .to.emit(lockGTON, "LockGTON")
         .withArgs(token0.address,
                   wallet.address,
@@ -101,7 +101,7 @@ describe('LockGTON', () => {
       expect(await token0.balanceOf(other.address)).to.eq(0)
       await token0.approve(lockGTON.address, 1)
       await lockGTON.setCanLock(true)
-      await lockGTON.lock(wallet.address, 1)
+      await lockGTON.lock(1)
       await lockGTON.migrate(other.address)
       expect(await token0.balanceOf(other.address)).to.eq(1)
     })
@@ -110,7 +110,7 @@ describe('LockGTON', () => {
       expect(await token0.balanceOf(other.address)).to.eq(0)
       await token0.approve(lockGTON.address, 1)
       await lockGTON.setCanLock(true)
-      await lockGTON.lock(wallet.address, 1)
+      await lockGTON.lock(1)
       await expect(lockGTON.migrate(other.address))
         .to.emit(lockGTON, 'Migrate')
         .withArgs(other.address, 1)

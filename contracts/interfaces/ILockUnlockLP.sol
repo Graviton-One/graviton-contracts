@@ -45,17 +45,15 @@ interface ILockUnlockLP {
         view
         returns (uint256);
 
-    /// @notice Locks `amount` of `token` in the name of `receiver`
+    /// @notice Transfers `amount` of `token` from the caller to LockUnlockLP
     function lock(
         address token,
-        address receiver,
         uint256 amount
     ) external;
 
-    /// @notice Transfer `amount` of `token` to the `receiver`
+    /// @notice Transfers `amount` of `token` from LockUnlockLP to the caller
     function unlock(
         address token,
-        address receiver,
         uint256 amount
     ) external;
 
@@ -64,10 +62,11 @@ interface ILockUnlockLP {
     /// @param ownerNew The account that became the owner of the contract
     event SetOwner(address indexed ownerOld, address indexed ownerNew);
 
-    /// @notice Event emitted when the `sender` locks `amount` of `token` lp-tokens in the name of `receiver`
+    /// @notice Event emitted when the `sender` locks `amount` of `token` lp-tokens
     /// @param token The address of the lp-token
     /// @param sender The account that locked lp-token
     /// @param receiver The account to whose lp-token balance the tokens are added
+    /// @dev receiver is always same as sender, kept for compatibility
     /// @param amount The amount of lp-tokens locked
     event Lock(
         address indexed token,
@@ -76,10 +75,11 @@ interface ILockUnlockLP {
         uint256 amount
     );
 
-    /// @notice Event emitted when the `sender` unlocks `amount` of `token` lp-tokens in the name of `receiver`
+    /// @notice Event emitted when the `sender` unlocks `amount` of `token` lp-tokens
     /// @param token The address of the lp-token
-    /// @param sender The account that unlocked lp-tokens
-    /// @param receiver The account to whom the lp-tokens were transferred
+    /// @param sender The account that locked lp-token
+    /// @param receiver The account to whose lp-token balance the tokens are added
+    /// @dev receiver is always same as sender, kept for compatibility
     /// @param amount The amount of lp-tokens unlocked
     event Unlock(
         address indexed token,

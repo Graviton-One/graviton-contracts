@@ -100,7 +100,7 @@ describe('LockUnlockLPOnchain', () => {
       await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await lockUnlockLP.lock(token1.address, wallet.address, 1)
+      await lockUnlockLP.lock(token1.address, 1)
       expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(1)
       expect(await token1.balanceOf(lockUnlockLP.address)).to.eq(1)
     })
@@ -129,7 +129,7 @@ describe('LockUnlockLPOnchain', () => {
       await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await expect(lockUnlockLP.lock(token1.address, wallet.address, 0)).to.be.reverted
+      await expect(lockUnlockLP.lock(token1.address, 0)).to.be.reverted
     })
 
     it('fails if token is not allowed', async () => {
@@ -138,7 +138,7 @@ describe('LockUnlockLPOnchain', () => {
       await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await expect(lockUnlockLP.lock(token2.address, wallet.address, 0)).to.be.reverted
+      await expect(lockUnlockLP.lock(token2.address, 0)).to.be.reverted
     })
 
     it('fails if lock is smaller than the lock limit', async () => {
@@ -148,7 +148,7 @@ describe('LockUnlockLPOnchain', () => {
       await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await expect(lockUnlockLP.lock(token1.address, wallet.address, 0)).to.be.reverted
+      await expect(lockUnlockLP.lock(token1.address, 0)).to.be.reverted
     })
 
     it('fails if not allowed to open users', async () => {
@@ -156,7 +156,7 @@ describe('LockUnlockLPOnchain', () => {
       await lockUnlockLP.setCanLock(true)
       await lpKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await expect(lockUnlockLP.lock(token1.address, wallet.address, 0)).to.be.reverted
+      await expect(lockUnlockLP.lock(token1.address, 0)).to.be.reverted
     })
 
     it('fails if not allowed to open tokens', async () => {
@@ -164,7 +164,7 @@ describe('LockUnlockLPOnchain', () => {
       await lockUnlockLP.setCanLock(true)
       await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await expect(lockUnlockLP.lock(token1.address, wallet.address, 0)).to.be.reverted
+      await expect(lockUnlockLP.lock(token1.address, 0)).to.be.reverted
     })
 
     it('fails if not allowed to add tokens', async () => {
@@ -172,7 +172,7 @@ describe('LockUnlockLPOnchain', () => {
       await lockUnlockLP.setCanLock(true)
       await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanOpen(lockUnlockLP.address, true)
-      await expect(lockUnlockLP.lock(token1.address, wallet.address, 0)).to.be.reverted
+      await expect(lockUnlockLP.lock(token1.address, 0)).to.be.reverted
     })
 
     it('opens user', async () => {
@@ -182,7 +182,7 @@ describe('LockUnlockLPOnchain', () => {
       await lockUnlockLP.setCanLock(true)
       await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await lockUnlockLP.lock(token1.address, wallet.address, 1)
+      await lockUnlockLP.lock(token1.address, 1)
       expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(1)
       expect(await token1.balanceOf(lockUnlockLP.address)).to.eq(1)
     })
@@ -194,7 +194,7 @@ describe('LockUnlockLPOnchain', () => {
       await lockUnlockLP.setCanLock(true)
       await lpKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await lockUnlockLP.lock(token1.address, wallet.address, 1)
+      await lockUnlockLP.lock(token1.address, 1)
       expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(1)
       expect(await token1.balanceOf(lockUnlockLP.address)).to.eq(1)
     })
@@ -207,7 +207,7 @@ describe('LockUnlockLPOnchain', () => {
       await token1.approve(lockUnlockLP.address, 1)
       await lockUnlockLP.setCanLock(true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await lockUnlockLP.lock(token1.address, wallet.address, 1)
+      await lockUnlockLP.lock(token1.address, 1)
       expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(1)
       expect(await token1.balanceOf(lockUnlockLP.address)).to.eq(1)
     })
@@ -218,7 +218,7 @@ describe('LockUnlockLPOnchain', () => {
       await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await expect(lockUnlockLP.lock(token1.address, wallet.address, 1))
+      await expect(lockUnlockLP.lock(token1.address, 1))
         .to.emit(lockUnlockLP, "Lock")
         .withArgs(token1.address, wallet.address, wallet.address, 1)
     })
@@ -231,9 +231,9 @@ describe('LockUnlockLPOnchain', () => {
       await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await lockUnlockLP.lock(token1.address, wallet.address, 2)
+      await lockUnlockLP.lock(token1.address, 2)
       await lpKeeper.setCanSubtract(lockUnlockLP.address, true)
-      await expect(lockUnlockLP.unlock(token1.address, wallet.address, 3)).to.be.reverted
+      await expect(lockUnlockLP.unlock(token1.address, 3)).to.be.reverted
     })
 
     it('fails if not allowed to subtract tokens', async () => {
@@ -242,8 +242,8 @@ describe('LockUnlockLPOnchain', () => {
       await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await lockUnlockLP.lock(token1.address, wallet.address, 2)
-      await expect(lockUnlockLP.unlock(token1.address, wallet.address, 2)).to.be.reverted
+      await lockUnlockLP.lock(token1.address, 2)
+      await expect(lockUnlockLP.unlock(token1.address, 2)).to.be.reverted
     })
 
     it('unlocks tokens', async () => {
@@ -254,9 +254,9 @@ describe('LockUnlockLPOnchain', () => {
       await token1.approve(lockUnlockLP.address, 2)
       await lockUnlockLP.setCanLock(true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await lockUnlockLP.lock(token1.address, wallet.address, 2)
+      await lockUnlockLP.lock(token1.address, 2)
       await lpKeeper.setCanSubtract(lockUnlockLP.address, true)
-      await lockUnlockLP.unlock(token1.address, wallet.address, 1)
+      await lockUnlockLP.unlock(token1.address, 1)
       expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(1)
     })
 
@@ -266,9 +266,9 @@ describe('LockUnlockLPOnchain', () => {
       await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanOpen(lockUnlockLP.address, true)
       await lpKeeper.setCanAdd(lockUnlockLP.address, true)
-      await lockUnlockLP.lock(token1.address, wallet.address, 2)
+      await lockUnlockLP.lock(token1.address, 2)
       await lpKeeper.setCanSubtract(lockUnlockLP.address, true)
-      await expect(lockUnlockLP.unlock(token1.address, wallet.address, 1))
+      await expect(lockUnlockLP.unlock(token1.address, 1))
         .to.emit(lockUnlockLP, "Unlock")
         .withArgs(token1.address, wallet.address, wallet.address, 1)
     })

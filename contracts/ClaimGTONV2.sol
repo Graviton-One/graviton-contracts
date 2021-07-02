@@ -85,7 +85,7 @@ contract ClaimGTONV2 is IClaimGTONV2 {
     }
 
     /// @inheritdoc IClaimGTONV2
-    function claim(address receiver, uint256 amount) public override {
+    function claim(uint256 amount) public override {
         require(claimActivated, "can't claim");
         uint256 balance = balanceKeeper.balance(
             "EVM",
@@ -102,7 +102,7 @@ contract ClaimGTONV2 is IClaimGTONV2 {
         }
         balanceKeeper.subtract("EVM", abi.encodePacked(msg.sender), amount);
         voter.checkVoteBalances(balanceKeeper.userIdByChainAddress("EVM", abi.encodePacked(msg.sender)));
-        governanceToken.transferFrom(wallet, receiver, amount);
-        emit Claim(msg.sender, receiver, amount);
+        governanceToken.transferFrom(wallet, msg.sender, amount);
+        emit Claim(msg.sender, msg.sender, amount);
     }
 }

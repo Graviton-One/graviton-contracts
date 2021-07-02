@@ -82,30 +82,28 @@ contract LockUnlockLP is ILockUnlockLP {
     /// @inheritdoc ILockUnlockLP
     function lock(
         address token,
-        address receiver,
         uint256 amount
     ) external override {
         require(canLock, "lock is not allowed");
         require(isAllowedToken[token], "token not allowed");
         require(amount >= lockLimit[token], "limit exceeded");
-        _balance[token][receiver] += amount;
+        _balance[token][msg.sender] += amount;
         tokenSupply[token] += amount;
         totalSupply += amount;
         IERC20(token).transferFrom(msg.sender, address(this), amount);
-        emit Lock(token, msg.sender, receiver, amount);
+        emit Lock(token, msg.sender, msg.sender, amount);
     }
 
     /// @inheritdoc ILockUnlockLP
     function unlock(
         address token,
-        address receiver,
         uint256 amount
     ) external override {
         require(_balance[token][msg.sender] >= amount, "not enough balance");
         _balance[token][msg.sender] -= amount;
         tokenSupply[token] -= amount;
         totalSupply -= amount;
-        IERC20(token).transfer(receiver, amount);
-        emit Unlock(token, msg.sender, receiver, amount);
+        IERC20(token).transfer(msg.sender, amount);
+        emit Unlock(token, msg.sender, msg.sender, amount);
     }
 }

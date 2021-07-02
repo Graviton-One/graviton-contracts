@@ -56,14 +56,14 @@ contract LockGTONOnchain is ILockGTON {
     }
 
     /// @inheritdoc ILockGTON
-    function lock(address receiver, uint256 amount) external override {
+    function lock(uint256 amount) external override {
         require(canLock, "lock is not allowed");
-        bytes memory receiverBytes = abi.encodePacked(receiver);
+        bytes memory receiverBytes = abi.encodePacked(msg.sender);
         if (!balanceKeeper.isKnownUser("EVM", receiverBytes)) {
             balanceKeeper.open("EVM", receiverBytes);
         }
         balanceKeeper.add("EVM", abi.encodePacked(receiverBytes), amount);
         governanceToken.transferFrom(msg.sender, address(this), amount);
-        emit LockGTON(address(governanceToken), msg.sender, receiver, amount);
+        emit LockGTON(address(governanceToken), msg.sender, msg.sender, amount);
     }
 }

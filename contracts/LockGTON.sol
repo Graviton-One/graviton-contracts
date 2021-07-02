@@ -52,9 +52,9 @@ contract LockGTON is ILockGTON {
     }
 
     /// @inheritdoc ILockGTON
-    function lock(address receiver, uint256 amount) external override {
+    function lock(uint256 amount) external override {
         require(canLock, "lock is not allowed");
         governanceToken.transferFrom(msg.sender, address(this), amount);
-        emit LockGTON(address(governanceToken), msg.sender, receiver, amount);
+        emit LockGTON(address(governanceToken), msg.sender, msg.sender, amount);
     }
 }
