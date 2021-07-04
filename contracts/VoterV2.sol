@@ -7,7 +7,6 @@ import "./interfaces/IVoterV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract VoterV2 is IVoterV2 {
-
     /// @inheritdoc IVoterV2
     address public override owner;
 
@@ -26,30 +25,31 @@ contract VoterV2 is IVoterV2 {
 
     struct Option {
         string name;
-        mapping(uint => uint) votes;
+        mapping(uint256 => uint256) votes;
     }
 
     struct Round {
         string name;
-        uint totalOptions;
-        mapping(uint => Option) options;
+        uint256 totalOptions;
+        mapping(uint256 => Option) options;
     }
 
-    mapping(uint => Round) internal rounds;
-    mapping(uint => bool) userVoted;
-    uint[] users;
+    mapping(uint256 => Round) internal rounds;
+    mapping(uint256 => bool) userVoted;
+    uint256[] users;
 
     /// @inheritdoc IVoterV2
-    uint public override totalRounds;
+    uint256 public override totalRounds;
     /// @inheritdoc IVoterV2
-    uint[] public override activeRounds;
+    uint256[] public override activeRounds;
     /// @inheritdoc IVoterV2
-    uint[] public override finalizedRounds;
+    uint256[] public override finalizedRounds;
 
     constructor(IBalanceKeeperV2 _balanceKeeper) {
         owner = msg.sender;
         balanceKeeper = _balanceKeeper;
     }
+
     /// @inheritdoc IVoterV2
     function setOwner(address _owner) external override isOwner {
         address ownerOld = owner;
@@ -79,7 +79,7 @@ contract VoterV2 is IVoterV2 {
 
     /// @dev getter functions with parameter names
     /// @inheritdoc IVoterV2
-    function roundName(uint roundId)
+    function roundName(uint256 roundId)
         external
         view
         override
@@ -90,7 +90,7 @@ contract VoterV2 is IVoterV2 {
     }
 
     /// @inheritdoc IVoterV2
-    function optionName(uint roundId, uint optionId)
+    function optionName(uint256 roundId, uint256 optionId)
         external
         view
         override
@@ -102,40 +102,40 @@ contract VoterV2 is IVoterV2 {
     }
 
     /// @inheritdoc IVoterV2
-    function totalRoundOptions(uint roundId)
+    function totalRoundOptions(uint256 roundId)
         external
         view
         override
-        returns (uint)
+        returns (uint256)
     {
         return rounds[roundId].totalOptions;
     }
 
     /// @inheritdoc IVoterV2
     function votesForOptionByUser(
-        uint roundId,
-        uint optionId,
-        uint userId
-    ) public view override returns (uint) {
+        uint256 roundId,
+        uint256 optionId,
+        uint256 userId
+    ) public view override returns (uint256) {
         return rounds[roundId].options[optionId].votes[userId];
     }
 
     /// @inheritdoc IVoterV2
-    function votesInRoundByUser(uint roundId, uint userId)
+    function votesInRoundByUser(uint256 roundId, uint256 userId)
         public
         view
         override
-        returns (uint)
+        returns (uint256)
     {
-        uint sum;
-        for (uint i = 0; i < rounds[roundId].totalOptions; i++) {
+        uint256 sum;
+        for (uint256 i = 0; i < rounds[roundId].totalOptions; i++) {
             sum += votesForOptionByUser(roundId, i, userId);
         }
         return sum;
     }
 
     /// @inheritdoc IVoterV2
-    function userVotedInRound(uint roundId, uint userId)
+    function userVotedInRound(uint256 roundId, uint256 userId)
         public
         view
         override
@@ -146,22 +146,22 @@ contract VoterV2 is IVoterV2 {
 
     /// @inheritdoc IVoterV2
     function userVotedForOption(
-        uint roundId,
-        uint optionId,
-        uint userId
+        uint256 roundId,
+        uint256 optionId,
+        uint256 userId
     ) public view override returns (bool) {
         return votesForOptionByUser(roundId, optionId, userId) > 0;
     }
 
     /// @inheritdoc IVoterV2
-    function totalUsersInRound(uint roundId)
+    function totalUsersInRound(uint256 roundId)
         external
         view
         override
-        returns (uint)
+        returns (uint256)
     {
-        uint sum;
-        for (uint i; i < users.length; i++) {
+        uint256 sum;
+        for (uint256 i; i < users.length; i++) {
             if (userVotedInRound(roundId, i)) {
                 sum++;
             }
@@ -170,14 +170,14 @@ contract VoterV2 is IVoterV2 {
     }
 
     /// @inheritdoc IVoterV2
-    function totalUsersForOption(uint roundId, uint optionId)
+    function totalUsersForOption(uint256 roundId, uint256 optionId)
         external
         view
         override
-        returns (uint)
+        returns (uint256)
     {
-        uint sum;
-        for (uint i; i < users.length; i++) {
+        uint256 sum;
+        for (uint256 i; i < users.length; i++) {
             if (userVotedForOption(roundId, optionId, i)) {
                 sum++;
             }
@@ -186,51 +186,51 @@ contract VoterV2 is IVoterV2 {
     }
 
     /// @inheritdoc IVoterV2
-    function votesForOption(uint roundId, uint optionId)
+    function votesForOption(uint256 roundId, uint256 optionId)
         public
         view
         override
-        returns (uint)
+        returns (uint256)
     {
-        uint sum;
-        for (uint i = 0; i < users.length; i++) {
+        uint256 sum;
+        for (uint256 i = 0; i < users.length; i++) {
             sum += votesForOptionByUser(roundId, optionId, users[i]);
         }
         return sum;
     }
 
     /// @inheritdoc IVoterV2
-    function votesInRound(uint roundId)
+    function votesInRound(uint256 roundId)
         external
         view
         override
-        returns (uint)
+        returns (uint256)
     {
-        uint sum;
-        for (uint i; i < rounds[roundId].totalOptions; i++) {
+        uint256 sum;
+        for (uint256 i; i < rounds[roundId].totalOptions; i++) {
             sum += votesForOption(roundId, i);
         }
         return sum;
     }
 
     /// @inheritdoc IVoterV2
-    function totalActiveRounds() external view override returns (uint) {
+    function totalActiveRounds() external view override returns (uint256) {
         return activeRounds.length;
     }
 
     /// @inheritdoc IVoterV2
-    function totalFinalizedRounds() external view override returns (uint) {
+    function totalFinalizedRounds() external view override returns (uint256) {
         return finalizedRounds.length;
     }
 
     /// @inheritdoc IVoterV2
-    function isActiveRound(uint roundId)
+    function isActiveRound(uint256 roundId)
         public
         view
         override
         returns (bool)
     {
-        for (uint i = 0; i < activeRounds.length; i++) {
+        for (uint256 i = 0; i < activeRounds.length; i++) {
             if (activeRounds[i] == roundId) {
                 return true;
             }
@@ -239,8 +239,13 @@ contract VoterV2 is IVoterV2 {
     }
 
     /// @inheritdoc IVoterV2
-    function isFinalizedRound(uint roundId) external view override returns (bool) {
-        for (uint i = 0; i < finalizedRounds.length; i++) {
+    function isFinalizedRound(uint256 roundId)
+        external
+        view
+        override
+        returns (bool)
+    {
+        for (uint256 i = 0; i < finalizedRounds.length; i++) {
             if (finalizedRounds[i] == roundId) {
                 return true;
             }
@@ -255,7 +260,7 @@ contract VoterV2 is IVoterV2 {
         isOwner
     {
         rounds[totalRounds].name = _roundName;
-        for (uint i = 0; i < optionNames.length; i++) {
+        for (uint256 i = 0; i < optionNames.length; i++) {
             rounds[totalRounds].options[i].name = optionNames[i];
             rounds[totalRounds].totalOptions++;
         }
@@ -266,12 +271,12 @@ contract VoterV2 is IVoterV2 {
 
     // @dev move roundId from activeRounds to finalizedRounds
     /// @inheritdoc IVoterV2
-    function finalizeRound(uint roundId) external override isOwner {
-        uint[] memory filteredRounds = new uint[](
+    function finalizeRound(uint256 roundId) external override isOwner {
+        uint256[] memory filteredRounds = new uint256[](
             activeRounds.length - 1
         );
-        uint j = 0;
-        for (uint i = 0; i < activeRounds.length; i++) {
+        uint256 j = 0;
+        for (uint256 i = 0; i < activeRounds.length; i++) {
             if (activeRounds[i] == roundId) {
                 continue;
             }
@@ -284,48 +289,48 @@ contract VoterV2 is IVoterV2 {
     }
 
     /// @inheritdoc IVoterV2
-    function castVotes(uint userId, uint roundId, uint[] memory votes)
-        external
-        override
-    {
+    function castVotes(
+        uint256 userId,
+        uint256 roundId,
+        uint256[] memory votes
+    ) external override {
         require(canCastVotes[msg.sender], "ACV");
         _castVotes(userId, roundId, votes);
     }
 
     /// @inheritdoc IVoterV2
-    function castVotes(uint roundId, uint[] memory votes)
+    function castVotes(uint256 roundId, uint256[] memory votes)
         external
         override
     {
-        uint userId = balanceKeeper.userIdByChainAddress("EVM", abi.encodePacked(msg.sender));
+        uint256 userId = balanceKeeper.userIdByChainAddress(
+            "EVM",
+            abi.encodePacked(msg.sender)
+        );
         _castVotes(userId, roundId, votes);
     }
 
-    function _castVotes(uint userId, uint roundId, uint[] memory votes)
-        internal
-    {
+    function _castVotes(
+        uint256 userId,
+        uint256 roundId,
+        uint256[] memory votes
+    ) internal {
         // @dev fail if roundId is not an active vote
         require(isActiveRound(roundId), "V3");
 
         // @dev fail if votes doesn't match number of options in roundId
-        require(
-            votes.length == rounds[roundId].totalOptions,
-            "V4"
-        );
+        require(votes.length == rounds[roundId].totalOptions, "V4");
 
-        uint sum;
-        for (uint optionId = 0; optionId < votes.length; optionId++) {
+        uint256 sum;
+        for (uint256 optionId = 0; optionId < votes.length; optionId++) {
             sum += votes[optionId];
         }
 
         // @dev fail if balance of sender is smaller than the sum of votes
-        require(
-            balanceKeeper.balance(userId) >= sum,
-            "V5"
-        );
+        require(balanceKeeper.balance(userId) >= sum, "V5");
 
         // @dev overwrite userId votes
-        for (uint i = 0; i < votes.length; i++) {
+        for (uint256 i = 0; i < votes.length; i++) {
             rounds[roundId].options[i].votes[userId] = votes[i];
         }
         if (!userVoted[userId] && sum > 0) {
@@ -336,33 +341,29 @@ contract VoterV2 is IVoterV2 {
         emit CastVotes(msg.sender, roundId, userId, votes);
     }
 
-    function checkVoteBalance(
-        uint roundId,
-        uint userId
-    ) internal {
-        uint newBalance = balanceKeeper.balance(userId);
+    function checkVoteBalance(uint256 roundId, uint256 userId) internal {
+        uint256 newBalance = balanceKeeper.balance(userId);
         // @dev return if newBalance is still larger than the number of votes
         // @dev return if user didn't vote
-        if (newBalance > votesInRoundByUser(roundId, userId) ||
-            !userVotedInRound(roundId, userId)) {
+        if (
+            newBalance > votesInRoundByUser(roundId, userId) ||
+            !userVotedInRound(roundId, userId)
+        ) {
             return;
         }
-        uint oldSum = votesInRoundByUser(roundId, userId);
-        for (uint i = 0; i < rounds[roundId].totalOptions; i++) {
-            uint oldVoteBalance = rounds[roundId].options[i].votes[userId];
-            uint newVoteBalance = (oldVoteBalance * newBalance) / oldSum;
+        uint256 oldSum = votesInRoundByUser(roundId, userId);
+        for (uint256 i = 0; i < rounds[roundId].totalOptions; i++) {
+            uint256 oldVoteBalance = rounds[roundId].options[i].votes[userId];
+            uint256 newVoteBalance = (oldVoteBalance * newBalance) / oldSum;
             rounds[roundId].options[i].votes[userId] = newVoteBalance;
         }
         emit CheckVoteBalance(msg.sender, userId, newBalance);
     }
 
     /// @inheritdoc IVoterV2
-    function checkVoteBalances(uint userId) external override {
-        require(
-            canCheck[msg.sender],
-            "ACC"
-        );
-        for (uint i = 0; i < activeRounds.length; i++) {
+    function checkVoteBalances(uint256 userId) external override {
+        require(canCheck[msg.sender], "ACC");
+        for (uint256 i = 0; i < activeRounds.length; i++) {
             checkVoteBalance(activeRounds[i], userId);
         }
     }

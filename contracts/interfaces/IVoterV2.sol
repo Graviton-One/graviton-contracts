@@ -33,103 +33,114 @@ interface IVoterV2 {
     function setCanCheck(address checker, bool _canCheck) external;
 
     /// @notice The total number of voting rounds
-    function totalRounds() external view returns (uint);
+    function totalRounds() external view returns (uint256);
 
     /// @notice Look up the unique id of one of the active voting rounds
-    function activeRounds(uint index) external view returns (uint roundId);
+    function activeRounds(uint256 index)
+        external
+        view
+        returns (uint256 roundId);
 
     /// @notice Look up the unique id of one of the finalized voting rounds
-    function finalizedRounds(uint index) external view returns (uint roundId);
+    function finalizedRounds(uint256 index)
+        external
+        view
+        returns (uint256 roundId);
 
     /// @notice Look up the name of a voting round
-    function roundName(uint roundId) external view returns (string memory);
+    function roundName(uint256 roundId) external view returns (string memory);
 
     /// @notice Look up the name of an option in a voting round
-    function optionName(uint roundId, uint optionId)
+    function optionName(uint256 roundId, uint256 optionId)
         external
         view
         returns (string memory);
 
     /// @notice Look up the total amount of votes for an option in a voting round
-    function votesForOption(uint roundId, uint optionId)
+    function votesForOption(uint256 roundId, uint256 optionId)
         external
         view
-        returns (uint);
+        returns (uint256);
 
     /// @notice Look up the amount of votes user sent in a voting round
-    function votesInRoundByUser(uint roundId, uint userId)
+    function votesInRoundByUser(uint256 roundId, uint256 userId)
         external
         view
-        returns (uint);
+        returns (uint256);
 
     /// @notice Look up the amount of votes user sent for an option in a voting round
     function votesForOptionByUser(
-        uint roundId,
-        uint optionId,
-        uint userId
-    ) external view returns (uint);
+        uint256 roundId,
+        uint256 optionId,
+        uint256 userId
+    ) external view returns (uint256);
 
     /// @notice Look up if user voted in a voting round
-    function userVotedInRound(uint roundId, uint userId)
+    function userVotedInRound(uint256 roundId, uint256 userId)
         external
         view
         returns (bool);
 
     /// @notice Look up if user voted or an option in a voting round
     function userVotedForOption(
-        uint roundId,
-        uint optionId,
-        uint userId
+        uint256 roundId,
+        uint256 optionId,
+        uint256 userId
     ) external view returns (bool);
 
     /// @notice The total number of users that voted in a voting round
-    function totalUsersInRound(uint roundId) external view returns (uint);
+    function totalUsersInRound(uint256 roundId) external view returns (uint256);
 
     /// @notice The total number of users that voted for an option in a voting round
-    function totalUsersForOption(uint roundId, uint optionId)
+    function totalUsersForOption(uint256 roundId, uint256 optionId)
         external
         view
-        returns (uint);
+        returns (uint256);
 
     /// @notice The total number of votes in a voting round
-    function votesInRound(uint roundId) external view returns (uint);
+    function votesInRound(uint256 roundId) external view returns (uint256);
 
     /// @notice The number of active voting rounds
-    function totalActiveRounds() external view returns (uint);
+    function totalActiveRounds() external view returns (uint256);
 
     /// @notice The number of finalized voting rounds
-    function totalFinalizedRounds() external view returns (uint);
+    function totalFinalizedRounds() external view returns (uint256);
 
     /// @notice The number of options in a voting round
-    function totalRoundOptions(uint roundId) external returns (uint);
+    function totalRoundOptions(uint256 roundId) external returns (uint256);
 
     /// @notice Look up if a voting round is active
-    function isActiveRound(uint roundId) external view returns (bool);
+    function isActiveRound(uint256 roundId) external view returns (bool);
 
     /// @notice Look up if a voting round is finalized
-    function isFinalizedRound(uint roundId) external view returns (bool);
+    function isFinalizedRound(uint256 roundId) external view returns (bool);
 
     /// @notice Starts a voting round
     /// @param _roundName voting round name, i.e. "Proposal"
     /// @param optionNames an array of option names, i.e. ["Approve", "Reject"]
-    function startRound(string memory _roundName, string[] memory optionNames) external;
+    function startRound(string memory _roundName, string[] memory optionNames)
+        external;
 
     /// @notice Finalized a voting round
-    function finalizeRound(uint roundId) external;
+    function finalizeRound(uint256 roundId) external;
 
     /// @notice Records votes according to userId governance balance
     /// @param roundId unique id of the voting round
     /// @param votes an array of votes for each option in a voting round, i.e. [7,12]
     /// @dev Can only be called by the account allowed to cast votes on behalf of others
-    function castVotes(uint userId, uint roundId, uint[] memory votes) external;
+    function castVotes(
+        uint256 userId,
+        uint256 roundId,
+        uint256[] memory votes
+    ) external;
 
     /// @notice Records votes according to sender's governance balance
     /// @param roundId unique id of the voting round
     /// @param votes an array of votes for each option in a voting round, i.e. [7,12]
-    function castVotes(uint roundId, uint[] memory votes) external;
+    function castVotes(uint256 roundId, uint256[] memory votes) external;
 
     /// @notice Decreases votes of `user` when their balance is depleted, preserving proportions
-    function checkVoteBalances(uint userId) external;
+    function checkVoteBalances(uint256 userId) external;
 
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
@@ -163,7 +174,7 @@ interface IVoterV2 {
     /// @param optionNames The array of option names, i.e. ["Approve", "Reject"]
     event StartRound(
         address indexed owner,
-        uint totalRounds,
+        uint256 totalRounds,
         string roundName,
         string[] optionNames
     );
@@ -171,14 +182,19 @@ interface IVoterV2 {
     /// @notice Event emitted when a voting round is finalized via `#finalizeRound`
     /// @param owner The owner account at the time of change
     /// @param roundId Unique id of the voting round
-    event FinalizeRound(address indexed owner, uint indexed roundId);
+    event FinalizeRound(address indexed owner, uint256 indexed roundId);
 
     /// @notice Event emitted when a user sends votes via `#castVotes`
     /// @param caster The account that cast votes
     /// @param roundId Unique id of the voting round
     /// @param userId The account that cast votes
     /// @param votes Array of votes for each option in the round
-    event CastVotes(address indexed caster, uint indexed roundId, uint indexed userId, uint[] votes);
+    event CastVotes(
+        address indexed caster,
+        uint256 indexed roundId,
+        uint256 indexed userId,
+        uint256[] votes
+    );
 
     /// @notice Event emitted when a `checker` decreases a voting balance preserving proportions via `#checkVoteBalances`
     /// @param checker The account that checked the voting balance
@@ -186,7 +202,7 @@ interface IVoterV2 {
     /// @param newBalance The voting balance after checking
     event CheckVoteBalance(
         address indexed checker,
-        uint indexed userId,
-        uint newBalance
+        uint256 indexed userId,
+        uint256 newBalance
     );
 }

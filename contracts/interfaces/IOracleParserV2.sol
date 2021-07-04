@@ -29,7 +29,7 @@ interface IOracleParserV2 {
     function setOracleRouter(IOracleRouterV2 _oracleRouter) external;
 
     /// @notice Index from the array of chains parsed as "EVM"
-    function evmChains(uint index) external view returns (string memory);
+    function evmChains(uint256 index) external view returns (string memory);
 
     /// @notice Sets the array of chains parsed as "EVM"
     /// @param _evmChains Array of blockchain names, i.e. ["ETH","BNB","FTM"]
@@ -86,7 +86,10 @@ interface IOracleParserV2 {
     /// @notice Event emitted when the router changes via `#setOracleRouter`.
     /// @param routerOld The previous router
     /// @param routerNew The new router
-    event SetOracleRouter(IOracleRouterV2 indexed routerOld, IOracleRouterV2 indexed routerNew);
+    event SetOracleRouter(
+        IOracleRouterV2 indexed routerOld,
+        IOracleRouterV2 indexed routerNew
+    );
 
     /// @notice Event emitted when the evm chains are set via `#setEVMChains`
     /// @param _evmChains Array of blockchain names, i.e. ["ETH","BNB","FTM"]

@@ -8,7 +8,6 @@ import "./interfaces/IBalanceKeeperV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract LockGTONOnchain is ILockGTON {
-
     /// @inheritdoc ILockGTON
     address public override owner;
 
@@ -45,12 +44,8 @@ contract LockGTONOnchain is ILockGTON {
     }
 
     /// @inheritdoc ILockGTON
-    function migrate(address newLock)
-        external
-        override
-        isOwner
-    {
-        uint amount = governanceToken.balanceOf(address(this));
+    function migrate(address newLock) external override isOwner {
+        uint256 amount = governanceToken.balanceOf(address(this));
         governanceToken.transfer(newLock, amount);
         emit Migrate(newLock, amount);
     }

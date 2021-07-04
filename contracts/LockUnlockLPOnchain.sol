@@ -9,7 +9,6 @@ import "./interfaces/IBalanceKeeperV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract LockUnlockLPOnchain is ILockUnlockLP {
-
     /// @inheritdoc ILockUnlockLP
     address public override owner;
 
@@ -34,7 +33,11 @@ contract LockUnlockLPOnchain is ILockUnlockLP {
     IBalanceKeeperV2 public balanceKeeper;
     ILPKeeperV2 public lpKeeper;
 
-    constructor(address[] memory allowedTokens, IBalanceKeeperV2 _balanceKeeper, ILPKeeperV2 _lpKeeper) {
+    constructor(
+        address[] memory allowedTokens,
+        IBalanceKeeperV2 _balanceKeeper,
+        ILPKeeperV2 _lpKeeper
+    ) {
         owner = msg.sender;
         for (uint256 i = 0; i < allowedTokens.length; i++) {
             isAllowedToken[allowedTokens[i]] = true;
@@ -87,10 +90,7 @@ contract LockUnlockLPOnchain is ILockUnlockLP {
     }
 
     /// @inheritdoc ILockUnlockLP
-    function lock(
-        address token,
-        uint256 amount
-    ) external override {
+    function lock(address token, uint256 amount) external override {
         require(canLock, "LP1");
         require(isAllowedToken[token], "LP2");
         require(amount >= lockLimit[token], "LP3");
@@ -111,10 +111,7 @@ contract LockUnlockLPOnchain is ILockUnlockLP {
     }
 
     /// @inheritdoc ILockUnlockLP
-    function unlock(
-        address token,
-        uint256 amount
-    ) external override {
+    function unlock(address token, uint256 amount) external override {
         require(_balance[token][msg.sender] >= amount, "LP4");
         _balance[token][msg.sender] -= amount;
         tokenSupply[token] -= amount;

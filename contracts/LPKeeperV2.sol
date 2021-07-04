@@ -7,7 +7,6 @@ import "./interfaces/ILPKeeperV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract LPKeeperV2 is ILPKeeperV2 {
-
     /// @inheritdoc ILPKeeperV2
     address public override owner;
 
@@ -203,10 +202,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
     {
         require(isKnownToken(tokenId), "LK1");
         require(totalTokenUsers(tokenId) > 0, "LK2");
-        require(
-            userIndex < totalTokenUsers(tokenId),
-            "LK3"
-        );
+        require(userIndex < totalTokenUsers(tokenId), "LK3");
         return _tokenUser[tokenId][userIndex];
     }
 
@@ -219,10 +215,7 @@ contract LPKeeperV2 is ILPKeeperV2 {
         require(isKnownToken(tokenChain, tokenAddress), "LK1");
         uint256 tokenId = _tokenIdByChainAddress[tokenChain][tokenAddress];
         require(totalTokenUsers(tokenId) > 0, "LK2");
-        require(
-            userIndex < totalTokenUsers(tokenId),
-            "LK3"
-        );
+        require(userIndex < totalTokenUsers(tokenId), "LK3");
         return _tokenUser[tokenId][userIndex];
     }
 

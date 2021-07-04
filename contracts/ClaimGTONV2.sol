@@ -7,7 +7,6 @@ import "./interfaces/IClaimGTONV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract ClaimGTONV2 is IClaimGTONV2 {
-
     /// @inheritdoc IClaimGTONV2
     address public override owner;
 
@@ -101,7 +100,12 @@ contract ClaimGTONV2 is IClaimGTONV2 {
             limitMax[msg.sender] -= amount;
         }
         balanceKeeper.subtract("EVM", abi.encodePacked(msg.sender), amount);
-        voter.checkVoteBalances(balanceKeeper.userIdByChainAddress("EVM", abi.encodePacked(msg.sender)));
+        voter.checkVoteBalances(
+            balanceKeeper.userIdByChainAddress(
+                "EVM",
+                abi.encodePacked(msg.sender)
+            )
+        );
         governanceToken.transferFrom(wallet, msg.sender, amount);
         emit Claim(msg.sender, msg.sender, amount);
     }

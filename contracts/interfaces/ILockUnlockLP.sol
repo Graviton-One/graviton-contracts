@@ -46,16 +46,10 @@ interface ILockUnlockLP {
         returns (uint256);
 
     /// @notice Transfers `amount` of `token` from the caller to LockUnlockLP
-    function lock(
-        address token,
-        uint256 amount
-    ) external;
+    function lock(address token, uint256 amount) external;
 
     /// @notice Transfers `amount` of `token` from LockUnlockLP to the caller
-    function unlock(
-        address token,
-        uint256 amount
-    ) external;
+    function unlock(address token, uint256 amount) external;
 
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
@@ -111,8 +105,5 @@ interface ILockUnlockLP {
     /// @notice Event emitted when the permission to lock is updated via `#setCanLock`
     /// @param owner The owner account at the time of change
     /// @param newBool Updated permission
-    event SetCanLock(
-        address indexed owner,
-        bool indexed newBool
-    );
+    event SetCanLock(address indexed owner, bool indexed newBool);
 }

@@ -7,7 +7,6 @@ import "./interfaces/IOracleRouterV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract OracleRouterV2 is IOracleRouterV2 {
-
     /// @inheritdoc IOracleRouterV2
     address public override owner;
 

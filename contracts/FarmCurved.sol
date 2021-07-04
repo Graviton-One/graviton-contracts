@@ -7,7 +7,6 @@ import "./interfaces/IFarm.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract FarmCurved is IFarm {
-
     /// @inheritdoc IFarm
     address public override owner;
 

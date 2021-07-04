@@ -55,13 +55,10 @@ interface ILockGTON {
     /// @notice Event emitted when the permission to lock is updated via `#setCanLock`
     /// @param owner The owner account at the time of change
     /// @param newBool Updated permission
-    event SetCanLock(
-        address indexed owner,
-        bool indexed newBool
-    );
+    event SetCanLock(address indexed owner, bool indexed newBool);
 
     /// @notice Event emitted when the locked governance tokens are transfered the another version of LockGTON
     /// @param newLock The new Lock contract
     /// @param amount Amount of tokens migrated
-    event Migrate(address indexed newLock, uint amount);
+    event Migrate(address indexed newLock, uint256 amount);
 }

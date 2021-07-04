@@ -7,7 +7,6 @@ import "./interfaces/IBalanceKeeperV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract BalanceKeeperV2 is IBalanceKeeperV2 {
-
     /// @inheritdoc IBalanceKeeperV2
     address public override owner;
 
@@ -141,8 +140,8 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         returns (uint256)
     {
         if (!isKnownUser(userChain, userAddress)) {
-                return 0;
-           }
+            return 0;
+        }
         return _balance[_userIdByChainAddress[userChain][userAddress]];
     }
 
@@ -227,7 +226,12 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
     }
 
     /// @inheritdoc IShares
-    function userIdByIndex(uint256 index) external view override returns (uint256) {
+    function userIdByIndex(uint256 index)
+        external
+        view
+        override
+        returns (uint256)
+    {
         require(index < totalUsers, "BK2");
         return index;
     }

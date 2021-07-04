@@ -7,7 +7,6 @@ import "./interfaces/ILockUnlockLP.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract LockUnlockLP is ILockUnlockLP {
-
     /// @inheritdoc ILockUnlockLP
     address public override owner;
 
@@ -80,10 +79,7 @@ contract LockUnlockLP is ILockUnlockLP {
     }
 
     /// @inheritdoc ILockUnlockLP
-    function lock(
-        address token,
-        uint256 amount
-    ) external override {
+    function lock(address token, uint256 amount) external override {
         require(canLock, "LP1");
         require(isAllowedToken[token], "LP2");
         require(amount >= lockLimit[token], "LP3");
@@ -95,10 +91,7 @@ contract LockUnlockLP is ILockUnlockLP {
     }
 
     /// @inheritdoc ILockUnlockLP
-    function unlock(
-        address token,
-        uint256 amount
-    ) external override {
+    function unlock(address token, uint256 amount) external override {
         require(_balance[token][msg.sender] >= amount, "LP4");
         _balance[token][msg.sender] -= amount;
         tokenSupply[token] -= amount;

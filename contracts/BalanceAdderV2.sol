@@ -95,7 +95,7 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
         }
         farms = newFarms;
 
-        uint oldLastPortions = lastPortions[farmId];
+        uint256 oldLastPortions = lastPortions[farmId];
         uint256[] memory newLastPortions = new uint256[](
             lastPortions.length - 1
         );
@@ -134,15 +134,26 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
             toUser = totalUsers;
         }
 
-        emit ProcessBalances(currentFarm, shares[currentFarm], farms[currentFarm], step);
+        emit ProcessBalances(
+            currentFarm,
+            shares[currentFarm],
+            farms[currentFarm],
+            step
+        );
 
         if (totalShares > 0) {
             for (uint256 i = fromUser; i < toUser; i++) {
                 uint256 userId = shares[currentFarm].userIdByIndex(i);
-                uint256 add = (shares[currentFarm].shareById(userId) * currentPortion) /
-                    totalShares;
+                uint256 add = (shares[currentFarm].shareById(userId) *
+                    currentPortion) / totalShares;
                 balanceKeeper.add(userId, add);
-                emit ProcessBalance(currentFarm, shares[currentFarm], farms[currentFarm], userId, add);
+                emit ProcessBalance(
+                    currentFarm,
+                    shares[currentFarm],
+                    farms[currentFarm],
+                    userId,
+                    add
+                );
             }
         }
 
