@@ -37,7 +37,7 @@ interface IBalanceKeeperV2 is IShares {
     function setCanSubtract(address subtractor, bool _canSubtract) external;
 
     /// @notice The number of open governance balances
-    function totalUsers() external view returns (uint256);
+    function totalUsers() external view override returns (uint256);
 
     /// @notice The sum of all governance balances
     function totalBalance() external view returns (uint256);

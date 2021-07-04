@@ -143,4 +143,33 @@ describe('SharesEB', () => {
       expect(await sharesEB.totalShares()).to.eq(2000)
     })
   })
+
+  describe('#totalUsers', () => {
+    it('returns total impact', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, other.address)
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, wallet.address, "1000", "0", "0"));
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, other.address, "1000", "1", "0"));
+      await sharesEB.migrate(2)
+      expect(await sharesEB.totalUsers()).to.eq(2)
+    })
+  })
+
+  describe('#userIdByIndex', () => {
+    it('returns total impact', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, other.address)
+      await impactEB
+        .connect(nebula)
+        .attachValue(makeValueImpact(token1.address, other.address, "1000", "1", "0"));
+      await sharesEB.migrate(2)
+      expect(await sharesEB.userIdByIndex(0)).to.eq(1)
+    })
+  })
 })

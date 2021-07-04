@@ -225,4 +225,10 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
     function totalShares() external view override returns (uint256) {
         return totalBalance;
     }
+
+    /// @inheritdoc IShares
+    function userIdByIndex(uint256 index) external view override returns (uint256) {
+        require(index < totalUsers, "index larger that total users");
+        return index;
+    }
 }

@@ -77,4 +77,25 @@ describe('SharesLP', () => {
       expect(await sharesLP.totalShares()).to.eq(100)
     })
   })
+
+  describe('#totalUsers', () => {
+    it('returns total token balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await lpKeeper['add(uint256,uint256,uint256)'](0, 0, 100)
+      expect(await sharesLP.totalUsers()).to.eq(1)
+    })
+  })
+
+  describe('#userIdByIndex', () => {
+    it('returns total token balance', async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.open(EVM_CHAIN, wallet.address)
+      await balanceKeeper.open(EVM_CHAIN, other.address)
+      await lpKeeper.setCanAdd(wallet.address, true)
+      await lpKeeper['add(uint256,uint256,uint256)'](0, 1, 100)
+      expect(await sharesLP.userIdByIndex(0)).to.eq(1)
+    })
+  })
 })

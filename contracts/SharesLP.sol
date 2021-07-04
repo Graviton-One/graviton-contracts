@@ -37,4 +37,14 @@ contract SharesLP is ISharesLP {
     function totalShares() external view override returns (uint256) {
         return lpKeeper.totalBalance(tokenId);
     }
+
+    /// @inheritdoc IShares
+    function totalUsers() external view override returns (uint256) {
+        return lpKeeper.totalTokenUsers(tokenId);
+    }
+
+    /// @inheritdoc IShares
+    function userIdByIndex(uint256 index) external view override returns (uint256) {
+        return lpKeeper.tokenUser(tokenId, index);
+    }
 }

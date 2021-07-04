@@ -43,8 +43,8 @@ interface IBalanceAdderV2 {
     /// @notice Total funds available for the farming campaign
     function totalUnlocked() external view returns (uint256);
 
-    /// @notice The sum of governance balances of all users
-    function totalBalance() external view returns (uint256);
+    /// @notice The sum of shares of all users
+    function totalShares() external view returns (uint256);
 
     /// @notice Look up if the `farmIndex` farming campaign is being processed
     /// @return true if the farming campaign is locked for processing,

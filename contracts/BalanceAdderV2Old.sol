@@ -3,10 +3,10 @@ pragma solidity >=0.8.0;
 
 import "./interfaces/IBalanceAdderV2.sol";
 
-/// @title BalanceAdderV2
+/// @title BalanceAdderV2Old
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract BalanceAdderV2 is IBalanceAdderV2 {
+contract BalanceAdderV2Old is IBalanceAdderV2 {
     /// @inheritdoc IBalanceAdderV2
     address public override owner;
 
@@ -124,7 +124,7 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
 
         if (!isProcessing[currentFarm] && toUser > 0) {
             isProcessing[currentFarm] = true;
-            totalUsers = shares[currentFarm].totalUsers();
+            totalUsers = balanceKeeper.totalUsers();
             totalShares = shares[currentFarm].totalShares();
             totalUnlocked = farms[currentFarm].totalUnlocked();
             currentPortion = totalUnlocked - lastPortions[currentFarm];
@@ -136,14 +136,15 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
 
         emit ProcessBalances(currentFarm, shares[currentFarm], farms[currentFarm], step);
 
-        if (totalShares > 0) {
-            for (uint256 i = fromUser; i < toUser; i++) {
-                uint256 userId = shares[currentFarm].userIdByIndex(i);
-                uint256 add = (shares[currentFarm].shareById(userId) * currentPortion) /
-                    totalShares;
-                balanceKeeper.add(userId, add);
-                emit ProcessBalance(currentFarm, shares[currentFarm], farms[currentFarm], userId, add);
-            }
+        for (uint256 i = fromUser; i < toUser; i++) {
+            require(
+                shares[currentFarm].totalShares() > 0,
+                "there are no shares"
+            );
+            uint256 add = (shares[currentFarm].shareById(i) * currentPortion) /
+                totalShares;
+            balanceKeeper.add(i, add);
+            emit ProcessBalance(currentFarm, shares[currentFarm], farms[currentFarm], i, add);
         }
 
         if (toUser == totalUsers) {
