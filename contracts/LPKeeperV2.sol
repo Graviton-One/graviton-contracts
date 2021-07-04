@@ -150,6 +150,9 @@ contract LPKeeperV2 is ILPKeeperV2 {
         bytes calldata tokenAddress,
         uint256 userId
     ) external view override returns (bool) {
+        if (!isKnownToken(tokenChain, tokenAddress)) {
+            return false;
+        }
         uint256 tokenId = _tokenIdByChainAddress[tokenChain][tokenAddress];
         return _isKnownTokenUser[tokenId][userId];
     }
@@ -177,6 +180,9 @@ contract LPKeeperV2 is ILPKeeperV2 {
         string calldata userChain,
         bytes calldata userAddress
     ) external view override returns (bool) {
+        if (!isKnownToken(tokenChain, tokenAddress)) {
+            return false;
+        }
         uint256 tokenId = _tokenIdByChainAddress[tokenChain][tokenAddress];
         if (!balanceKeeper.isKnownUser(userChain, userAddress)) {
             return false;
@@ -210,8 +216,8 @@ contract LPKeeperV2 is ILPKeeperV2 {
         bytes calldata tokenAddress,
         uint256 userIndex
     ) external view override returns (uint256) {
+        require(isKnownToken(tokenChain, tokenAddress), "token is not known");
         uint256 tokenId = _tokenIdByChainAddress[tokenChain][tokenAddress];
-        require(isKnownToken(tokenId), "token is not known");
         require(totalTokenUsers(tokenId) > 0, "no token users");
         require(
             userIndex < totalTokenUsers(tokenId),
@@ -316,6 +322,9 @@ contract LPKeeperV2 is ILPKeeperV2 {
         string calldata tokenChain,
         bytes calldata tokenAddress
     ) external view override returns (uint256) {
+        if (!isKnownToken(tokenChain, tokenAddress)) {
+            return 0;
+        }
         return _totalBalance[_tokenIdByChainAddress[tokenChain][tokenAddress]];
     }
 

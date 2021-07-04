@@ -255,7 +255,12 @@ describe('LPKeeperV2', () => {
 
   describe('#isKnownTokenUser(uint256,uint256)', () => {
     it('returns false when token is not known', async () => {
-      expect(await lpKeeper['isKnownTokenUser(uint256,uint256)'](0, 0)).to.eq(false)
+      expect(await lpKeeper['isKnownTokenUser(uint256,uint256)'](1, 0)).to.eq(false)
+    })
+
+    it('returns false when token is not known and 0 token is known', async () => {
+      await wallet1Token1()
+      expect(await lpKeeper['isKnownTokenUser(uint256,uint256)'](1, 0)).to.eq(false)
     })
 
     it('returns false when token user is not known', async () => {
@@ -277,7 +282,12 @@ describe('LPKeeperV2', () => {
 
   describe('#isKnownTokenUser(string,bytes,uint256)', () => {
     it('returns false when token is not known', async () => {
-      expect(await lpKeeper['isKnownTokenUser(string,bytes,uint256)'](EVM_CHAIN, token1.address, 0)).to.eq(false)
+      expect(await lpKeeper['isKnownTokenUser(string,bytes,uint256)'](EVM_CHAIN, token2.address, 0)).to.eq(false)
+    })
+
+    it('returns false when token is not known and 0 token is known', async () => {
+      await wallet1Token1()
+      expect(await lpKeeper['isKnownTokenUser(string,bytes,uint256)'](EVM_CHAIN, token2.address, 0)).to.eq(false)
     })
 
     it('returns false when token user is not known', async () => {
@@ -301,6 +311,11 @@ describe('LPKeeperV2', () => {
       expect(await lpKeeper['isKnownTokenUser(uint256,string,bytes)'](0, EVM_CHAIN, wallet.address)).to.eq(false)
     })
 
+    it('returns false when token is not known and 0 token is known', async () => {
+      await wallet1Token1()
+      expect(await lpKeeper['isKnownTokenUser(uint256,string,bytes)'](1, EVM_CHAIN, wallet.address)).to.eq(false)
+    })
+
     it('returns false when token user is not known', async () => {
       await openToken1()
       expect(await lpKeeper['isKnownTokenUser(uint256,string,bytes)'](0, EVM_CHAIN, wallet.address)).to.eq(false)
@@ -320,6 +335,11 @@ describe('LPKeeperV2', () => {
   describe('#isKnownTokenUser(string,bytes,string,bytes)', () => {
     it('returns false when token is not known', async () => {
       expect(await lpKeeper['isKnownTokenUser(string,bytes,string,bytes)'](EVM_CHAIN, token1.address, EVM_CHAIN, wallet.address)).to.eq(false)
+    })
+
+    it('returns false when token is not known and 0 token is known', async () => {
+      await wallet1Token1()
+      expect(await lpKeeper['isKnownTokenUser(string,bytes,string,bytes)'](EVM_CHAIN, token2.address, EVM_CHAIN, wallet.address)).to.eq(false)
     })
 
     it('returns false when token user is not known', async () => {
