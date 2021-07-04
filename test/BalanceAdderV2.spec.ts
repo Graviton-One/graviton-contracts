@@ -212,7 +212,9 @@ describe('BalanceAdderV2', () => {
       await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(1)
-      await expect(balanceAdder.removeFarm(0)).to.be.revertedWith('farm is processing balances')
+      await expect(balanceAdder.removeFarm(0)).to.be.revertedWith(
+        "BA1"
+      )
     })
 
     it('removes shares', async () => {
