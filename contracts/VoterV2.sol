@@ -12,7 +12,7 @@ contract VoterV2 is IVoterV2 {
     address public override owner;
 
     modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
+        require(msg.sender == owner, "ACW");
         _;
     }
 
@@ -85,7 +85,7 @@ contract VoterV2 is IVoterV2 {
         override
         returns (string memory)
     {
-        require(roundId < totalRounds, "no such round");
+        require(roundId < totalRounds, "V1");
         return rounds[roundId].name;
     }
 
@@ -96,8 +96,8 @@ contract VoterV2 is IVoterV2 {
         override
         returns (string memory)
     {
-        require(roundId < totalRounds, "no such round");
-        require(optionId < rounds[roundId].totalOptions, "no such option");
+        require(roundId < totalRounds, "V1");
+        require(optionId < rounds[roundId].totalOptions, "V2");
         return rounds[roundId].options[optionId].name;
     }
 
@@ -288,7 +288,7 @@ contract VoterV2 is IVoterV2 {
         external
         override
     {
-        require(canCastVotes[msg.sender], "not allowed to cast votes");
+        require(canCastVotes[msg.sender], "ACV");
         _castVotes(userId, roundId, votes);
     }
 
@@ -305,12 +305,12 @@ contract VoterV2 is IVoterV2 {
         internal
     {
         // @dev fail if roundId is not an active vote
-        require(isActiveRound(roundId), "roundId is not an active vote");
+        require(isActiveRound(roundId), "V3");
 
         // @dev fail if votes doesn't match number of options in roundId
         require(
             votes.length == rounds[roundId].totalOptions,
-            "number of votes doesn't match the number of options"
+            "V4"
         );
 
         uint sum;
@@ -321,7 +321,7 @@ contract VoterV2 is IVoterV2 {
         // @dev fail if balance of sender is smaller than the sum of votes
         require(
             balanceKeeper.balance(userId) >= sum,
-            "balance is smaller than the sum of votes"
+            "V5"
         );
 
         // @dev overwrite userId votes
@@ -360,7 +360,7 @@ contract VoterV2 is IVoterV2 {
     function checkVoteBalances(uint userId) external override {
         require(
             canCheck[msg.sender],
-            "sender is not allowed to check balances"
+            "ACC"
         );
         for (uint i = 0; i < activeRounds.length; i++) {
             checkVoteBalance(activeRounds[i], userId);

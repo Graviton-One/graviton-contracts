@@ -19,7 +19,7 @@ contract SharesLP is ISharesLP {
         uint256 _tokenId
     ) {
         lpKeeper = _lpKeeper;
-        require(lpKeeper.isKnownToken(_tokenId), "token is not known");
+        require(lpKeeper.isKnownToken(_tokenId), "SL1");
         tokenId = _tokenId;
     }
 

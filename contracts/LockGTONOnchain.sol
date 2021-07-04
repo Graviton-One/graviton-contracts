@@ -13,7 +13,7 @@ contract LockGTONOnchain is ILockGTON {
     address public override owner;
 
     modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
+        require(msg.sender == owner, "ACW");
         _;
     }
 
@@ -57,7 +57,7 @@ contract LockGTONOnchain is ILockGTON {
 
     /// @inheritdoc ILockGTON
     function lock(uint256 amount) external override {
-        require(canLock, "lock is not allowed");
+        require(canLock, "LG1");
         bytes memory receiverBytes = abi.encodePacked(msg.sender);
         if (!balanceKeeper.isKnownUser("EVM", receiverBytes)) {
             balanceKeeper.open("EVM", receiverBytes);

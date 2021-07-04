@@ -11,7 +11,7 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
     address public override owner;
 
     modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
+        require(msg.sender == owner, "ACW");
         _;
     }
 
@@ -69,7 +69,7 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
     /// @inheritdoc IBalanceAdderV2
     /// @dev remove index from arrays
     function removeFarm(uint256 farmId) external override isOwner {
-        require(!isProcessing[currentFarm], "farm is processing balances");
+        require(!isProcessing[currentFarm], "BA1");
 
         IShares oldShares = shares[farmId];
         IShares[] memory newShares = new IShares[](shares.length - 1);

@@ -12,7 +12,7 @@ contract LockUnlockLP is ILockUnlockLP {
     address public override owner;
 
     modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
+        require(msg.sender == owner, "ACW");
         _;
     }
 
@@ -84,9 +84,9 @@ contract LockUnlockLP is ILockUnlockLP {
         address token,
         uint256 amount
     ) external override {
-        require(canLock, "lock is not allowed");
-        require(isAllowedToken[token], "token not allowed");
-        require(amount >= lockLimit[token], "limit exceeded");
+        require(canLock, "LP1");
+        require(isAllowedToken[token], "LP2");
+        require(amount >= lockLimit[token], "LP3");
         _balance[token][msg.sender] += amount;
         tokenSupply[token] += amount;
         totalSupply += amount;
@@ -99,7 +99,7 @@ contract LockUnlockLP is ILockUnlockLP {
         address token,
         uint256 amount
     ) external override {
-        require(_balance[token][msg.sender] >= amount, "not enough balance");
+        require(_balance[token][msg.sender] >= amount, "LP4");
         _balance[token][msg.sender] -= amount;
         tokenSupply[token] -= amount;
         totalSupply -= amount;

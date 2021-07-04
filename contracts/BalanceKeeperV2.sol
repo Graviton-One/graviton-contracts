@@ -12,7 +12,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
     address public override owner;
 
     modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
+        require(msg.sender == owner, "ACW");
         _;
     }
 
@@ -93,7 +93,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         override
         returns (string memory)
     {
-        require(isKnownUser(userId), "user is not known");
+        require(isKnownUser(userId), "BK1");
         return _userChainById[userId];
     }
 
@@ -104,7 +104,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         override
         returns (bytes memory)
     {
-        require(isKnownUser(userId), "user is not known");
+        require(isKnownUser(userId), "BK1");
         return _userAddressById[userId];
     }
 
@@ -115,7 +115,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         override
         returns (string memory, bytes memory)
     {
-        require(isKnownUser(userId), "user is not known");
+        require(isKnownUser(userId), "BK1");
         return (_userChainById[userId], _userAddressById[userId]);
     }
 
@@ -124,7 +124,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         string calldata userChain,
         bytes calldata userAddress
     ) external view override returns (uint256) {
-        require(isKnownUser(userChain, userAddress), "user is not known");
+        require(isKnownUser(userChain, userAddress), "BK1");
         return _userIdByChainAddress[userChain][userAddress];
     }
 
@@ -151,7 +151,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         external
         override
     {
-        require(canOpen[msg.sender], "not allowed to open");
+        require(canOpen[msg.sender], "ACO");
         if (!isKnownUser(userChain, userAddress)) {
             uint256 userId = totalUsers;
             _userChainById[userId] = userChain;
@@ -165,8 +165,8 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
 
     /// @inheritdoc IBalanceKeeperV2
     function add(uint256 userId, uint256 amount) external override {
-        require(canAdd[msg.sender], "not allowed to add");
-        require(isKnownUser(userId), "user is not known");
+        require(canAdd[msg.sender], "ACA");
+        require(isKnownUser(userId), "BK1");
         _add(userId, amount);
     }
 
@@ -176,8 +176,8 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         bytes calldata userAddress,
         uint256 amount
     ) external override {
-        require(canAdd[msg.sender], "not allowed to add");
-        require(isKnownUser(userChain, userAddress), "user is not known");
+        require(canAdd[msg.sender], "ACA");
+        require(isKnownUser(userChain, userAddress), "BK1");
         _add(_userIdByChainAddress[userChain][userAddress], amount);
     }
 
@@ -189,8 +189,8 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
 
     /// @inheritdoc IBalanceKeeperV2
     function subtract(uint256 userId, uint256 amount) external override {
-        require(canSubtract[msg.sender], "not allowed to subtract");
-        require(isKnownUser(userId), "user is not known");
+        require(canSubtract[msg.sender], "ACS");
+        require(isKnownUser(userId), "BK1");
         _subtract(userId, amount);
     }
 
@@ -200,8 +200,8 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
         bytes calldata userAddress,
         uint256 amount
     ) external override {
-        require(canSubtract[msg.sender], "not allowed to subtract");
-        require(isKnownUser(userChain, userAddress), "user is not known");
+        require(canSubtract[msg.sender], "ACS");
+        require(isKnownUser(userChain, userAddress), "BK1");
         _subtract(_userIdByChainAddress[userChain][userAddress], amount);
     }
 
@@ -228,7 +228,7 @@ contract BalanceKeeperV2 is IBalanceKeeperV2 {
 
     /// @inheritdoc IShares
     function userIdByIndex(uint256 index) external view override returns (uint256) {
-        require(index < totalUsers, "index larger that total users");
+        require(index < totalUsers, "BK2");
         return index;
     }
 }

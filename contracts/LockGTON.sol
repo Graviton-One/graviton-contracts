@@ -12,7 +12,7 @@ contract LockGTON is ILockGTON {
     address public override owner;
 
     modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
+        require(msg.sender == owner, "ACW");
         _;
     }
 
@@ -53,7 +53,7 @@ contract LockGTON is ILockGTON {
 
     /// @inheritdoc ILockGTON
     function lock(uint256 amount) external override {
-        require(canLock, "lock is not allowed");
+        require(canLock, "LG1");
         governanceToken.transferFrom(msg.sender, address(this), amount);
         emit LockGTON(address(governanceToken), msg.sender, msg.sender, amount);
     }

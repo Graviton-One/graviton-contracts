@@ -12,7 +12,7 @@ contract OracleParserV2 is IOracleParserV2 {
     address public override owner;
 
     modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
+        require(msg.sender == owner, "ACW");
         _;
     }
 
@@ -20,7 +20,7 @@ contract OracleParserV2 is IOracleParserV2 {
     address public override nebula;
 
     modifier isNebula() {
-        require(msg.sender == nebula, "Caller is not nebula");
+        require(msg.sender == nebula, "ACN");
         _;
     }
 
