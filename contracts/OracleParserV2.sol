@@ -24,23 +24,25 @@ contract OracleParserV2 is IOracleParserV2 {
     }
 
     /// @inheritdoc IOracleParserV2
-    IOracleRouterV2 public override oracleRouter;
+    IOracleRouterV2 public override router;
 
     /// @inheritdoc IOracleParserV2
     mapping(bytes16 => bool) public override uuidIsProcessed;
 
     /// @inheritdoc IOracleParserV2
-    string[] public override evmChains;
+    mapping(string => bool) public override isEVM;
 
     constructor(
-        IOracleRouterV2 _oracleRouter,
+        IOracleRouterV2 _router,
         address _nebula,
-        string[] memory _evmChains
+        string[] memory evmChains
     ) {
         owner = msg.sender;
-        oracleRouter = _oracleRouter;
+        router = _router;
         nebula = _nebula;
-        evmChains = _evmChains;
+        for (uint256 i = 0; i < evmChains.length; i++) {
+            isEVM[evmChains[i]] = true;
+        }
     }
 
     /// @inheritdoc IOracleParserV2
@@ -58,24 +60,24 @@ contract OracleParserV2 is IOracleParserV2 {
     }
 
     /// @inheritdoc IOracleParserV2
-    function setOracleRouter(IOracleRouterV2 _oracleRouter)
+    function setRouter(IOracleRouterV2 _router)
         external
         override
         isOwner
     {
-        IOracleRouterV2 routerOld = oracleRouter;
-        oracleRouter = _oracleRouter;
-        emit SetOracleRouter(routerOld, _oracleRouter);
+        IOracleRouterV2 routerOld = router;
+        router = _router;
+        emit SetRouter(routerOld, _router);
     }
 
     /// @inheritdoc IOracleParserV2
-    function setEVMChains(string[] memory _evmChains)
+    function setIsEVM(string calldata chain, bool newBool)
         external
         override
         isOwner
     {
-        evmChains = _evmChains;
-        emit SetEVMChains(evmChains);
+        isEVM[chain] = newBool;
+        emit SetIsEVM(chain, newBool);
     }
 
     /// @inheritdoc IOracleParserV2
@@ -139,19 +141,6 @@ contract OracleParserV2 is IOracleParserV2 {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
-    function processChain(string memory chain)
-        internal
-        view
-        returns (string memory)
-    {
-        for (uint256 i; i < evmChains.length; i++) {
-            if (equal(evmChains[i], chain)) {
-                return "EVM";
-            }
-        }
-        return chain;
-    }
-
     /// @inheritdoc IOracleParserV2
     function attachValue(bytes calldata impactData) external override isNebula {
         // @dev ignore data with unexpected length
@@ -165,8 +154,7 @@ contract OracleParserV2 is IOracleParserV2 {
         }
         uuidIsProcessed[uuid] = true;
         string memory chain = string(abi.encodePacked(impactData[16:19])); // [ 16: 19]
-        chain = processChain(chain);
-        if (equal(chain, "EVM")) {
+        if (isEVM[chain]) {
             bytes memory emiter = impactData[19:39]; // [ 19: 39]
             bytes1 topics = bytes1(impactData[39]); // [ 39: 40]
             // @dev ignore data with unexpected number of topics
@@ -184,7 +172,7 @@ contract OracleParserV2 is IOracleParserV2 {
             bytes memory receiver = impactData[148:168]; // [136:168][12:32]
             uint256 amount = deserializeUint(impactData, 168, 32); // [168:200]
 
-            oracleRouter.routeValue(
+            router.routeValue(
                 uuid,
                 chain,
                 emiter,

@@ -21,7 +21,7 @@ import { MockTimeClaimGTON } from "../../typechain/MockTimeClaimGTON"
 import { BalanceKeeperV2 } from "../../typechain/BalanceKeeperV2"
 import { VoterV2 } from "../../typechain/VoterV2"
 import { LPKeeperV2 } from "../../typechain/LPKeeperV2"
-import { OracleRouterV2 } from "../../typechain/OracleRouterV2"
+import { LockRouter } from "../../typechain/LockRouter"
 import { OracleParserV2 } from "../../typechain/OracleParserV2"
 import { MockTimeClaimGTONV2 } from "../../typechain/MockTimeClaimGTONV2"
 import { SharesEB } from "../../typechain/SharesEB"
@@ -428,37 +428,37 @@ export const lpKeeperV2Fixture: Fixture<LPKeeperV2Fixture> = async function (
   }
 }
 
-interface OracleRouterV2Fixture extends LPKeeperV2Fixture {
-  oracleRouter: OracleRouterV2
+interface LockRouterFixture extends LPKeeperV2Fixture {
+  lockRouter: LockRouter
 }
 
-export const oracleRouterV2Fixture: Fixture<OracleRouterV2Fixture> =
-  async function ([wallet, other], provider): Promise<OracleRouterV2Fixture> {
+export const lockRouterFixture: Fixture<LockRouterFixture> =
+  async function ([wallet, other], provider): Promise<LockRouterFixture> {
     const { token0, token1, token2, balanceKeeper, lpKeeper } =
       await lpKeeperV2Fixture([wallet, other], provider)
 
-    const oracleRouterFactory = await ethers.getContractFactory(
-      "OracleRouterV2"
+    const lockRouterFactory = await ethers.getContractFactory(
+      "LockRouter"
     )
-    const oracleRouter = (await oracleRouterFactory.deploy(
+    const lockRouter = (await lockRouterFactory.deploy(
       balanceKeeper.address,
       lpKeeper.address,
       GTON_ADD_TOPIC,
       GTON_SUB_TOPIC,
       LP_ADD_TOPIC,
       LP_SUB_TOPIC
-    )) as OracleRouterV2
+    )) as LockRouter
     return {
       token0,
       token1,
       token2,
       balanceKeeper,
       lpKeeper,
-      oracleRouter,
+      lockRouter,
     }
   }
 
-interface OracleParserV2Fixture extends OracleRouterV2Fixture {
+interface OracleParserV2Fixture extends LockRouterFixture {
   oracleParser: OracleParserV2
 }
 
@@ -467,14 +467,14 @@ export const oracleParserV2Fixture: Fixture<OracleParserV2Fixture> =
     [wallet, other, nebula],
     provider
   ): Promise<OracleParserV2Fixture> {
-    const { token0, token1, token2, balanceKeeper, lpKeeper, oracleRouter } =
-      await oracleRouterV2Fixture([wallet, other], provider)
+    const { token0, token1, token2, balanceKeeper, lpKeeper, lockRouter } =
+      await lockRouterFixture([wallet, other], provider)
 
     const oracleParserFactory = await ethers.getContractFactory(
       "OracleParserV2"
     )
     const oracleParser = (await oracleParserFactory.deploy(
-      oracleRouter.address,
+      lockRouter.address,
       nebula.address,
       [BNB_CHAIN]
     )) as OracleParserV2
@@ -484,7 +484,7 @@ export const oracleParserV2Fixture: Fixture<OracleParserV2Fixture> =
       token2,
       balanceKeeper,
       lpKeeper,
-      oracleRouter,
+      lockRouter,
       oracleParser,
     }
   }
