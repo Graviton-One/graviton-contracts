@@ -98,15 +98,15 @@ export default class Invoker {
         var lp: string
         if (chain == "ETH") {
             lock = ETH.lockLP
-            lp = ETH.testLP
+            lp = ETH.lp
             provider = ETH.provider
         } else if (chain == "BSC") {
             lock = BSC.lockLP
-            lp = BSC.testLP
+            lp = BSC.lp
             provider = BSC.provider
         } else if (chain == "PLG") {
             lock = PLG.lockLP
-            lp = PLG.testLP
+            lp = PLG.lp
             provider = PLG.provider
         } else {
             return "unknown"
@@ -119,13 +119,13 @@ export default class Invoker {
         var provider: ethers.providers.JsonRpcProvider
         var lp: string
         if (chain == "ETH") {
-            lp = ETH.testLP
+            lp = ETH.lp
             provider = ETH.provider
         } else if (chain == "BSC") {
-            lp = BSC.testLP
+            lp = BSC.lp
             provider = BSC.provider
         } else if (chain == "PLG") {
-            lp = PLG.testLP
+            lp = PLG.lp
             provider = PLG.provider
         } else {
             return "unknown"
@@ -137,11 +137,11 @@ export default class Invoker {
     async lockedLPFTM(chain: string): Promise<string> {
         var lp: string
         if (chain == "ETH") {
-            lp = ETH.testLP
+            lp = ETH.lp
         } else if (chain == "BSC") {
-            lp = BSC.testLP
+            lp = BSC.lp
         } else if (chain == "PLG") {
-            lp = PLG.testLP
+            lp = PLG.lp
         } else {
             return "unknown"
         }
@@ -288,20 +288,20 @@ export default class Invoker {
             return
         }
         const port = new ethers.Contract(address, LockGTONABI, this.signer) as LockGTON
-        await port.lock(await this.signer.getAddress(), amount)
+        await port.lock(amount)
     }
     async approveLP(chain: string, lptoken: string, amount: string) {
         var lock: string
         var lp: string
         if (chain == "ETH") {
             lock = ETH.lockLP
-            lp = ETH.testLP
+            lp = ETH.lp
         } else if (chain == "BSC") {
             lock = BSC.lockLP
-            lp = BSC.testLP
+            lp = BSC.lp
         } else if (chain == "PLG") {
             lock = PLG.lockLP
-            lp = PLG.testLP
+            lp = PLG.lp
         } else {
             return
         }
@@ -313,36 +313,36 @@ export default class Invoker {
         var lp: string
         if (chain == "ETH") {
             lock = ETH.lockLP
-            lp = ETH.testLP
+            lp = ETH.lp
         } else if (chain == "BSC") {
             lock = BSC.lockLP
-            lp = BSC.testLP
+            lp = BSC.lp
         } else if (chain == "PLG") {
             lock = PLG.lockLP
-            lp = PLG.testLP
+            lp = PLG.lp
         } else {
             return
         }
         const port = new ethers.Contract(lock, LockUnlockLPABI, this.signer) as LockUnlockLP
-        await port.lock(lp, await this.signer.getAddress(), amount)
+        await port.lock(lp, amount)
     }
     async unlockLP(chain: string, lptoken: string, amount: string) {
         var lock: string
         var lp: string
         if (chain == "ETH") {
             lock = ETH.lockLP
-            lp = ETH.testLP
+            lp = ETH.lp
         } else if (chain == "BSC") {
             lock = BSC.lockLP
-            lp = BSC.testLP
+            lp = BSC.lp
         } else if (chain == "PLG") {
             lock = PLG.lockLP
-            lp = PLG.testLP
+            lp = PLG.lp
         } else {
             return
         }
         const port = new ethers.Contract(lock, LockUnlockLPABI, this.signer) as LockUnlockLP
-        await port.unlock(lp, await this.signer.getAddress(), amount)
+        await port.unlock(lp, amount)
     }
     async processBalances() {
         const contract = new ethers.Contract(FTM.balanceAdder, BalanceAdderV2ABI, this.signer) as BalanceAdderV2
@@ -358,7 +358,7 @@ export default class Invoker {
     }
     async claim(amount: string) {
         const contract = new ethers.Contract(FTM.claim, ClaimGTONV2ABI, this.signer) as ClaimGTONV2
-        await contract.claim(await this.signer.getAddress(), amount)
+        await contract.claim(amount)
     }
     async castVotes(roundId: string, votes1: string, votes2: string) {
         const contract = new ethers.Contract(FTM.voter, VoterV2ABI, this.signer) as VoterV2
