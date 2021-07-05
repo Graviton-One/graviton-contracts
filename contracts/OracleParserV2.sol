@@ -7,12 +7,11 @@ import "./interfaces/IOracleParserV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract OracleParserV2 is IOracleParserV2 {
-
     /// @inheritdoc IOracleParserV2
     address public override owner;
 
     modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
+        require(msg.sender == owner, "ACW");
         _;
     }
 
@@ -20,7 +19,7 @@ contract OracleParserV2 is IOracleParserV2 {
     address public override nebula;
 
     modifier isNebula() {
-        require(msg.sender == nebula, "Caller is not nebula");
+        require(msg.sender == nebula, "ACN");
         _;
     }
 
@@ -70,7 +69,11 @@ contract OracleParserV2 is IOracleParserV2 {
     }
 
     /// @inheritdoc IOracleParserV2
-    function setEVMChains(string[] memory _evmChains) external override isOwner {
+    function setEVMChains(string[] memory _evmChains)
+        external
+        override
+        isOwner
+    {
         evmChains = _evmChains;
         emit SetEVMChains(evmChains);
     }
@@ -136,11 +139,15 @@ contract OracleParserV2 is IOracleParserV2 {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
-    function processChain(string memory chain) internal view returns (string memory) {
-        for (uint i; i < evmChains.length; i++) {
+    function processChain(string memory chain)
+        internal
+        view
+        returns (string memory)
+    {
+        for (uint256 i; i < evmChains.length; i++) {
             if (equal(evmChains[i], chain)) {
-                    return "EVM";
-                }
+                return "EVM";
+            }
         }
         return chain;
     }
@@ -151,7 +158,7 @@ contract OracleParserV2 is IOracleParserV2 {
         if (impactData.length != 200) {
             return;
         }
-        bytes16 uuid = bytesToBytes16(impactData, 0);                      // [  0: 16]
+        bytes16 uuid = bytesToBytes16(impactData, 0); // [  0: 16]
         // @dev parse data only once
         if (uuidIsProcessed[uuid]) {
             return;
@@ -160,8 +167,8 @@ contract OracleParserV2 is IOracleParserV2 {
         string memory chain = string(abi.encodePacked(impactData[16:19])); // [ 16: 19]
         chain = processChain(chain);
         if (equal(chain, "EVM")) {
-            bytes memory emiter = impactData[19:39];                       // [ 19: 39]
-            bytes1 topics = bytes1(impactData[39]);                        // [ 39: 40]
+            bytes memory emiter = impactData[19:39]; // [ 19: 39]
+            bytes1 topics = bytes1(impactData[39]); // [ 39: 40]
             // @dev ignore data with unexpected number of topics
             if (
                 keccak256(abi.encodePacked(topics)) !=
@@ -171,11 +178,11 @@ contract OracleParserV2 is IOracleParserV2 {
             ) {
                 return;
             }
-            bytes32 topic0 = bytesToBytes32(impactData, 40);                // [ 40: 72]
-            bytes memory token = impactData[84:104];                        // [ 72:104][12:32]
-            bytes memory sender = impactData[116:136];                      // [104:136][12:32]
-            bytes memory receiver = impactData[148:168];                    // [136:168][12:32]
-            uint256 amount = deserializeUint(impactData, 168, 32);          // [168:200]
+            bytes32 topic0 = bytesToBytes32(impactData, 40); // [ 40: 72]
+            bytes memory token = impactData[84:104]; // [ 72:104][12:32]
+            bytes memory sender = impactData[116:136]; // [104:136][12:32]
+            bytes memory receiver = impactData[148:168]; // [136:168][12:32]
+            uint256 amount = deserializeUint(impactData, 168, 32); // [168:200]
 
             oracleRouter.routeValue(
                 uuid,

@@ -54,6 +54,15 @@ interface IOracleRouterV2 {
     function setLPSubTopic(bytes32 _lpSubTopic) external;
 
     /// @notice Routes value to balance keepers according to the type of event associated with topic0
+    /// @param uuid Unique identifier of the routed data
+    /// @param chain Type of blockchain associated with the routed event, i.e. "EVM"
+    /// @param emiter The blockchain-specific address where the data event originated
+    /// @param topic0 Unique identifier of the event
+    /// @param token The blockchain-specific token address
+    /// @param sender The blockchain-specific address that sent the tokens
+    /// @param receiver The blockchain-specific address to receive the tokens
+    /// @dev receiver is always same as sender, kept for compatibility
+    /// @param amount The amount of tokens
     function routeValue(
         bytes16 uuid,
         string memory chain,
@@ -107,6 +116,7 @@ interface IOracleRouterV2 {
     /// @param token The blockchain-specific token address
     /// @param sender The blockchain-specific address that sent the tokens
     /// @param receiver The blockchain-specific address to receive the tokens
+    /// @dev receiver is always same as sender, kept for compatibility
     /// @param amount The amount of tokens
     event RouteValue(
         bytes16 uuid,
@@ -125,6 +135,7 @@ interface IOracleRouterV2 {
     /// @param token The blockchain-specific token address
     /// @param sender The blockchain-specific address that sent the tokens
     /// @param receiver The blockchain-specific address to receive the tokens
+    /// @dev receiver is always same as sender, kept for compatibility
     /// @param amount The amount of tokens
     event GTONAdd(
         bytes16 uuid,
@@ -143,6 +154,7 @@ interface IOracleRouterV2 {
     /// @param token The blockchain-specific token address
     /// @param sender The blockchain-specific address that sent the tokens
     /// @param receiver The blockchain-specific address to receive the tokens
+    /// @dev receiver is always same as sender, kept for compatibility
     /// @param amount The amount of tokens
     event GTONSub(
         bytes16 uuid,
@@ -161,6 +173,7 @@ interface IOracleRouterV2 {
     /// @param token The blockchain-specific token address
     /// @param sender The blockchain-specific address that sent the tokens
     /// @param receiver The blockchain-specific address to receive the tokens
+    /// @dev receiver is always same as sender, kept for compatibility
     /// @param amount The amount of tokens
     event LPAdd(
         bytes16 uuid,
@@ -179,6 +192,7 @@ interface IOracleRouterV2 {
     /// @param token The blockchain-specific token address
     /// @param sender The blockchain-specific address that sent the tokens
     /// @param receiver The blockchain-specific address to receive the tokens
+    /// @dev receiver is always same as sender, kept for compatibility
     /// @param amount The amount of tokens
     event LPSub(
         bytes16 uuid,

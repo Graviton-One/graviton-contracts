@@ -2,11 +2,12 @@
 pragma solidity >=0.8.0;
 
 import "./interfaces/ILockGTON.sol";
+import "./interfaces/IBalanceKeeperV2.sol";
 
-/// @title LockGTON
+/// @title LockGTONOnchain
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract LockGTON is ILockGTON {
+contract LockGTONOnchain is ILockGTON {
     /// @inheritdoc ILockGTON
     address public override owner;
 
@@ -18,12 +19,15 @@ contract LockGTON is ILockGTON {
     /// @inheritdoc ILockGTON
     IERC20 public override governanceToken;
 
+    IBalanceKeeperV2 public balanceKeeper;
+
     /// @inheritdoc ILockGTON
     bool public override canLock;
 
-    constructor(IERC20 _governanceToken) {
+    constructor(IERC20 _governanceToken, IBalanceKeeperV2 _balanceKeeper) {
         owner = msg.sender;
         governanceToken = _governanceToken;
+        balanceKeeper = _balanceKeeper;
     }
 
     /// @inheritdoc ILockGTON
@@ -49,6 +53,11 @@ contract LockGTON is ILockGTON {
     /// @inheritdoc ILockGTON
     function lock(uint256 amount) external override {
         require(canLock, "LG1");
+        bytes memory receiverBytes = abi.encodePacked(msg.sender);
+        if (!balanceKeeper.isKnownUser("EVM", receiverBytes)) {
+            balanceKeeper.open("EVM", receiverBytes);
+        }
+        balanceKeeper.add("EVM", abi.encodePacked(receiverBytes), amount);
         governanceToken.transferFrom(msg.sender, address(this), amount);
         emit LockGTON(address(governanceToken), msg.sender, msg.sender, amount);
     }

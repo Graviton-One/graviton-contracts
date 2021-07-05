@@ -37,7 +37,7 @@ interface IBalanceKeeperV2 is IShares {
     function setCanSubtract(address subtractor, bool _canSubtract) external;
 
     /// @notice The number of open governance balances
-    function totalUsers() external view returns (uint256);
+    function totalUsers() external view override returns (uint256);
 
     /// @notice The sum of all governance balances
     function totalBalance() external view returns (uint256);
@@ -166,6 +166,11 @@ interface IBalanceKeeperV2 is IShares {
         address indexed subtractor,
         bool indexed newBool
     );
+
+    /// @notice Event emitted when a new `userId` is opened
+    /// @param opener The account that opens `userId`
+    /// @param userId The user account that was opened
+    event Open(address indexed opener, uint256 indexed userId);
 
     /// @notice Event emitted when the `amount` of governance tokens
     /// is added to `userId` balance via `#add`

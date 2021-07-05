@@ -7,7 +7,6 @@ import "./interfaces/ISharesEB.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract SharesEB is ISharesEB {
-
     /// @inheritdoc ISharesEB
     IBalanceKeeperV2 public override balanceKeeper;
     /// @inheritdoc ISharesEB
@@ -19,6 +18,9 @@ contract SharesEB is ISharesEB {
     uint256 public override totalSupply;
     /// @inheritdoc ISharesEB
     uint256 public override currentUser;
+    /// @inheritdoc IShares
+    uint256 public override totalUsers;
+    mapping(uint256 => uint256) internal _userIdByIndex;
 
     constructor(IBalanceKeeperV2 _balanceKeeper, IImpactKeeper _impactEB) {
         balanceKeeper = _balanceKeeper;
@@ -42,6 +44,8 @@ contract SharesEB is ISharesEB {
                 userAddress
             );
             impactById[userId] = impactEB.impact(user);
+            _userIdByIndex[totalUsers] = userId;
+            totalUsers++;
             emit Migrate(user, userId, impactById[userId]);
         }
         // @dev moved here from the constructor to test different impactEB states
@@ -62,5 +66,16 @@ contract SharesEB is ISharesEB {
     /// @inheritdoc IShares
     function totalShares() external view override returns (uint256) {
         return totalSupply;
+    }
+
+    /// @inheritdoc IShares
+    function userIdByIndex(uint256 index)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        require(index < totalUsers, "EBI");
+        return _userIdByIndex[index];
     }
 }

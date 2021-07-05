@@ -7,12 +7,11 @@ import "./interfaces/IClaimGTONV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract ClaimGTONV2 is IClaimGTONV2 {
-
     /// @inheritdoc IClaimGTONV2
     address public override owner;
 
     modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
+        require(msg.sender == owner, "ACW");
         _;
     }
 
@@ -85,24 +84,29 @@ contract ClaimGTONV2 is IClaimGTONV2 {
     }
 
     /// @inheritdoc IClaimGTONV2
-    function claim(address receiver, uint256 amount) public override {
-        require(claimActivated, "can't claim");
+    function claim(uint256 amount) public override {
+        require(claimActivated, "C1");
         uint256 balance = balanceKeeper.balance(
             "EVM",
             abi.encodePacked(msg.sender)
         );
-        require(balance >= amount, "not enough money");
+        require(balance >= amount, "C2");
         if (limitActivated) {
             if ((_blockTimestamp() - lastLimitTimestamp[msg.sender]) > 86400) {
                 lastLimitTimestamp[msg.sender] = _blockTimestamp();
                 limitMax[msg.sender] = balance / 2;
             }
-            require(amount <= limitMax[msg.sender], "exceeded daily limit");
+            require(amount <= limitMax[msg.sender], "C3");
             limitMax[msg.sender] -= amount;
         }
         balanceKeeper.subtract("EVM", abi.encodePacked(msg.sender), amount);
-        voter.checkVoteBalances(balanceKeeper.userIdByChainAddress("EVM", abi.encodePacked(msg.sender)));
-        governanceToken.transferFrom(wallet, receiver, amount);
-        emit Claim(msg.sender, receiver, amount);
+        voter.checkVoteBalances(
+            balanceKeeper.userIdByChainAddress(
+                "EVM",
+                abi.encodePacked(msg.sender)
+            )
+        );
+        governanceToken.transferFrom(wallet, msg.sender, amount);
+        emit Claim(msg.sender, msg.sender, amount);
     }
 }

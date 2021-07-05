@@ -332,6 +332,11 @@ interface ILPKeeperV2 {
         bool indexed newBool
     );
 
+    /// @notice Event emitted when a new `tokenId` is opened
+    /// @param opener The account that opens `tokenId`
+    /// @param tokenId The token account that was opened
+    event Open(address indexed opener, uint256 indexed tokenId);
+
     /// @notice Event emitted when the `amount` of `tokenId` lp-tokens
     /// is added to `userId` balance via `#add`
     /// @param adder The account that added to the balance

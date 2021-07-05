@@ -7,23 +7,15 @@ import "./interfaces/ISharesLP.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract SharesLP is ISharesLP {
-
-    /// @inheritdoc ISharesLP
-    IBalanceKeeperV2 public override balanceKeeper;
     /// @inheritdoc ISharesLP
     ILPKeeperV2 public override lpKeeper;
 
     /// @inheritdoc ISharesLP
     uint256 public override tokenId;
 
-    constructor(
-        IBalanceKeeperV2 _balanceKeeper,
-        ILPKeeperV2 _lpKeeper,
-        uint256 _tokenId
-    ) {
-        balanceKeeper = _balanceKeeper;
+    constructor(ILPKeeperV2 _lpKeeper, uint256 _tokenId) {
         lpKeeper = _lpKeeper;
-        require(lpKeeper.isKnownToken(_tokenId), "token is not known");
+        require(lpKeeper.isKnownToken(_tokenId), "SL1");
         tokenId = _tokenId;
     }
 
@@ -40,5 +32,20 @@ contract SharesLP is ISharesLP {
     /// @inheritdoc IShares
     function totalShares() external view override returns (uint256) {
         return lpKeeper.totalBalance(tokenId);
+    }
+
+    /// @inheritdoc IShares
+    function totalUsers() external view override returns (uint256) {
+        return lpKeeper.totalTokenUsers(tokenId);
+    }
+
+    /// @inheritdoc IShares
+    function userIdByIndex(uint256 index)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        return lpKeeper.tokenUser(tokenId, index);
     }
 }

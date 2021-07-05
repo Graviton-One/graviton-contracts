@@ -27,22 +27,23 @@ interface ILockGTON {
     /// @notice Transfers locked governance tokens to the next version of LockGTON
     function migrate(address newLock) external;
 
-    /// @notice Locks `amount` of governance tokens in the name of `receiver`
-    function lock(address receiver, uint256 amount) external;
+    /// @notice Locks `amount` of governance tokens
+    function lock(uint256 amount) external;
 
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
     event SetOwner(address indexed ownerOld, address indexed ownerNew);
 
-    /// @notice Event emitted when the `sender` locks `amount` of governance tokens in the name of `receiver`
+    /// @notice Event emitted when the `sender` locks `amount` of governance tokens
     /// @dev LockGTON event is not called Lock so the topic0 is different
     /// from the lp-token locking event when parsed by the oracle parser
     /// @param governanceToken The address of governance token
-    /// @dev governanceToken is specified so the event had the same number of topics
+    /// @dev governanceToken is specified so the event has the same number of topics
     /// as the lp-token locking event when parsed by the oracle parser
     /// @param sender The account that locked governance tokens
     /// @param receiver The account to whose governance balance the tokens are added
+    /// @dev receiver is always same as sender, kept for compatibility
     /// @param amount The amount of governance tokens locked
     event LockGTON(
         address indexed governanceToken,
@@ -54,13 +55,10 @@ interface ILockGTON {
     /// @notice Event emitted when the permission to lock is updated via `#setCanLock`
     /// @param owner The owner account at the time of change
     /// @param newBool Updated permission
-    event SetCanLock(
-        address indexed owner,
-        bool indexed newBool
-    );
+    event SetCanLock(address indexed owner, bool indexed newBool);
 
     /// @notice Event emitted when the locked governance tokens are transfered the another version of LockGTON
     /// @param newLock The new Lock contract
     /// @param amount Amount of tokens migrated
-    event Migrate(address indexed newLock, uint amount);
+    event Migrate(address indexed newLock, uint256 amount);
 }

@@ -27,10 +27,16 @@ interface IVoter {
     function totalRounds() external view returns (uint256);
 
     /// @notice Look up the unique id of one of the active voting rounds
-    function activeRounds(uint256 index) external view returns (uint256 roundId);
+    function activeRounds(uint256 index)
+        external
+        view
+        returns (uint256 roundId);
 
     /// @notice Look up the unique id of one of the finalized voting rounds
-    function finalizedRounds(uint256 index) external view returns (uint256 roundId);
+    function finalizedRounds(uint256 index)
+        external
+        view
+        returns (uint256 roundId);
 
     /// @notice Look up the name of a voting round
     function roundName(uint256 roundId) external view returns (string memory);

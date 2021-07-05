@@ -43,8 +43,8 @@ interface IBalanceAdderV2 {
     /// @notice Total funds available for the farming campaign
     function totalUnlocked() external view returns (uint256);
 
-    /// @notice The sum of governance balances of all users
-    function totalBalance() external view returns (uint256);
+    /// @notice The sum of shares of all users
+    function totalShares() external view returns (uint256);
 
     /// @notice Look up if the `farmIndex` farming campaign is being processed
     /// @return true if the farming campaign is locked for processing,
@@ -79,24 +79,44 @@ interface IBalanceAdderV2 {
     /// @notice Event emitted when a farm is added via `#addFarm`
     /// @param _shares The contract that stores user shares in the farming campaign
     /// @param _farm The contract that calculates funds available for the farming campaign
-    event AddFarm(uint farmIndex, IShares indexed _shares, IFarm indexed _farm);
+    event AddFarm(
+        uint256 farmIndex,
+        IShares indexed _shares,
+        IFarm indexed _farm
+    );
 
     /// @notice Event emitted when a farm is removed via `#removeFarm`
     /// @param oldShares The contract that stores user shares in the farming campaign
     /// @param oldFarm The contract that calculates funds available for the farming campaign
     /// @param oldLastPortions The portions processed in the farm before it was removed
-    event RemoveFarm(uint farmIndex, IShares indexed oldShares, IFarm indexed oldFarm, uint oldLastPortions);
+    event RemoveFarm(
+        uint256 farmIndex,
+        IShares indexed oldShares,
+        IFarm indexed oldFarm,
+        uint256 oldLastPortions
+    );
 
     /// @notice Event emitted when balances are processed for a farm via `#processBalances`
     /// @param oldShares The contract that stores user shares in the farming campaign
     /// @param oldFarm The contract that calculates funds available for the farming campaign
     /// @param step Number of users to process
-    event ProcessBalances(uint farmIndex, IShares indexed oldShares, IFarm indexed oldFarm, uint step);
+    event ProcessBalances(
+        uint256 farmIndex,
+        IShares indexed oldShares,
+        IFarm indexed oldFarm,
+        uint256 step
+    );
 
     /// @notice Event emitted when balances are processed for a farm via `#processBalances`
     /// @param oldShares The contract that stores user shares in the farming campaign
     /// @param oldFarm The contract that calculates funds available for the farming campaign
     /// @param userId unique id of the user
     /// @param amount The amount of governance tokens added to user's governance balance
-    event ProcessBalance(uint farmIndex, IShares indexed oldShares, IFarm indexed oldFarm, uint indexed userId, uint amount);
+    event ProcessBalance(
+        uint256 farmIndex,
+        IShares indexed oldShares,
+        IFarm indexed oldFarm,
+        uint256 indexed userId,
+        uint256 amount
+    );
 }

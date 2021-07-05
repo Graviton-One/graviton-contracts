@@ -30,8 +30,12 @@
     "dotenv": "^10.0.0",
     "mocha-chai-jest-snapshot": "^1.1.2",
     "nuxt": "^2.15.7",
+    "prettier": "^2.3.2",
     "prettier-plugin-solidity": "^1.0.0-beta.13",
     "typechain": "^5.0.0"
+  },
+  "prettier": {
+    "semi": false
   },
   "scripts": {
     "compile": "hardhat compile",

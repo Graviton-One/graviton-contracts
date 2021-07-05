@@ -1,11 +1,12 @@
 import { ethers, waffle } from "hardhat"
 import { TestERC20 } from "../typechain/TestERC20"
-import { LockGTON } from "../typechain/LockGTON"
-import { lockGTONFixture } from "./shared/fixtures"
+import { LockGTONOnchain } from "../typechain/LockGTONOnchain"
+import { BalanceKeeperV2 } from "../typechain/BalanceKeeperV2"
+import { lockGTONOnchainFixture } from "./shared/fixtures"
 
 import { expect } from "./shared/expect"
 
-describe("LockGTON", () => {
+describe("LockGTONOnchain", () => {
   const [wallet, other] = waffle.provider.getWallets()
 
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
@@ -17,10 +18,13 @@ describe("LockGTON", () => {
   let token0: TestERC20
   let token1: TestERC20
   let token2: TestERC20
-  let lockGTON: LockGTON
+  let balanceKeeper: BalanceKeeperV2
+  let lockGTON: LockGTONOnchain
 
   beforeEach("deploy test contracts", async () => {
-    ;({ token0, token1, token2, lockGTON } = await loadFixture(lockGTONFixture))
+    ;({ token0, token1, token2, balanceKeeper, lockGTON } = await loadFixture(
+      lockGTONOnchainFixture
+    ))
   })
 
   it("constructor initializes variables", async () => {
@@ -73,17 +77,48 @@ describe("LockGTON", () => {
       await expect(lockGTON.lock(1)).to.be.reverted
     })
 
-    it("locks tokens", async () => {
+    it("fails if not allowed to open users", async () => {
+      await token0.approve(lockGTON.address, 1)
+      await lockGTON.setCanLock(true)
+      await balanceKeeper.setCanAdd(lockGTON.address, true)
+      await expect(lockGTON.lock(1)).to.be.reverted
+    })
+
+    it("fails if not allowed to add tokens", async () => {
+      await token0.approve(lockGTON.address, 1)
+      await lockGTON.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockGTON.address, true)
+      await expect(lockGTON.lock(1)).to.be.reverted
+    })
+
+    it("opens user", async () => {
       expect(await token0.balanceOf(lockGTON.address)).to.eq(0)
       await token0.approve(lockGTON.address, 1)
       await lockGTON.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockGTON.address, true)
+      await balanceKeeper.setCanAdd(lockGTON.address, true)
       await lockGTON.lock(1)
       expect(await token0.balanceOf(lockGTON.address)).to.eq(1)
+      expect(await balanceKeeper["balance(uint256)"](0)).to.eq(1)
+    })
+
+    it("locks tokens", async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.open("EVM", wallet.address)
+      expect(await token0.balanceOf(lockGTON.address)).to.eq(0)
+      await token0.approve(lockGTON.address, 1)
+      await lockGTON.setCanLock(true)
+      await balanceKeeper.setCanAdd(lockGTON.address, true)
+      await lockGTON.lock(1)
+      expect(await token0.balanceOf(lockGTON.address)).to.eq(1)
+      expect(await balanceKeeper["balance(uint256)"](0)).to.eq(1)
     })
 
     it("emits event", async () => {
       await token0.approve(lockGTON.address, 1)
       await lockGTON.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockGTON.address, true)
+      await balanceKeeper.setCanAdd(lockGTON.address, true)
       expect(lockGTON.lock(1))
         .to.emit(lockGTON, "LockGTON")
         .withArgs(token0.address, wallet.address, wallet.address, 1)
@@ -100,6 +135,8 @@ describe("LockGTON", () => {
       expect(await token0.balanceOf(other.address)).to.eq(0)
       await token0.approve(lockGTON.address, 1)
       await lockGTON.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockGTON.address, true)
+      await balanceKeeper.setCanAdd(lockGTON.address, true)
       await lockGTON.lock(1)
       await lockGTON.migrate(other.address)
       expect(await token0.balanceOf(other.address)).to.eq(1)
@@ -109,6 +146,8 @@ describe("LockGTON", () => {
       expect(await token0.balanceOf(other.address)).to.eq(0)
       await token0.approve(lockGTON.address, 1)
       await lockGTON.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockGTON.address, true)
+      await balanceKeeper.setCanAdd(lockGTON.address, true)
       await lockGTON.lock(1)
       await expect(lockGTON.migrate(other.address))
         .to.emit(lockGTON, "Migrate")

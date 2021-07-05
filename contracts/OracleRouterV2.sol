@@ -7,12 +7,11 @@ import "./interfaces/IOracleRouterV2.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract OracleRouterV2 is IOracleRouterV2 {
-
     /// @inheritdoc IOracleRouterV2
     address public override owner;
 
     modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
+        require(msg.sender == owner, "ACW");
         _;
     }
 
@@ -109,7 +108,7 @@ contract OracleRouterV2 is IOracleRouterV2 {
         bytes memory receiver,
         uint256 amount
     ) external override {
-        require(canRoute[msg.sender], "not allowed to route value");
+        require(canRoute[msg.sender], "ACR");
 
         if (equal(topic0, gtonAddTopic)) {
             if (!balanceKeeper.isKnownUser(chain, receiver)) {

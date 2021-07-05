@@ -2,11 +2,13 @@
 pragma solidity >=0.8.0;
 
 import "./interfaces/ILockUnlockLP.sol";
+import "./interfaces/ILPKeeperV2.sol";
+import "./interfaces/IBalanceKeeperV2.sol";
 
-/// @title LockUnlockLP
+/// @title LockUnlockLPOnchain
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract LockUnlockLP is ILockUnlockLP {
+contract LockUnlockLPOnchain is ILockUnlockLP {
     /// @inheritdoc ILockUnlockLP
     address public override owner;
 
@@ -28,11 +30,20 @@ contract LockUnlockLP is ILockUnlockLP {
     /// @inheritdoc ILockUnlockLP
     bool public override canLock;
 
-    constructor(address[] memory allowedTokens) {
+    IBalanceKeeperV2 public balanceKeeper;
+    ILPKeeperV2 public lpKeeper;
+
+    constructor(
+        address[] memory allowedTokens,
+        IBalanceKeeperV2 _balanceKeeper,
+        ILPKeeperV2 _lpKeeper
+    ) {
         owner = msg.sender;
         for (uint256 i = 0; i < allowedTokens.length; i++) {
             isAllowedToken[allowedTokens[i]] = true;
         }
+        balanceKeeper = _balanceKeeper;
+        lpKeeper = _lpKeeper;
     }
 
     /// @inheritdoc ILockUnlockLP
@@ -86,6 +97,15 @@ contract LockUnlockLP is ILockUnlockLP {
         _balance[token][msg.sender] += amount;
         tokenSupply[token] += amount;
         totalSupply += amount;
+        bytes memory tokenBytes = abi.encodePacked(token);
+        bytes memory receiverBytes = abi.encodePacked(msg.sender);
+        if (!balanceKeeper.isKnownUser("EVM", receiverBytes)) {
+            balanceKeeper.open("EVM", receiverBytes);
+        }
+        if (!lpKeeper.isKnownToken("EVM", tokenBytes)) {
+            lpKeeper.open("EVM", tokenBytes);
+        }
+        lpKeeper.add("EVM", tokenBytes, "EVM", receiverBytes, amount);
         IERC20(token).transferFrom(msg.sender, address(this), amount);
         emit Lock(token, msg.sender, msg.sender, amount);
     }
@@ -96,6 +116,9 @@ contract LockUnlockLP is ILockUnlockLP {
         _balance[token][msg.sender] -= amount;
         tokenSupply[token] -= amount;
         totalSupply -= amount;
+        bytes memory tokenBytes = abi.encodePacked(token);
+        bytes memory receiverBytes = abi.encodePacked(msg.sender);
+        lpKeeper.subtract("EVM", tokenBytes, "EVM", receiverBytes, amount);
         IERC20(token).transfer(msg.sender, amount);
         emit Unlock(token, msg.sender, msg.sender, amount);
     }

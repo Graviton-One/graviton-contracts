@@ -7,12 +7,11 @@ import "./interfaces/IFarm.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract FarmLinear is IFarm {
-
     /// @inheritdoc IFarm
     address public override owner;
 
     modifier isOwner() {
-        require(msg.sender == owner, "Caller is not owner");
+        require(msg.sender == owner, "ACW");
         _;
     }
 
@@ -74,8 +73,8 @@ contract FarmLinear is IFarm {
 
     /// @inheritdoc IFarm
     function unlockAsset() public override {
-        require(farmingStarted, "farming is not started yet");
-        require(!farmingStopped, "farming has been stopped.");
+        require(farmingStarted, "F1");
+        require(!farmingStopped, "F2");
 
         uint256 currentTimestamp = _blockTimestamp();
 

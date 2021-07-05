@@ -1,11 +1,13 @@
 import { ethers, waffle } from "hardhat"
 import { TestERC20 } from "../typechain/TestERC20"
-import { LockUnlockLP } from "../typechain/LockUnlockLP"
-import { lockUnlockLPFixture } from "./shared/fixtures"
+import { LockUnlockLPOnchain } from "../typechain/LockUnlockLPOnchain"
+import { BalanceKeeperV2 } from "../typechain/BalanceKeeperV2"
+import { LPKeeperV2 } from "../typechain/LPKeeperV2"
+import { lockUnlockLPOnchainFixture } from "./shared/fixtures"
 
 import { expect } from "./shared/expect"
 
-describe("LockUnlockLP", () => {
+describe("LockUnlockLPOnchain", () => {
   const [wallet, other] = waffle.provider.getWallets()
 
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
@@ -17,12 +19,13 @@ describe("LockUnlockLP", () => {
   let token0: TestERC20
   let token1: TestERC20
   let token2: TestERC20
-  let lockUnlockLP: LockUnlockLP
+  let balanceKeeper: BalanceKeeperV2
+  let lpKeeper: LPKeeperV2
+  let lockUnlockLP: LockUnlockLPOnchain
 
   beforeEach("deploy test contracts", async () => {
-    ;({ token0, token1, token2, lockUnlockLP } = await loadFixture(
-      lockUnlockLPFixture
-    ))
+    ;({ token0, token1, token2, balanceKeeper, lpKeeper, lockUnlockLP } =
+      await loadFixture(lockUnlockLPOnchainFixture))
   })
 
   it("constructor initializes variables", async () => {
@@ -96,6 +99,9 @@ describe("LockUnlockLP", () => {
     it("returns user token balance", async () => {
       await token1.approve(lockUnlockLP.address, 1)
       await lockUnlockLP.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
       await lockUnlockLP.lock(token1.address, 1)
       expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(
         1
@@ -124,12 +130,18 @@ describe("LockUnlockLP", () => {
   describe("#lock", () => {
     it("fails if lock is not allowed", async () => {
       await token1.approve(lockUnlockLP.address, 1)
+      await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
       await expect(lockUnlockLP.lock(token1.address, 0)).to.be.reverted
     })
 
     it("fails if token is not allowed", async () => {
       await token1.approve(lockUnlockLP.address, 1)
       await lockUnlockLP.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
       await expect(lockUnlockLP.lock(token2.address, 0)).to.be.reverted
     })
 
@@ -137,12 +149,72 @@ describe("LockUnlockLP", () => {
       await token1.approve(lockUnlockLP.address, 1)
       await lockUnlockLP.setCanLock(true)
       await lockUnlockLP.setLockLimit(token1.address, 2)
+      await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
       await expect(lockUnlockLP.lock(token1.address, 0)).to.be.reverted
     })
 
-    it("locks tokens", async () => {
+    it("fails if not allowed to open users", async () => {
       await token1.approve(lockUnlockLP.address, 1)
       await lockUnlockLP.setCanLock(true)
+      await lpKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
+      await expect(lockUnlockLP.lock(token1.address, 0)).to.be.reverted
+    })
+
+    it("fails if not allowed to open tokens", async () => {
+      await token1.approve(lockUnlockLP.address, 1)
+      await lockUnlockLP.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
+      await expect(lockUnlockLP.lock(token1.address, 0)).to.be.reverted
+    })
+
+    it("fails if not allowed to add tokens", async () => {
+      await token1.approve(lockUnlockLP.address, 1)
+      await lockUnlockLP.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanOpen(lockUnlockLP.address, true)
+      await expect(lockUnlockLP.lock(token1.address, 0)).to.be.reverted
+    })
+
+    it("opens user", async () => {
+      await lpKeeper.setCanOpen(wallet.address, true)
+      await lpKeeper.open("EVM", token1.address)
+      await token1.approve(lockUnlockLP.address, 1)
+      await lockUnlockLP.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
+      await lockUnlockLP.lock(token1.address, 1)
+      expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(
+        1
+      )
+      expect(await token1.balanceOf(lockUnlockLP.address)).to.eq(1)
+    })
+
+    it("opens token", async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.open("EVM", wallet.address)
+      await token1.approve(lockUnlockLP.address, 1)
+      await lockUnlockLP.setCanLock(true)
+      await lpKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
+      await lockUnlockLP.lock(token1.address, 1)
+      expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(
+        1
+      )
+      expect(await token1.balanceOf(lockUnlockLP.address)).to.eq(1)
+    })
+
+    it("locks tokens", async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.open("EVM", wallet.address)
+      await lpKeeper.setCanOpen(wallet.address, true)
+      await lpKeeper.open("EVM", token1.address)
+      await token1.approve(lockUnlockLP.address, 1)
+      await lockUnlockLP.setCanLock(true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
       await lockUnlockLP.lock(token1.address, 1)
       expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(
         1
@@ -153,6 +225,9 @@ describe("LockUnlockLP", () => {
     it("emits event", async () => {
       await token1.approve(lockUnlockLP.address, 1)
       await lockUnlockLP.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
       await expect(lockUnlockLP.lock(token1.address, 1))
         .to.emit(lockUnlockLP, "Lock")
         .withArgs(token1.address, wallet.address, wallet.address, 1)
@@ -163,14 +238,34 @@ describe("LockUnlockLP", () => {
     it("fails if balance is smaller than unlock amount", async () => {
       await token1.approve(lockUnlockLP.address, 2)
       await lockUnlockLP.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
       await lockUnlockLP.lock(token1.address, 2)
+      await lpKeeper.setCanSubtract(lockUnlockLP.address, true)
       await expect(lockUnlockLP.unlock(token1.address, 3)).to.be.reverted
     })
 
-    it("unlocks tokens", async () => {
+    it("fails if not allowed to subtract tokens", async () => {
       await token1.approve(lockUnlockLP.address, 2)
       await lockUnlockLP.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
       await lockUnlockLP.lock(token1.address, 2)
+      await expect(lockUnlockLP.unlock(token1.address, 2)).to.be.reverted
+    })
+
+    it("unlocks tokens", async () => {
+      await balanceKeeper.setCanOpen(wallet.address, true)
+      await balanceKeeper.open("EVM", wallet.address)
+      await lpKeeper.setCanOpen(wallet.address, true)
+      await lpKeeper.open("EVM", token1.address)
+      await token1.approve(lockUnlockLP.address, 2)
+      await lockUnlockLP.setCanLock(true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
+      await lockUnlockLP.lock(token1.address, 2)
+      await lpKeeper.setCanSubtract(lockUnlockLP.address, true)
       await lockUnlockLP.unlock(token1.address, 1)
       expect(await lockUnlockLP.balance(token1.address, wallet.address)).to.eq(
         1
@@ -180,7 +275,11 @@ describe("LockUnlockLP", () => {
     it("emits event", async () => {
       await token1.approve(lockUnlockLP.address, 2)
       await lockUnlockLP.setCanLock(true)
+      await balanceKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanOpen(lockUnlockLP.address, true)
+      await lpKeeper.setCanAdd(lockUnlockLP.address, true)
       await lockUnlockLP.lock(token1.address, 2)
+      await lpKeeper.setCanSubtract(lockUnlockLP.address, true)
       await expect(lockUnlockLP.unlock(token1.address, 1))
         .to.emit(lockUnlockLP, "Unlock")
         .withArgs(token1.address, wallet.address, wallet.address, 1)

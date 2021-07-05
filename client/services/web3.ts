@@ -30,25 +30,7 @@ const SharesEBABI        = require('../../abi/SharesEB.json')
 const ClaimGTONV2ABI     = require('../../abi/ClaimGTONV2.json')
 const FaucetABI          = require('../../abi/Faucet.json')
 
-import {
-    GTONBinanceAddress,
-    GTONFantomAddress,
-    LockGTONAddress,
-    LockUnlockLPAddress,
-    BalanceKeeperV2Address,
-    VoterV2Address,
-    LPKeeperV2Address,
-    OracleRouterV2Address,
-    OracleParserV2Address,
-    BalanceAdderV2Address,
-    FarmEBAddress,
-    SharesEBAddress,
-    FarmStakingAddress,
-    ClaimGTONV2Address,
-    ClaimWalletAddress,
-    FaucetAddress,
-    testLPBinance
-} from './constants'
+import {FTM, BSC, ETH, PLG} from './constants'
 
 export function formatETHBalance(amount: string): string {
   return ethers.utils.formatUnits(amount, "ether");
@@ -69,48 +51,106 @@ export function numberWithCommas(x: number): string {
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return parts.join(".");
 }
+function unwrap(s?: string): string {
+    return s ? s : ''
+}
 
 export default class Invoker {
 
-    fantom: ethers.providers.JsonRpcProvider
-    binance: ethers.providers.JsonRpcProvider
     metamask: ethers.providers.Web3Provider
     signer: ethers.Signer
 
     constructor(_metamask: ethers.providers.Web3Provider) {
         this.metamask = _metamask
         this.signer = this.metamask.getSigner()
-        this.fantom = new ethers.providers.JsonRpcProvider("https://rpcapi.fantom.network")
-        this.binance = new ethers.providers.JsonRpcProvider("https://bsc-dataseed1.binance.org")
     }
 
-    async balanceGTONBSC(): Promise<string> {
-        const contract = new ethers.Contract(GTONBinanceAddress, IERC20ABI, this.binance) as IERC20
+    async balanceGTON(chain: string): Promise<string> {
+        var address: string
+        var provider: ethers.providers.JsonRpcProvider
+        if (chain == "FTM") {
+            address = FTM.gton
+            provider = FTM.provider
+        } else if (chain == "ETH") {
+            address = ETH.gton
+            provider = ETH.provider
+        } else if (chain == "BSC") {
+            address = BSC.gton
+            provider = BSC.provider
+        } else if (chain == "PLG") {
+            address = PLG.gton
+            provider = PLG.provider
+        } else {
+            return "unknown"
+        }
+        const contract = new ethers.Contract(address, IERC20ABI, provider) as IERC20
         const balance = await contract.balanceOf(await this.signer.getAddress())
         return formatETHBalance(balance.toString())
     }
     async balanceGTONFTM(): Promise<string> {
-        const contract = new ethers.Contract(GTONFantomAddress, IERC20ABI, this.fantom) as IERC20
+        const contract = new ethers.Contract(FTM.gton, IERC20ABI, FTM.provider) as IERC20
         const balance = await contract.balanceOf(await this.signer.getAddress())
         return formatETHBalance(balance.toString())
     }
-    async lockedLPBSC(lptoken: string): Promise<string> {
-        const contract = new ethers.Contract(LockUnlockLPAddress, LockUnlockLPABI, this.binance) as LockUnlockLP
-        const balance = await contract.balance(testLPBinance, await this.signer.getAddress())
+    async lockedLP(chain: string): Promise<string> {
+        var provider: ethers.providers.JsonRpcProvider
+        var lock: string
+        var lp: string
+        if (chain == "ETH") {
+            lock = ETH.lockLP
+            lp = ETH.lp
+            provider = ETH.provider
+        } else if (chain == "BSC") {
+            lock = BSC.lockLP
+            lp = BSC.lp
+            provider = BSC.provider
+        } else if (chain == "PLG") {
+            lock = PLG.lockLP
+            lp = PLG.lp
+            provider = PLG.provider
+        } else {
+            return "unknown"
+        }
+        const contract = new ethers.Contract(lock, LockUnlockLPABI, provider) as LockUnlockLP
+        const balance = await contract.balance(lp, await this.signer.getAddress())
         return formatETHBalance(balance.toString())
     }
-    async balanceLPBSC(): Promise<string> {
-        const contract = new ethers.Contract(testLPBinance, IERC20ABI, this.binance) as IERC20
+    async balanceLP(chain: string): Promise<string> {
+        var provider: ethers.providers.JsonRpcProvider
+        var lp: string
+        if (chain == "ETH") {
+            lp = ETH.lp
+            provider = ETH.provider
+        } else if (chain == "BSC") {
+            lp = BSC.lp
+            provider = BSC.provider
+        } else if (chain == "PLG") {
+            lp = PLG.lp
+            provider = PLG.provider
+        } else {
+            return "unknown"
+        }
+        const contract = new ethers.Contract(lp, IERC20ABI, provider) as IERC20
         const balance = await contract.balanceOf(await this.signer.getAddress())
         return formatETHBalance(balance.toString())
     }
-    async lockedLPFTM(tokenId: number): Promise<string> {
-        const contract = new ethers.Contract(LPKeeperV2Address, LPKeeperV2ABI, this.fantom) as LPKeeperV2
-        const balance = await contract['balance(uint256,string,bytes)'](tokenId, "EVM", await this.signer.getAddress())
+    async lockedLPFTM(chain: string): Promise<string> {
+        var lp: string
+        if (chain == "ETH") {
+            lp = ETH.lp
+        } else if (chain == "BSC") {
+            lp = BSC.lp
+        } else if (chain == "PLG") {
+            lp = PLG.lp
+        } else {
+            return "unknown"
+        }
+        const contract = new ethers.Contract(FTM.lpKeeper, LPKeeperV2ABI, FTM.provider) as LPKeeperV2
+        const balance = await contract['balance(string,bytes,string,bytes)']("EVM", lp, "EVM", await this.signer.getAddress())
         return formatETHBalance(balance.toString())
     }
     async balanceGovernance(): Promise<string> {
-        const contract = new ethers.Contract(BalanceKeeperV2Address, BalanceKeeperV2ABI, this.fantom) as BalanceKeeperV2
+        const contract = new ethers.Contract(FTM.balanceKeeper, BalanceKeeperV2ABI, FTM.provider) as BalanceKeeperV2
         const balance = await contract['balance(string,bytes)']("EVM", await this.signer.getAddress())
         return formatETHBalance(balance.toString())
     }
@@ -118,7 +158,7 @@ export default class Invoker {
         return await this.signer.getAddress()
     }
     async userId(): Promise<string> {
-        const contract = new ethers.Contract(BalanceKeeperV2Address, BalanceKeeperV2ABI, this.fantom) as BalanceKeeperV2
+        const contract = new ethers.Contract(FTM.balanceKeeper, BalanceKeeperV2ABI, FTM.provider) as BalanceKeeperV2
         try {
             const id = await contract.userIdByChainAddress("EVM", await this.signer.getAddress())
             return id.toString()
@@ -127,30 +167,30 @@ export default class Invoker {
         }
     }
     async processedUsers(): Promise<string> {
-        const contract = new ethers.Contract(BalanceAdderV2Address, BalanceAdderV2ABI, this.fantom) as BalanceAdderV2
+        const contract = new ethers.Contract(FTM.balanceAdder, BalanceAdderV2ABI, FTM.provider) as BalanceAdderV2
         const processedUsers = await contract.currentUser()
         return processedUsers.toString()
     }
     async totalFarms(): Promise<string> {
-        const contract = new ethers.Contract(BalanceAdderV2Address, BalanceAdderV2ABI, this.fantom) as BalanceAdderV2
+        const contract = new ethers.Contract(FTM.balanceAdder, BalanceAdderV2ABI, FTM.provider) as BalanceAdderV2
         const totalFarms = await contract.totalFarms()
         return totalFarms.toString()
     }
     async currentFarm(): Promise<string> {
-        const contract = new ethers.Contract(BalanceAdderV2Address, BalanceAdderV2ABI, this.fantom) as BalanceAdderV2
+        const contract = new ethers.Contract(FTM.balanceAdder, BalanceAdderV2ABI, FTM.provider) as BalanceAdderV2
         const currentFarm = await contract.currentFarm()
         return currentFarm.toString()
     }
     async totalUnlockedEB(): Promise<string> {
-        const contract = new ethers.Contract(FarmEBAddress, IFarmABI, this.fantom) as IFarm
+        const contract = new ethers.Contract(FTM.farmEB, IFarmABI, FTM.provider) as IFarm
         const totalUnlocked = await contract.totalUnlocked()
         return formatETHBalance(totalUnlocked.toString())
     }
     async percentEB(): Promise<string> {
-        const keeper = new ethers.Contract(BalanceKeeperV2Address, BalanceKeeperV2ABI, this.fantom) as BalanceKeeperV2
+        const keeper = new ethers.Contract(FTM.balanceKeeper, BalanceKeeperV2ABI, FTM.provider) as BalanceKeeperV2
         try {
             const id = await keeper.userIdByChainAddress("EVM", await this.signer.getAddress())
-            const shares = new ethers.Contract(SharesEBAddress, SharesEBABI, this.fantom) as SharesEB
+            const shares = new ethers.Contract(FTM.sharesEB, SharesEBABI, FTM.provider) as SharesEB
             const share = await shares.shareById(id.toNumber())
             const totalShares = await shares.totalShares()
             const percent = share.mul(BigNumber.from(100)).div(totalShares)
@@ -161,40 +201,47 @@ export default class Invoker {
 
     }
     async totalEBshares(): Promise<string> {
-        const contract = new ethers.Contract(SharesEBAddress, SharesEBABI, this.fantom) as SharesEB
+        const contract = new ethers.Contract(FTM.sharesEB, SharesEBABI, FTM.provider) as SharesEB
         const totalShares = await contract.totalShares()
         return totalShares.toString()
     }
     async percentStaking(): Promise<string> {
-        const keeper = new ethers.Contract(BalanceKeeperV2Address, BalanceKeeperV2ABI, this.fantom) as BalanceKeeperV2
+        const keeper = new ethers.Contract(FTM.balanceKeeper, BalanceKeeperV2ABI, FTM.provider) as BalanceKeeperV2
         const share = await keeper['balance(string,bytes)']("EVM", await this.signer.getAddress())
         const totalShares = await keeper.totalBalance()
         const percent = share.mul(BigNumber.from(100)).div(totalShares)
         return percent.toString()
     }
     async totalUnlockedStaking(): Promise<string> {
-        const contract = new ethers.Contract(FarmStakingAddress, IFarmABI, this.fantom) as IFarm
+        const contract = new ethers.Contract(FTM.farmStaking, IFarmABI, FTM.provider) as IFarm
         const totalUnlocked = await contract.totalUnlocked()
         return formatETHBalance(totalUnlocked.toString())
     }
     async claimAllowance(): Promise<string> {
-        const contract = new ethers.Contract(GTONFantomAddress, IERC20ABI, this.fantom) as IERC20
-        const allowance = await contract.allowance(ClaimWalletAddress, ClaimGTONV2Address)
-        return formatETHBalance(allowance.toString())
+        const contract = new ethers.Contract(FTM.gton, IERC20ABI, FTM.provider) as IERC20
+        const allowance = await contract.allowance(FTM.claimWallet, FTM.claim)
+        console.log(allowance)
+        const balance = await contract.balanceOf(FTM.claimWallet)
+        console.log(balance)
+        if (allowance.lt(balance)) {
+            return formatETHBalance(allowance.toString())
+        } else {
+            return formatETHBalance(balance.toString())
+        }
     }
     async totalLPTokens(): Promise<string> {
-        const contract = new ethers.Contract(LPKeeperV2Address, LPKeeperV2ABI, this.fantom) as LPKeeperV2
+        const contract = new ethers.Contract(FTM.lpKeeper, LPKeeperV2ABI, FTM.provider) as LPKeeperV2
         const totalLPTokens = await contract.totalTokens()
         return totalLPTokens.toString()
     }
     async votingRounds(): Promise<string> {
-        const contract = new ethers.Contract(VoterV2Address, VoterV2ABI, this.fantom) as VoterV2
+        const contract = new ethers.Contract(FTM.voter, VoterV2ABI, FTM.provider) as VoterV2
         const votingRounds = await contract.totalActiveRounds()
         return votingRounds.toString()
     }
     async votes(roundId: string, optionId: string, userId: string): Promise<string> {
         try {
-            const contract = new ethers.Contract(VoterV2Address, VoterV2ABI, this.fantom) as VoterV2
+            const contract = new ethers.Contract(FTM.voter, VoterV2ABI, FTM.provider) as VoterV2
             const votes = await contract.votesForOptionByUser(roundId, optionId, userId)
             return votes.toString()
         } catch {
@@ -203,7 +250,7 @@ export default class Invoker {
     }
     async voteOption(roundId: string, optionId: string): Promise<string> {
         try {
-            const contract = new ethers.Contract(VoterV2Address, VoterV2ABI, this.fantom) as VoterV2
+            const contract = new ethers.Contract(FTM.voter, VoterV2ABI, FTM.provider) as VoterV2
             const name = await contract.optionName(roundId, optionId)
             return name
         } catch {
@@ -211,48 +258,128 @@ export default class Invoker {
         }
     }
 
-    async approveGTON(amount: number) {
-        const contract = new ethers.Contract(GTONBinanceAddress, IERC20ABI, this.signer) as IERC20
-        await contract.approve(LockGTONAddress, amount)
+    async approveGTON(chain: string, amount: number) {
+        var gton: string
+        var lock: string
+        if (chain == "ETH") {
+            gton = ETH.gton
+            lock = ETH.lockGTON
+        } else if (chain == "BSC") {
+            gton = BSC.gton
+            lock = BSC.lockGTON
+        } else if (chain == "PLG") {
+            gton = PLG.gton
+            lock = PLG.lockGTON
+        } else {
+            return
+        }
+        const contract = new ethers.Contract(gton, IERC20ABI, this.signer) as IERC20
+        await contract.approve(lock, amount)
     }
-    async lockGTON(amount: number) {
-        const port = new ethers.Contract(LockGTONAddress, LockGTONABI, this.signer) as LockGTON
-        await port.lock(await this.signer.getAddress(), amount)
+    async lockGTON(chain: string, amount: number) {
+        var address: string
+        if (chain == "ETH") {
+            address = ETH.lockGTON
+        } else if (chain == "BSC") {
+            address = BSC.lockGTON
+        } else if (chain == "PLG") {
+            address = PLG.lockGTON
+        } else {
+            return
+        }
+        const port = new ethers.Contract(address, LockGTONABI, this.signer) as LockGTON
+        await port.lock(amount)
     }
-    async approveLP(lptoken: string, amount: string) {
-        const token = new ethers.Contract(testLPBinance, IERC20ABI, this.signer) as IERC20
-        await token.approve(LockUnlockLPAddress, amount)
+    async approveLP(chain: string, lptoken: string, amount: string) {
+        var lock: string
+        var lp: string
+        if (chain == "ETH") {
+            lock = ETH.lockLP
+            lp = ETH.lp
+        } else if (chain == "BSC") {
+            lock = BSC.lockLP
+            lp = BSC.lp
+        } else if (chain == "PLG") {
+            lock = PLG.lockLP
+            lp = PLG.lp
+        } else {
+            return
+        }
+        const token = new ethers.Contract(lp, IERC20ABI, this.signer) as IERC20
+        await token.approve(lock, amount)
     }
-    async lockLP(lptoken: string, amount: string) {
-        const port = new ethers.Contract(LockUnlockLPAddress, LockUnlockLPABI, this.signer) as LockUnlockLP
-        await port.lock(testLPBinance, await this.signer.getAddress(), amount)
+    async lockLP(chain: string, lptoken: string, amount: string) {
+        var lock: string
+        var lp: string
+        if (chain == "ETH") {
+            lock = ETH.lockLP
+            lp = ETH.lp
+        } else if (chain == "BSC") {
+            lock = BSC.lockLP
+            lp = BSC.lp
+        } else if (chain == "PLG") {
+            lock = PLG.lockLP
+            lp = PLG.lp
+        } else {
+            return
+        }
+        const port = new ethers.Contract(lock, LockUnlockLPABI, this.signer) as LockUnlockLP
+        await port.lock(lp, amount)
     }
-    async unlockLP(lptoken: string, amount: string) {
-        const port = new ethers.Contract(LockUnlockLPAddress, LockUnlockLPABI, this.signer) as LockUnlockLP
-        await port.unlock(testLPBinance, await this.signer.getAddress(), amount)
+    async unlockLP(chain: string, lptoken: string, amount: string) {
+        var lock: string
+        var lp: string
+        if (chain == "ETH") {
+            lock = ETH.lockLP
+            lp = ETH.lp
+        } else if (chain == "BSC") {
+            lock = BSC.lockLP
+            lp = BSC.lp
+        } else if (chain == "PLG") {
+            lock = PLG.lockLP
+            lp = PLG.lp
+        } else {
+            return
+        }
+        const port = new ethers.Contract(lock, LockUnlockLPABI, this.signer) as LockUnlockLP
+        await port.unlock(lp, amount)
     }
     async processBalances() {
-        const contract = new ethers.Contract(BalanceAdderV2Address, BalanceAdderV2ABI, this.signer) as BalanceAdderV2
+        const contract = new ethers.Contract(FTM.balanceAdder, BalanceAdderV2ABI, this.signer) as BalanceAdderV2
         await contract.processBalances(50)
     }
     async unlockAssetEB() {
-        const contract = new ethers.Contract(FarmEBAddress, IFarmABI, this.signer) as IFarm
+        const contract = new ethers.Contract(FTM.farmEB, IFarmABI, this.signer) as IFarm
         await contract.unlockAsset()
     }
     async unlockAssetStaking() {
-        const contract = new ethers.Contract(FarmStakingAddress, IFarmABI, this.signer) as IFarm
+        const contract = new ethers.Contract(FTM.farmStaking, IFarmABI, this.signer) as IFarm
         await contract.unlockAsset()
     }
     async claim(amount: string) {
-        const contract = new ethers.Contract(ClaimGTONV2Address, ClaimGTONV2ABI, this.signer) as ClaimGTONV2
-        await contract.claim(await this.signer.getAddress(), amount)
+        const contract = new ethers.Contract(FTM.claim, ClaimGTONV2ABI, this.signer) as ClaimGTONV2
+        await contract.claim(amount)
     }
     async castVotes(roundId: string, votes1: string, votes2: string) {
-        const contract = new ethers.Contract(VoterV2Address, VoterV2ABI, this.signer) as VoterV2
+        const contract = new ethers.Contract(FTM.voter, VoterV2ABI, this.signer) as VoterV2
         await contract['castVotes(uint256,uint256[])'](roundId, [votes1, votes2])
     }
-    async faucet() {
-        const contract = new ethers.Contract(FaucetAddress, FaucetABI, this.signer) as Faucet
-        await contract.drop(GTONBinanceAddress)
+    async faucet(chain: string) {
+        var gton: string
+        var faucet: string
+        if (chain == "ETH") {
+            gton = ETH.gton
+            faucet = ETH.faucet
+        } else if (chain == "BSC") {
+            gton = BSC.gton
+            faucet = BSC.faucet
+        } else if (chain == "PLG") {
+            gton = PLG.gton
+            faucet = PLG.faucet
+        } else {
+            return
+        }
+        const contract = new ethers.Contract(faucet, FaucetABI, this.signer) as Faucet
+        await contract.drop(gton)
     }
 }

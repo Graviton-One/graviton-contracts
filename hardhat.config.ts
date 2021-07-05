@@ -12,7 +12,15 @@ import "hardhat-abi-exporter";
  * @type import('hardhat/config').HardhatUserConfig
  */
 export default {
-  solidity: "0.8.0",
+  solidity: {
+    version: "0.8.0",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
   networks: {
     hardhat: {
     },
@@ -52,5 +60,8 @@ export default {
     clear: true,
     flat: true,
     spacing: 2
+  },
+  mocha: {
+    timeout: '10000000000'
   }
 };
