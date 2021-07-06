@@ -6,7 +6,7 @@ import "./interfaces/IERC20.sol";
 interface IRelayLock {
     function lock(string calldata destination, bytes calldata receiver) external payable;
 
-    event Lock(string destination, bytes receiver, uint256 amount);
+    event Lock(string indexed destination, bytes indexed receiver, uint256 amount);
 }
 interface WNative {
      function deposit() external payable;
