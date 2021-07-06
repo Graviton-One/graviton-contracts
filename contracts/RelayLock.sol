@@ -4,9 +4,9 @@ pragma solidity >=0.8.0;
 import "./interfaces/IERC20.sol";
 
 interface IRelayLock {
-    function lock(bytes calldata receiver) external payable;
+    function lock(string calldata destination, bytes calldata receiver) external payable;
 
-    event Lock(uint256 amount, bytes receiver);
+    event Lock(string destination, bytes receiver, uint256 amount);
 }
 interface WNative {
      function deposit() external payable;
@@ -32,7 +32,7 @@ contract RelayLock is IRelayLock {
         gton = _gton;
     }
 
-    function lock(bytes calldata receiver) external payable override {
+    function lock(string calldata destination, bytes calldata receiver) external payable override {
         // TODO: transfer native
         // TODO: wrap native to erc20
         wnative.deposit{value: msg.value}();
@@ -42,6 +42,6 @@ contract RelayLock is IRelayLock {
         path[1] = address(gton);
         uint[] memory amounts = router.swapExactTokensForTokens(msg.value, 0, path, address(this), block.timestamp+3600);
         // TODO: throw event
-        emit Lock(amounts[0], receiver);
+        emit Lock(destination, receiver, amounts[0]);
     }
 }
