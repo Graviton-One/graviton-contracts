@@ -32,6 +32,8 @@
     "nuxt": "^2.15.7",
     "prettier": "^2.3.2",
     "prettier-plugin-solidity": "^1.0.0-beta.13",
+    "solc-0.8": "npm:solc@0.8.0",
+    "solidity-docgen": "^0.5.13",
     "typechain": "^5.0.0"
   },
   "prettier": {
@@ -40,6 +42,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "coverage": "hardhat coverage"
+    "coverage": "hardhat coverage",
+    "docs": "solidity-docgen --solc-module solc-0.8 -o docs/reference -t ./templates"
   }
 }
