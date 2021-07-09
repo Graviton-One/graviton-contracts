@@ -3,6 +3,7 @@ id: error-codes
 title: Error Codes
 ---
 
+
 BalanceAdderV2.sol
 
 * `ACW` : Caller is not owner
@@ -106,3 +107,6 @@ VoterV2.sol
 * `V3`  : roundId is not an active vote
 * `V4`  : number of votes doesn't match the number of options
 * `V5`  : balance is smaller than the sum of votes
+
+
+
