@@ -41,7 +41,7 @@ interface IClaimGTONV2 {
 
     /// @notice The maximum amount of tokens the `user` can claim until the limit term is over
     /// @dev Equal to 0 before the user's first claim
-    /// @dev Updates to 50% of user's balance at the start of the new limit term
+    /// @dev Updates to `limitPercent` of user's balance at the start of the new limit term
     function limitMax(address user) external view returns (uint256);
 
     /// @notice Sets the address of the voting contract
@@ -56,8 +56,8 @@ interface IClaimGTONV2 {
     /// @notice Sets the limit to `_limitActivated`
     function setLimitActivated(bool _limitActivated) external;
 
-    /// @notice Transfers `amount` of governance tokens to `receiver`
-    function claim(address receiver, uint256 amount) external;
+    /// @notice Transfers `amount` of governance tokens to the caller
+    function claim(uint256 amount) external;
 
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
@@ -74,9 +74,10 @@ interface IClaimGTONV2 {
     /// @param walletNew The new wallet
     event SetWallet(address indexed walletOld, address indexed walletNew);
 
-    /// @notice Event emitted when the `sender` claims `amount` of governance tokens in the name of `receiver`
+    /// @notice Event emitted when the `sender` claims `amount` of governance tokens
     /// @param sender The account from whose governance balance tokens were claimed
     /// @param receiver The account to which governance tokens were transferred
+    /// @dev receiver is always same as sender, kept for compatibility
     /// @param amount The amount of governance tokens claimed
     event Claim(
         address indexed sender,

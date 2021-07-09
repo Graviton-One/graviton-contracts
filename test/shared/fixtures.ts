@@ -23,10 +23,12 @@ import { VoterV2 } from "../../typechain/VoterV2"
 import { LPKeeperV2 } from "../../typechain/LPKeeperV2"
 import { OracleRouterV2 } from "../../typechain/OracleRouterV2"
 import { OracleParserV2 } from "../../typechain/OracleParserV2"
-import { MockTimeClaimGTONV2 } from "../../typechain/MockTimeClaimGTONV2"
 import { SharesEB } from "../../typechain/SharesEB"
 import { SharesLP } from "../../typechain/SharesLP"
 import { BalanceAdderV2 } from '../../typechain/BalanceAdderV2'
+
+import { MockTimeClaimGTONAbsolute } from '../../typechain/MockTimeClaimGTONAbsolute'
+import { MockTimeClaimGTONPercent } from '../../typechain/MockTimeClaimGTONPercent'
 
 import {
   makeValueImpact,
@@ -39,7 +41,8 @@ import {
   LP_ADD_TOPIC,
   LP_SUB_TOPIC,
   EVM_CHAIN,
-  BNB_CHAIN
+  BNB_CHAIN,
+  expandTo18Decimals
 } from "./utilities"
 
 import { Fixture } from "ethereum-waffle"
@@ -465,31 +468,73 @@ export const oracleParserV2Fixture: Fixture<OracleParserV2Fixture> =
 
 type TokensAndVoterV2Fixture = TokensFixture & VoterV2Fixture
 
-interface ClaimGTONV2Fixture extends TokensAndVoterV2Fixture {
-  claimGTON: MockTimeClaimGTONV2
+interface ClaimGTONPercentFixture extends TokensAndVoterV2Fixture {
+  claimGTON: MockTimeClaimGTONPercent
 }
 
-export const claimGTONV2Fixture: Fixture<ClaimGTONV2Fixture> =
-  async function ([wallet, other], provider): Promise<ClaimGTONV2Fixture> {
-    const { token0, token1, token2 } = await tokensFixture()
-    const { balanceKeeper, voter } = await voterV2Fixture([wallet, other], provider)
+export const claimGTONPercentFixture: Fixture<ClaimGTONPercentFixture> = async function (
+  [wallet, other],
+  provider
+): Promise<ClaimGTONPercentFixture> {
+  const { token0, token1, token2 } = await tokensFixture()
+  const { balanceKeeper, voter } = await voterV2Fixture(
+    [wallet, other],
+    provider
+  )
 
-    const claimGTONFactory = await ethers.getContractFactory("MockTimeClaimGTONV2")
-    const claimGTON = (await claimGTONFactory.deploy(
-      token0.address,
-      wallet.address,
-      balanceKeeper.address,
-      voter.address
-    )) as MockTimeClaimGTONV2
-    return {
-      token0,
-      token1,
-      token2,
-      balanceKeeper,
-      voter,
-      claimGTON
-    }
+  const claimGTONFactory = await ethers.getContractFactory(
+    "MockTimeClaimGTONPercent"
+  )
+  const claimGTON = (await claimGTONFactory.deploy(
+    token0.address,
+    wallet.address,
+    balanceKeeper.address,
+    voter.address,
+    50
+  )) as MockTimeClaimGTONPercent
+  return {
+    token0,
+    token1,
+    token2,
+    balanceKeeper,
+    voter,
+    claimGTON,
   }
+}
+
+interface ClaimGTONAbsoluteFixture extends TokensAndVoterV2Fixture {
+  claimGTON: MockTimeClaimGTONAbsolute
+}
+
+export const claimGTONAbsoluteFixture: Fixture<ClaimGTONAbsoluteFixture> = async function (
+  [wallet, other],
+  provider
+): Promise<ClaimGTONAbsoluteFixture> {
+  const { token0, token1, token2 } = await tokensFixture()
+  const { balanceKeeper, voter } = await voterV2Fixture(
+    [wallet, other],
+    provider
+  )
+
+  const claimGTONFactory = await ethers.getContractFactory(
+    "MockTimeClaimGTONAbsolute"
+  )
+  const claimGTON = (await claimGTONFactory.deploy(
+    token0.address,
+    wallet.address,
+    balanceKeeper.address,
+    voter.address,
+    expandTo18Decimals(100)
+  )) as MockTimeClaimGTONAbsolute
+  return {
+    token0,
+    token1,
+    token2,
+    balanceKeeper,
+    voter,
+    claimGTON,
+  }
+}
 
 type ImpactEBAndBalanceKeeperV2Fixture =  ImpactEBFixture & BalanceKeeperV2Fixture
 
