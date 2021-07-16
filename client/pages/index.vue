@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    <div>
       <div>
         <Button class='button--green' size="large" ghost @click="update">Update</Button>
         <div> User Address: {{ userAddress }}</div>
@@ -13,8 +14,6 @@
         <div> binance LP balance: {{ balanceLPBSC }}</div>
         <div> binance LP locked: {{ lockedLPBSC }}</div>
         <div> binance LP counted on FTM: {{ lockedLPFTMBSC }}</div>
-        <Button class='button--green' size="large" ghost @click="faucet('BSC')">Faucet Binance</Button>
-        <br>
         <input v-model="lockGTONBSCAmount" placeholder="amount">
         <Button class='button--green' size="large" ghost @click="approveGTON('BSC')">Approve GTON</Button>
         <Button class='button--green' size="large" ghost @click="lockGTON('BSC')">Lock GTON</Button>
@@ -32,8 +31,6 @@
         <div> ethereum LP locked: {{ lockedLPETH }}</div>
         <div> ethereum LP counted on FTM: {{ lockedLPFTMETH }}</div>
         <br>
-        <Button class='button--green' size="large" ghost @click="faucet('ETH')">Faucet Ethereum</Button>
-        <br>
         <input v-model="lockGTONETHAmount" placeholder="amount">
         <Button class='button--green' size="large" ghost @click="approveGTON('ETH')">Approve GTON</Button>
         <Button class='button--green' size="large" ghost @click="lockGTON('ETH')">Lock GTON</Button>
@@ -50,8 +47,6 @@
         <div> polygon LP balance: {{ balanceLPPLG }}</div>
         <div> polygon LP locked: {{ lockedLPPLG }}</div>
         <div> polygon LP counted on FTM: {{ lockedLPFTMPLG }}</div>
-        <br>
-        <Button class='button--green' size="large" ghost @click="faucet('PLG')">Faucet Polygon</Button>
         <br>
         <input v-model="lockGTONPLGAmount" placeholder="amount">
         <Button class='button--green' size="large" ghost @click="approveGTON('PLG')">Approve GTON</Button>
@@ -325,11 +320,6 @@ import { availableLP } from '../services/constants.ts'
          async castVotes () {
              try {
              await this.invoker.castVotes(0, this.votes1, this.votes2)
-             } catch(e) { console.log(e) }
-         },
-         async faucet () {
-             try {
-                 await this.invoker.faucet()
              } catch(e) { console.log(e) }
          }
      }

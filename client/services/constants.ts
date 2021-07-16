@@ -19,7 +19,8 @@ export interface Fantom {
     voter: string,
     lp: string,
     lockGTON: string,
-    lockLP: string
+    lockLP: string,
+    relayLock: string,
 }
 export interface Chain {
     provider: ethers.providers.JsonRpcProvider
@@ -28,6 +29,7 @@ export interface Chain {
     lp: string,
     faucet: string,
     lockLP: string,
+    relayLock: string,
 }
 
 export const FTM: Fantom = {
@@ -50,6 +52,7 @@ export const FTM: Fantom = {
     lockLP: '0xF488b8D9a391F27d5e83fa421Bda986B7d4Da41A',
     farmLP: '',
     sharesLP: '',
+    relayLock: '0x30316189849df4ED37F0C5A7165D8f4170BFaAc7'
 }
 
 export const ETH: Chain = {
@@ -58,7 +61,8 @@ export const ETH: Chain = {
     lockGTON: '0xa931D5543c8347b30e09c5842E337883782e95BC',
     lp: '0x0b3ecea6bc79be3ecc805528655c4fc173cac2dd',
     lockLP: '0xA69e5e2094e55B80B71C39849DE8186ed9B88b38',
-    faucet: ''
+    faucet: '',
+    relayLock: ''
 }
 
 export const PLG: Chain = {
@@ -67,7 +71,8 @@ export const PLG: Chain = {
     lockGTON: '0x006f0F09D3Cc95E8f8Ff3Ce6a561053D08AE0Cca',
     lp: '0xf01a0a0424bda0acdd044a61af88a34636e0001c',
     lockLP: '0xbba98EA00ab995a467e9aFabBb15dBDDD29E1f44',
-    faucet: ''
+    faucet: '',
+    relayLock: '0x85599048Ba195a9063528D5104a28C052533B896'
 }
 
 export const BSC: Chain = {
@@ -76,5 +81,6 @@ export const BSC: Chain = {
     lockGTON: '0x697D6e1F1C97b2Ee0B56C42f6BD25FD0bd7355c1',
     lp: '0xbe2c760aE00CbE6A5857cda719E74715edC22279',
     lockLP: '0xF8405Aebd87E37E60549D4f28a5A88Deb38bEA7B',
-    faucet: '0x49b6431BDcd6CFaf79a3a5309261cB268642d8C0'
+    faucet: '0x49b6431BDcd6CFaf79a3a5309261cB268642d8C0',
+    relayLock: '0x391376F92f0B455717f03A52FE5841cb0694F370'
 }

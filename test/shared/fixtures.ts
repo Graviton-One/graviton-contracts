@@ -31,6 +31,15 @@ import { BalanceAdderV2 } from "../../typechain/BalanceAdderV2"
 import { LockGTONOnchain } from "../../typechain/LockGTONOnchain"
 import { LockUnlockLPOnchain } from "../../typechain/LockUnlockLPOnchain"
 
+import { WrappedNative } from "../../typechain/WrappedNative"
+import { UniswapV2Pair } from "../../typechain/UniswapV2Pair"
+import { UniswapV2Factory } from "../../typechain/UniswapV2Factory"
+import { UniswapV2Router01 } from "../../typechain/UniswapV2Router01"
+import { RelayLock } from "../../typechain/RelayLock"
+import { RelayRouter } from "../../typechain/RelayRouter"
+
+import { RelayParser } from "../../typechain/RelayParser"
+
 import {
   makeValueImpact,
   EARLY_BIRDS_A,
@@ -41,8 +50,10 @@ import {
   GTON_SUB_TOPIC,
   LP_ADD_TOPIC,
   LP_SUB_TOPIC,
+  RELAY_TOPIC,
   EVM_CHAIN,
   BNB_CHAIN,
+  expandTo18Decimals,
 } from "./utilities"
 
 import { Fixture } from "ethereum-waffle"
@@ -768,5 +779,165 @@ export const lockUnlockLPOnchainFixture: Fixture<LockUnlockLPOnchainFixture> =
       balanceKeeper,
       lpKeeper,
       lockUnlockLP,
+    }
+  }
+
+interface UniswapFixture extends TokensFixture {
+  weth: WrappedNative
+  uniswapV2Pair: UniswapV2Pair
+  uniswapV2Factory: UniswapV2Factory
+  uniswapV2Router01: UniswapV2Router01
+}
+
+const uniswapFixture: Fixture<UniswapFixture> =
+  async function (
+    [wallet, other],
+    provider
+  ): Promise<UniswapFixture> {
+  const { token0, token1, token2 } = await tokensFixture()
+
+  const wethFactory = await ethers.getContractFactory(
+    "WrappedNative"
+  )
+  const weth = await wethFactory.deploy() as WrappedNative
+
+  const uniswapV2FactoryFactory = await ethers.getContractFactory(
+    "UniswapV2Factory"
+  )
+  const uniswapV2Factory = await uniswapV2FactoryFactory.deploy(
+    wallet.address
+  ) as UniswapV2Factory
+
+  const uniswapV2Router01Factory = await ethers.getContractFactory(
+    "UniswapV2Router01"
+  )
+  const uniswapV2Router01 = await uniswapV2Router01Factory.deploy(
+    uniswapV2Factory.address,
+    weth.address
+  ) as UniswapV2Router01
+
+  await uniswapV2Factory.createPair(weth.address, token0.address)
+
+  const uniswapV2PairFactory = await ethers.getContractFactory(
+    "UniswapV2Pair"
+  )
+  // log pairV2 bytecode for init code hash in the router
+  // let bytecode = uniswapV2PairFactory.bytecode
+  // console.log(ethers.utils.solidityKeccak256(["bytes"],[bytecode]))
+  let pairAddress = await uniswapV2Factory.getPair(weth.address, token0.address)
+  const uniswapV2Pair = uniswapV2PairFactory.attach(pairAddress) as UniswapV2Pair
+
+  let liquidity = expandTo18Decimals(10)
+  await token0.approve(uniswapV2Router01.address, liquidity)
+  let block = await wallet.provider.getBlock("latest")
+  let timestamp = block.timestamp
+  await uniswapV2Router01.addLiquidityETH(
+    token0.address,
+    expandTo18Decimals(10),
+    expandTo18Decimals(10),
+    expandTo18Decimals(10),
+    wallet.address,
+    timestamp + 3600,
+    {value: liquidity}
+  )
+
+  return {
+    token0,
+    token1,
+    token2,
+    weth,
+    uniswapV2Factory,
+    uniswapV2Router01,
+    uniswapV2Pair
+  }
+}
+
+interface RelayLockFixture extends UniswapFixture {
+  relayLock: RelayLock
+}
+
+export const relayLockFixture: Fixture<RelayLockFixture> =
+  async function (
+    [wallet, other],
+    provider
+  ): Promise<RelayLockFixture> {
+    const {
+      token0,
+      token1,
+      token2,
+      weth,
+      uniswapV2Factory,
+      uniswapV2Router01,
+      uniswapV2Pair
+    } = await uniswapFixture([wallet, other], provider)
+
+  const relayLockFactory = await ethers.getContractFactory(
+    "RelayLock"
+  )
+  const relayLock = await relayLockFactory.deploy(
+    weth.address,
+    uniswapV2Router01.address,
+    token0.address
+  ) as RelayLock
+
+  return {
+    token0,
+    token1,
+    token2,
+    weth,
+    uniswapV2Factory,
+    uniswapV2Router01,
+    uniswapV2Pair,
+    relayLock
+  }
+}
+
+interface RelayRouterFixture extends UniswapFixture {
+  relayRouter: RelayRouter
+  relayParser: RelayParser
+}
+
+export const relayRouterFixture: Fixture<RelayRouterFixture> =
+  async function ([wallet, other, nebula], provider): Promise<RelayRouterFixture> {
+    const {
+      token0,
+      token1,
+      token2,
+      weth,
+      uniswapV2Factory,
+      uniswapV2Router01,
+      uniswapV2Pair
+    } = await uniswapFixture([wallet, other], provider)
+
+    const relayRouterFactory = await ethers.getContractFactory(
+      "RelayRouter"
+    )
+    const relayRouter = (await relayRouterFactory.deploy(
+      other.address,
+      token0.address,
+      RELAY_TOPIC,
+      weth.address,
+      uniswapV2Router01.address
+    )) as RelayRouter
+
+    const relayParserFactory = await ethers.getContractFactory(
+      "RelayParser"
+    )
+    const relayParser = (await relayParserFactory.deploy(
+      relayRouter.address,
+      nebula.address,
+      [BNB_CHAIN]
+    )) as RelayParser
+
+    return {
+      token0,
+      token1,
+      token2,
+      weth,
+      uniswapV2Factory,
+      uniswapV2Router01,
+      uniswapV2Pair,
+      relayRouter,
+      relayParser
     }
   }

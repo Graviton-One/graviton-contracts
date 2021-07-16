@@ -1,35 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IERC20.sol";
-import "./interfaces/IOracleRouterV2.sol";
-
-interface IRelayRouter is IOracleRouterV2 {
-    function relayTopic() external view returns (bytes32);
-
-    function wallet() external view returns (address);
-
-    function gton() external view returns (IERC20);
-
-    function setWallet(address _wallet) external;
-
-    function setRelayTopic(bytes32 _relayTopic) external;
-
-    event DeliverRelay(address user, uint256 amount);
-
-    event SetRelayTopic(bytes32 topicOld, bytes32 topicNew);
-
-    event SetWallet(address walletOld, address walletNew);
-}
-
-interface WNative {
-     function deposit() external payable;
-
-     function withdraw(uint wad) external;
-}
-interface V2Router {
-    function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] calldata path, address to, uint256 deadline) external returns (uint[] memory amounts);
-}
+import "./interfaces/IRelayRouter.sol";
 
 /// @title RelayRouter
 /// @author Artemij Artamonov - <array.clean@gmail.com>
@@ -49,18 +21,24 @@ contract RelayRouter is IRelayRouter {
     address public override wallet;
     /// @inheritdoc IRelayRouter
     IERC20 public override gton;
-    WNative wnative;
-    V2Router router;
+    /// @inheritdoc IRelayRouter
+    IWETH public override wnative;
+    /// @inheritdoc IRelayRouter
+    IUniswapV2Router01 public override router;
 
     /// @inheritdoc IOracleRouterV2
     mapping(address => bool) public override canRoute;
+
+    receive() external payable {
+        assert(msg.sender == address(wnative)); // only accept ETH via fallback from the WETH contract
+    }
 
     constructor(
         address _wallet,
         IERC20 _gton,
         bytes32 _relayTopic,
-        WNative _wnative,
-        V2Router _router
+        IWETH _wnative,
+        IUniswapV2Router01 _router
     ) {
         owner = msg.sender;
         wallet = _wallet;
@@ -137,24 +115,23 @@ contract RelayRouter is IRelayRouter {
         uint256 amount
     ) external override {
         require(canRoute[msg.sender], "ACR");
-
         if (equal(topic0, relayTopic)) {
-            // TODO: transfer gton from wallet
             gton.transferFrom(wallet, address(this), amount);
-            // TODO: swap gton for native on DEX
+            gton.approve(address(router), amount);
             address[] memory path = new address[](2);
             path[0] = address(gton);
             path[1] = address(wnative);
-            uint[] memory amounts = router.swapExactTokensForTokens(amount, 0, path, address(this), block.timestamp+3600);
-            // TODO: withdraw native from wrapped
-            wnative.withdraw(amounts[0]);
-            // TODO: transfer native to receiver
+            address pair = IUniswapV2Factory(router.factory()).getPair(address(gton), address(wnative));
+            uint112 reserve0;
+            uint112 reserve1;
+            (reserve0, reserve1,) = IUniswapV2Pair(pair).getReserves();
+            uint256 quote = router.getAmountOut(amount, reserve0, reserve1);
+            uint[] memory amounts = router.swapExactTokensForTokens(amount, quote, path, address(this), block.timestamp+3600);
+            wnative.withdraw(amounts[1]);
             address payable user = payable(deserializeAddress(receiver, 0));
-            user.transfer(amounts[0]);
-            // TODO: throw event
+            user.transfer(amounts[1]);
             emit DeliverRelay(user, amounts[0]);
         }
-
         emit RouteValue(uuid, chain, emiter, token, sender, receiver, amount);
     }
 }
