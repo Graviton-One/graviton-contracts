@@ -35,32 +35,32 @@ export default {
     hardhat: {
     },
     mainnet: {
-      url: "https://mainnet.infura.io/v3/" + process.env.INFURA,
-      accounts: { mnemonic: process.env.MNEMONIC }
+      url: "https://mainnet.infura.io/v3/" + (process.env.INFURA ?? ""),
+      accounts: { mnemonic: process.env.MNEMONIC ?? "" }
     },
     fantom: { // 250
       url: "https://rpcapi.fantom.network",
-      accounts: { mnemonic: process.env.MNEMONIC }
+      accounts: { mnemonic: process.env.MNEMONIC ?? "" }
     },
     bsc: { // 56
       url: "https://bsc-dataseed.binance.org",
-      accounts: { mnemonic: process.env.MNEMONIC }
+      accounts: { mnemonic: process.env.MNEMONIC ?? "" }
     },
     polygon: { // 137
       url: "https://rpc-mainnet.maticvigil.com/",
-      accounts: { mnemonic: process.env.MNEMONIC }
+      accounts: { mnemonic: process.env.MNEMONIC ?? "" }
     },
     heco: { // 128
       url: "https://http-mainnet.hecochain.com",
-      accounts: { mnemonic: process.env.MNEMONIC }
+      accounts: { mnemonic: process.env.MNEMONIC ?? "" }
     },
     avax: { // 43114
       url: "https://api.avax.network/ext/bc/C/rpc",
-      accounts: { mnemonic: process.env.MNEMONIC }
+      accounts: { mnemonic: process.env.MNEMONIC ?? "" }
     },
     xdai: { // 100
       url: "https://rpc.xdaichain.com",
-      accounts: { mnemonic: process.env.MNEMONIC }
+      accounts: { mnemonic: process.env.MNEMONIC ?? "" }
     }
   },
   etherscan: {
