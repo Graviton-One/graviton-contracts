@@ -302,6 +302,14 @@ describe("VoterV2", () => {
       expect(await voter.totalUsersInRound(0)).to.eq(0)
     })
 
+    it.only("increments the number of users", async () => {
+      await voter.startRound("name", ["option1", "option2"])
+      await voter.connect(wallet)["castVotes(uint256,uint256[])"](0, [20, 40])
+      expect(await voter.totalUsersForOption(0, 0)).to.eq(1)
+      await voter.connect(other)["castVotes(uint256,uint256[])"](0, [0, 60])
+      expect(await voter.totalUsersForOption(0, 0)).to.eq(2)
+    })
+
     it("emits event", async () => {
       await voter.startRound("name", ["option1", "option2"])
       await expect(voter["castVotes(uint256,uint256[])"](0, [0, 0]))
