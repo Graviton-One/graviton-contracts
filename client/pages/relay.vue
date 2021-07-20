@@ -9,14 +9,17 @@
         <div> User balance BSC: {{ balanceBSC }}</div>
         <div> User balance PLG: {{ balancePLG }}</div>
         <input v-model="amount" placeholder="amount">
+        <select v-model="source">
+            <option v-for="chain in chains" v-bind:value="chain">
+                {{chain}}
+            </option>
+        </select>
         <select v-model="destination">
             <option v-for="chain in chains" v-bind:value="chain">
                 {{chain}}
             </option>
         </select>
-        <Button class='button--green' size="large" ghost @click="lockFTM('FTM')">Lock on Fantom</Button>
-        <Button class='button--green' size="large" ghost @click="lockBSC('BSC')">Lock on Binance</Button>
-        <Button class='button--green' size="large" ghost @click="lockPLG('PLG')">Lock on Polygon</Button>
+        <Button class='button--green' size="large" ghost @click="lock()">Lock</Button>
       </div>
     </div>
   </div>
@@ -39,6 +42,7 @@ import { availableLP } from '../services/constants.ts'
              userAddress: "",
              chains: ["FTM", "BSC", "PLG"],
              destination: "FTM",
+             source: "BSC"
          }
      },
 
@@ -66,19 +70,12 @@ import { availableLP } from '../services/constants.ts'
              this.balanceBSC  = await this.invoker.balance('BSC')
              this.userAddress = await this.invoker.userAddress()
          },
-         async lockBSC() {
+         async lock() {
+             console.log(this.source)
+             console.log(this.destination)
+             console.log(this.amount)
              try {
-             await this.invoker.lockRelay('BSC', this.destination, this.amount)
-             } catch(e) { console.log(e) }
-         },
-         async lockPLG() {
-             try {
-             await this.invoker.lockRelay('PLG', this.destination, this.amount)
-             } catch(e) { console.log(e) }
-         },
-         async lockFTM() {
-             try {
-             await this.invoker.lockRelay('FTM', this.destination, this.amount)
+                 await this.invoker.lockRelay(this.source, this.destination, this.amount)
              } catch(e) { console.log(e) }
          }
      }
