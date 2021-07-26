@@ -116,7 +116,9 @@ contract RelayRouter is IRelayRouter {
     ) external override {
         require(canRoute[msg.sender], "ACR");
         if (equal(topic0, relayTopic)) {
+            // get requested amount of relay tokens from the wallet
             gton.transferFrom(wallet, address(this), amount);
+            // trade relay tokens for wrapped native tokens
             gton.approve(address(router), amount);
             address[] memory path = new address[](2);
             path[0] = address(gton);
@@ -127,7 +129,9 @@ contract RelayRouter is IRelayRouter {
             (reserve0, reserve1,) = IUniswapV2Pair(pair).getReserves();
             uint256 quote = router.getAmountOut(amount, reserve0, reserve1);
             uint[] memory amounts = router.swapExactTokensForTokens(amount, quote, path, address(this), block.timestamp+3600);
+            // unwrap to get native tokens
             wnative.withdraw(amounts[1]);
+            // transfer native tokens to the receiver
             address payable user = payable(deserializeAddress(receiver, 0));
             user.transfer(amounts[1]);
             emit DeliverRelay(user, amounts[0]);

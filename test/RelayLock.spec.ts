@@ -47,21 +47,111 @@ describe("RelayLock", () => {
       expect(await relayLock.gton()).to.eq(token0.address)
   })
 
-  describe("#lock", () => {
-    it("swaps native tokens for gton", async () => {
-      await relayLock.lock(FTM_CHAIN, wallet.address, {value: expandTo18Decimals(10)})
-      expect(await token0.balanceOf(relayLock.address)).to.eq("4992488733099649474")
+  describe("#setOwner", () => {
+    it("fails if caller is not owner", async () => {
+      await expect(relayLock.connect(other).setOwner(wallet.address)).to.be
+        .reverted
     })
 
-    it("emits event", async () => {
-        await expect(relayLock.lock(FTM_CHAIN, wallet.address, {value: expandTo18Decimals(10)}))
+    it("emits a SetOwner event", async () => {
+      expect(await relayLock.setOwner(other.address))
+        .to.emit(relayLock, "SetOwner")
+        .withArgs(wallet.address, other.address)
+    })
+
+    it("updates owner", async () => {
+      await relayLock.setOwner(other.address)
+      expect(await relayLock.owner()).to.eq(other.address)
+    })
+
+    it("cannot be called by original owner", async () => {
+      await relayLock.setOwner(other.address)
+      await expect(relayLock.setOwner(wallet.address)).to.be.reverted
+    })
+  })
+
+  describe("#lock", () => {
+    it("fails if amount out is equal to fees", async () => {
+      await relayLock.setFees(FTM_CHAIN, "10000", 100)
+      await expect(relayLock.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+        .to.be.reverted
+    })
+
+    it("fails if amount out is less then fees", async () => {
+      await relayLock.setFees(FTM_CHAIN, "10001", 100)
+      await expect(relayLock.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+        .to.be.reverted
+    })
+
+    it("swaps native tokens for gton", async () => {
+      await expect(relayLock.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+            .to.emit(relayLock, "CalculateFee")
+            .withArgs(
+              "10000",
+              "0",
+              "0",
+              "0",
+              "10000"
+            )
             .to.emit(relayLock, "Lock")
             .withArgs(
                 ethers.utils.solidityKeccak256(["string"], [FTM_CHAIN]),
                 ethers.utils.solidityKeccak256(["bytes"], [wallet.address]),
                 FTM_CHAIN,
                 wallet.address.toLowerCase(),
-                expandTo18Decimals(10)
+                "10000"
+            )
+      expect(await token0.balanceOf(relayLock.address)).to.eq("9969")
+    })
+
+    it("subtracts minimum fee when it's larger than percentage", async () => {
+      await relayLock.setFees(FTM_CHAIN, "1000", 1000)
+      await expect(relayLock.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+            .to.emit(relayLock, "CalculateFee")
+            .withArgs(
+              "10000",
+              "1000",
+              "1000",
+              "100",
+              "9000"
+            )
+    })
+
+    it("subtracts percentage fee when it's larger than minimum", async () => {
+      await relayLock.setFees(FTM_CHAIN, "100", 2000)
+      await expect(relayLock.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+            .to.emit(relayLock, "CalculateFee")
+            .withArgs(
+              "10000",
+              "100",
+              "2000",
+              "200",
+              "9800"
+            )
+    })
+
+    it("emits event", async () => {
+        await relayLock.setFees(FTM_CHAIN, "100", 2000)
+        await expect(relayLock.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+            .to.emit(relayLock, "CalculateFee")
+            .withArgs(
+              "10000",
+              "100",
+              "2000",
+              "200",
+              "9800"
+            )
+    })
+
+    it("emits event", async () => {
+        await expect(relayLock.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+            .to.emit(relayLock, "Lock")
+            .withArgs(
+                ethers.utils.solidityKeccak256(["string"], [FTM_CHAIN]),
+                ethers.utils.solidityKeccak256(["bytes"], [wallet.address]),
+                FTM_CHAIN,
+                wallet.address.toLowerCase(),
+                "10000"
             )
     })
   })

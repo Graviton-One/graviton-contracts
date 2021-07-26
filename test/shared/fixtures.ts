@@ -833,9 +833,9 @@ const uniswapFixture: Fixture<UniswapFixture> =
   let timestamp = block.timestamp
   await uniswapV2Router01.addLiquidityETH(
     token0.address,
-    expandTo18Decimals(10),
-    expandTo18Decimals(10),
-    expandTo18Decimals(10),
+    liquidity,
+    liquidity,
+    liquidity,
     wallet.address,
     timestamp + 3600,
     {value: liquidity}
