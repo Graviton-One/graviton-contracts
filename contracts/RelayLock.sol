@@ -61,13 +61,13 @@ contract RelayLock is IRelayLock {
         uint256[] memory amounts = router.swapExactTokensForTokens(msg.value, 0, path, address(this), block.timestamp+3600);
         // subtract fee
         uint256 amountMinusFee;
-        uint256 fee = amounts[0] * feePercent[destination] / 100000;
+        uint256 fee = amounts[1] * feePercent[destination] / 100000;
         if (fee > feeMin[destination]) {
-            amountMinusFee = amounts[0] - fee;
+            amountMinusFee = amounts[1] - fee;
         } else {
-            amountMinusFee = amounts[0] - feeMin[destination];
+            amountMinusFee = amounts[1] - feeMin[destination];
         }
-        emit CalculateFee(amounts[0], feeMin[destination], feePercent[destination], fee, amountMinusFee);
+        emit CalculateFee(amounts[0], amounts[1], feeMin[destination], feePercent[destination], fee, amountMinusFee);
         // check that the amount is larger than the fee
         require(amountMinusFee > 0, "RL1");
         // emit event to notify oracles and initiate crosschain transfer

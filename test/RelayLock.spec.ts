@@ -88,10 +88,11 @@ describe("RelayLock", () => {
             .to.emit(relayLock, "CalculateFee")
             .withArgs(
               "10000",
+              "9969",
               "0",
               "0",
               "0",
-              "10000"
+              "9969"
             )
             .to.emit(relayLock, "Lock")
             .withArgs(
@@ -99,7 +100,7 @@ describe("RelayLock", () => {
                 ethers.utils.solidityKeccak256(["bytes"], [wallet.address]),
                 FTM_CHAIN,
                 wallet.address.toLowerCase(),
-                "10000"
+                "9969"
             )
       expect(await token0.balanceOf(relayLock.address)).to.eq("9969")
     })
@@ -110,10 +111,11 @@ describe("RelayLock", () => {
             .to.emit(relayLock, "CalculateFee")
             .withArgs(
               "10000",
+              "9969",
               "1000",
               "1000",
-              "100",
-              "9000"
+              "99",
+              "8969"
             )
     })
 
@@ -123,10 +125,11 @@ describe("RelayLock", () => {
             .to.emit(relayLock, "CalculateFee")
             .withArgs(
               "10000",
+              "9969",
               "100",
               "2000",
-              "200",
-              "9800"
+              "199",
+              "9770"
             )
     })
 
@@ -136,10 +139,11 @@ describe("RelayLock", () => {
             .to.emit(relayLock, "CalculateFee")
             .withArgs(
               "10000",
+              "9969",
               "100",
               "2000",
-              "200",
-              "9800"
+              "199",
+              "9770"
             )
     })
 
@@ -151,7 +155,7 @@ describe("RelayLock", () => {
                 ethers.utils.solidityKeccak256(["bytes"], [wallet.address]),
                 FTM_CHAIN,
                 wallet.address.toLowerCase(),
-                "10000"
+                "9969"
             )
     })
   })
