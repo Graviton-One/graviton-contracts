@@ -3,10 +3,10 @@ pragma solidity >=0.8.0;
 
 import "./interfaces/IClaimGTONV2.sol";
 
-/// @title ClaimGTONV2
+/// @title ClaimGTONPercent
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract ClaimGTONV2 is IClaimGTONV2 {
+contract ClaimGTONPercent is IClaimGTONV2 {
     /// @inheritdoc IClaimGTONV2
     address public override owner;
 
@@ -34,17 +34,21 @@ contract ClaimGTONV2 is IClaimGTONV2 {
     /// @inheritdoc IClaimGTONV2
     mapping(address => uint256) public override limitMax;
 
+    uint256 public limitPercent;
+
     constructor(
         IERC20 _governanceToken,
         address _wallet,
         IBalanceKeeperV2 _balanceKeeper,
-        IVoterV2 _voter
+        IVoterV2 _voter,
+        uint256 _limitPercent
     ) {
         owner = msg.sender;
         governanceToken = _governanceToken;
         wallet = _wallet;
         balanceKeeper = _balanceKeeper;
         voter = _voter;
+        limitPercent = _limitPercent;
     }
 
     /// @inheritdoc IClaimGTONV2
@@ -94,7 +98,7 @@ contract ClaimGTONV2 is IClaimGTONV2 {
         if (limitActivated) {
             if ((_blockTimestamp() - lastLimitTimestamp[msg.sender]) > 86400) {
                 lastLimitTimestamp[msg.sender] = _blockTimestamp();
-                limitMax[msg.sender] = balance / 2;
+                limitMax[msg.sender] = limitPercent * balance / 100;
             }
             require(amount <= limitMax[msg.sender], "C3");
             limitMax[msg.sender] -= amount;

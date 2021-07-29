@@ -41,7 +41,7 @@ interface IClaimGTONV2 {
 
     /// @notice The maximum amount of tokens the `user` can claim until the limit term is over
     /// @dev Equal to 0 before the user's first claim
-    /// @dev Updates to 50% of user's balance at the start of the new limit term
+    /// @dev Updates to `limitPercent` of user's balance at the start of the new limit term
     function limitMax(address user) external view returns (uint256);
 
     /// @notice Sets the address of the voting contract

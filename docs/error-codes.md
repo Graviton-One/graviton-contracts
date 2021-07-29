@@ -18,7 +18,14 @@ BalanceKeeperV2.sol
 * `BK1` : user is not known
 * `BK2` : index larger that total users
 
-ClaimGTONV2.sol
+ClaimGTONPercent.sol
+
+* `ACW` : Caller is not owner
+* `C1`  : can't claim
+* `C2`  : not enough money
+* `C3`  : exceeded daily limit
+
+ClaimGTONAbsolute.sol
 
 * `ACW` : Caller is not owner
 * `C1`  : can't claim
@@ -100,5 +107,3 @@ VoterV2.sol
 * `V3`  : roundId is not an active vote
 * `V4`  : number of votes doesn't match the number of options
 * `V5`  : balance is smaller than the sum of votes
-
-

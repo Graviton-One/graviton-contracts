@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.0;
 
-import "../ClaimGTONV2.sol";
+import "../ClaimGTONAbsolute.sol";
 import "../interfaces/IERC20.sol";
 import "../interfaces/IBalanceKeeperV2.sol";
 import "../interfaces/IVoterV2.sol";
 
 // used for testing time dependent behavior
-contract MockTimeClaimGTONV2 is ClaimGTONV2 {
+contract MockTimeClaimGTONAbsolute is ClaimGTONAbsolute {
     constructor(
         IERC20 _governanceToken,
         address _wallet,
         IBalanceKeeperV2 _balanceKeeper,
-        IVoterV2 _voter
-    ) ClaimGTONV2(_governanceToken, _wallet, _balanceKeeper, _voter) {}
+        IVoterV2 _voter,
+        uint256 _limitAbsolute
+    ) ClaimGTONAbsolute(_governanceToken, _wallet, _balanceKeeper, _voter, _limitAbsolute) {}
 
     // Monday, October 5, 2020 9:00:00 AM GMT-05:00
     uint256 public time = 1601906400;

@@ -31,6 +31,9 @@ import { BalanceAdderV2 } from "../../typechain/BalanceAdderV2"
 import { LockGTONOnchain } from "../../typechain/LockGTONOnchain"
 import { LockUnlockLPOnchain } from "../../typechain/LockUnlockLPOnchain"
 
+import { MockTimeClaimGTONAbsolute } from '../../typechain/MockTimeClaimGTONAbsolute'
+import { MockTimeClaimGTONPercent } from '../../typechain/MockTimeClaimGTONPercent'
+
 import { WrappedNative } from "../../typechain/WrappedNative"
 import { UniswapV2Pair } from "../../typechain/UniswapV2Pair"
 import { UniswapV2Factory } from "../../typechain/UniswapV2Factory"
@@ -525,6 +528,74 @@ export const claimGTONV2Fixture: Fixture<ClaimGTONV2Fixture> = async function (
     balanceKeeper.address,
     voter.address
   )) as MockTimeClaimGTONV2
+  return {
+    token0,
+    token1,
+    token2,
+    balanceKeeper,
+    voter,
+    claimGTON,
+  }
+}
+
+interface ClaimGTONPercentFixture extends TokensAndVoterV2Fixture {
+  claimGTON: MockTimeClaimGTONPercent
+}
+
+export const claimGTONPercentFixture: Fixture<ClaimGTONPercentFixture> = async function (
+  [wallet, other],
+  provider
+): Promise<ClaimGTONPercentFixture> {
+  const { token0, token1, token2 } = await tokensFixture()
+  const { balanceKeeper, voter } = await voterV2Fixture(
+    [wallet, other],
+    provider
+  )
+
+  const claimGTONFactory = await ethers.getContractFactory(
+    "MockTimeClaimGTONPercent"
+  )
+  const claimGTON = (await claimGTONFactory.deploy(
+    token0.address,
+    wallet.address,
+    balanceKeeper.address,
+    voter.address,
+    50
+  )) as MockTimeClaimGTONPercent
+  return {
+    token0,
+    token1,
+    token2,
+    balanceKeeper,
+    voter,
+    claimGTON,
+  }
+}
+
+interface ClaimGTONAbsoluteFixture extends TokensAndVoterV2Fixture {
+  claimGTON: MockTimeClaimGTONAbsolute
+}
+
+export const claimGTONAbsoluteFixture: Fixture<ClaimGTONAbsoluteFixture> = async function (
+  [wallet, other],
+  provider
+): Promise<ClaimGTONAbsoluteFixture> {
+  const { token0, token1, token2 } = await tokensFixture()
+  const { balanceKeeper, voter } = await voterV2Fixture(
+    [wallet, other],
+    provider
+  )
+
+  const claimGTONFactory = await ethers.getContractFactory(
+    "MockTimeClaimGTONAbsolute"
+  )
+  const claimGTON = (await claimGTONFactory.deploy(
+    token0.address,
+    wallet.address,
+    balanceKeeper.address,
+    voter.address,
+    expandTo18Decimals(100)
+  )) as MockTimeClaimGTONAbsolute
   return {
     token0,
     token1,
