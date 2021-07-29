@@ -2,6 +2,15 @@
 
 
 ## Functions
+### receive
+```solidity
+  function receive(
+  ) external
+```
+
+
+
+
 ### constructor
 ```solidity
   function constructor(
@@ -26,7 +35,7 @@ Can only be called by the current owner.
   function setWallet(
   ) public
 ```
-
+Sets the address that holds relay tokens
 
 
 
@@ -45,7 +54,7 @@ Can only be called by the current owner.
   function setRelayTopic(
   ) external
 ```
-
+Sets topic0 of the event associated with initiating a relay transfer
 
 
 

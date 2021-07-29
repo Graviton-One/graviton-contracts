@@ -44,7 +44,7 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "coverage": "hardhat coverage",
-    "docs": "solidity-docgen --solc-module solc-0.8 -o docs/reference -t ./templates",
+    "docs": "solidity-docgen --solc-module solc-0.8 -o docs/reference -t ./templates -e contracts/uniswapV2",
     "dev": "nuxt",
     "build": "nuxt build",
     "start": "nuxt start",
