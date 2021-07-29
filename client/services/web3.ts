@@ -7,13 +7,14 @@ import { LockUnlockLP } from "../../typechain/LockUnlockLP"
 import { BalanceKeeperV2 } from "../../typechain/BalanceKeeperV2"
 import { VoterV2 } from "../../typechain/VoterV2"
 import { LPKeeperV2 } from "../../typechain/LPKeeperV2"
-import { OracleRouterV2 } from "../../typechain/OracleRouterV2"
+import { LockRouter } from "../../typechain/LockRouter"
 import { OracleParserV2 } from "../../typechain/OracleParserV2"
 import { ClaimGTONV2 } from "../../typechain/ClaimGTONV2"
 import { IShares } from "../../typechain/IShares"
 import { SharesEB } from "../../typechain/SharesEB"
 import { BalanceAdderV2 } from '../../typechain/BalanceAdderV2'
 import { Faucet } from '../../typechain/Faucet'
+import { RelayLock } from '../../typechain/RelayLock'
 
 const IERC20ABI          = require('../../abi/IERC20.json');
 const LockGTONABI        = require('../../abi/LockGTON.json')
@@ -21,7 +22,7 @@ const LockUnlockLPABI    = require('../../abi/LockUnlockLP.json')
 const BalanceKeeperV2ABI = require('../../abi/BalanceKeeperV2.json')
 const VoterV2ABI         = require('../../abi/VoterV2.json')
 const LPKeeperV2ABI      = require('../../abi/LPKeeperV2.json')
-const OracleRouterV2ABI  = require('../../abi/OracleRouterV2.json')
+const LockRouterABI      = require('../../abi/LockRouter.json')
 const OracleParserV2ABI  = require('../../abi/OracleParserV2.json')
 const BalanceAdderV2ABI  = require('../../abi/BalanceAdderV2.json')
 const IFarmABI           = require('../../abi/IFarm.json')
@@ -29,6 +30,7 @@ const ISharesABI         = require('../../abi/IShares.json')
 const SharesEBABI        = require('../../abi/SharesEB.json')
 const ClaimGTONV2ABI     = require('../../abi/ClaimGTONV2.json')
 const FaucetABI          = require('../../abi/Faucet.json')
+const RelayLockABI          = require('../../abi/RelayLock.json')
 
 import {FTM, BSC, ETH, PLG} from './constants'
 
@@ -63,6 +65,40 @@ export default class Invoker {
     constructor(_metamask: ethers.providers.Web3Provider) {
         this.metamask = _metamask
         this.signer = this.metamask.getSigner()
+    }
+    async balance(chain: string): Promise<string> {
+        var provider: ethers.providers.JsonRpcProvider
+        if (chain == "FTM") {
+            provider = FTM.provider
+        } else if (chain == "ETH") {
+            provider = ETH.provider
+        } else if (chain == "BSC") {
+            provider = BSC.provider
+        } else if (chain == "PLG") {
+            provider = PLG.provider
+        } else {
+            return "unknown"
+        }
+
+        const balance = await provider.getBalance(await this.signer.getAddress())
+        return formatETHBalance(balance.toString())
+    }
+
+    async lockRelay(chain: string, destination: string, amount: string) {
+        var address: string
+        var provider: ethers.providers.JsonRpcProvider
+        if (chain == "FTM") {
+            address = FTM.relayLock
+        } else if (chain == "BSC") {
+            address = BSC.relayLock
+        } else if (chain == "PLG") {
+            address = PLG.relayLock
+        } else {
+            return
+        }
+
+        const contract = new ethers.Contract(address, RelayLockABI, this.signer) as RelayLock
+        await contract.lock(destination, await this.signer.getAddress(), {value: amount})
     }
 
     async balanceGTON(chain: string): Promise<string> {

@@ -262,7 +262,7 @@ describe("BalanceAdderV2Old", () => {
     })
 
     it("EB", async () => {
-      await addEBn(100)
+      await addEBn(10)
       await farmEBFor(604800)
       await balanceAdderV2Old.addFarm(sharesEB.address, farmEB.address)
 
@@ -276,16 +276,16 @@ describe("BalanceAdderV2Old", () => {
       await openToken1()
       await openToken2()
 
-      await addEBn(100)
+      await addEBn(10)
       await farmEBFor(604800)
       await balanceAdderV2Old.addFarm(sharesEB.address, farmEB.address)
 
       await balanceAdderV2Old.addFarm(sharesLP1.address, farmLP1.address)
-      await addLPn(token1.address, 100)
+      await addLPn(token1.address, 10)
       await farmLP1For(604800)
 
       await balanceAdderV2Old.addFarm(sharesLP2.address, farmLP2.address)
-      await addLPn(token2.address, 100)
+      await addLPn(token2.address, 10)
       await farmLP2For(604800)
 
       await balanceKeeper.setCanAdd(balanceAdderV2Old.address, true)
@@ -305,7 +305,7 @@ describe("BalanceAdderV2Old", () => {
     })
 
     it("EB", async () => {
-      await addEBn(100)
+      await addEBn(10)
       await farmEBFor(604800)
       await balanceAdderV2.addFarm(sharesEB.address, farmEB.address)
 
@@ -319,16 +319,16 @@ describe("BalanceAdderV2Old", () => {
       await openToken1()
       await openToken2()
 
-      await addEBn(100)
+      await addEBn(10)
       await farmEBFor(604800)
       await balanceAdderV2.addFarm(sharesEB.address, farmEB.address)
 
       await balanceAdderV2.addFarm(sharesLP1.address, farmLP1.address)
-      await addLPn(token1.address, 100)
+      await addLPn(token1.address, 10)
       await farmLP1For(604800)
 
       await balanceAdderV2.addFarm(sharesLP2.address, farmLP2.address)
-      await addLPn(token2.address, 100)
+      await addLPn(token2.address, 10)
       await farmLP2For(604800)
 
       await balanceKeeper.setCanAdd(balanceAdderV2.address, true)

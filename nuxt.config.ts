@@ -1,4 +1,6 @@
 export default {
+  target: 'static',
+
   head: {
     title: 'gravitonV2',
     htmlAttrs: {

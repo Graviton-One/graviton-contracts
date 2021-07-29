@@ -94,7 +94,7 @@ Equal to 0 before the user's first claim
 The maximum amount of tokens the `user` can claim until the limit term is over
 
 Equal to 0 before the user's first claim
-Updates to `limitPercent` of user's balance at the start of the new limit term
+Updates to 50% of user's balance at the start of the new limit term
 
 
 ### setVoter

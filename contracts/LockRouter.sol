@@ -1,12 +1,12 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IOracleRouterV2.sol";
+import "./interfaces/ILockRouter.sol";
 
-/// @title OracleRouterV2
+/// @title LockRouter
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract OracleRouterV2 is IOracleRouterV2 {
+contract LockRouter is ILockRouter {
     /// @inheritdoc IOracleRouterV2
     address public override owner;
 
@@ -15,17 +15,17 @@ contract OracleRouterV2 is IOracleRouterV2 {
         _;
     }
 
-    /// @inheritdoc IOracleRouterV2
+    /// @inheritdoc ILockRouter
     IBalanceKeeperV2 public override balanceKeeper;
-    /// @inheritdoc IOracleRouterV2
+    /// @inheritdoc ILockRouter
     ILPKeeperV2 public override lpKeeper;
-    /// @inheritdoc IOracleRouterV2
+    /// @inheritdoc ILockRouter
     bytes32 public override gtonAddTopic;
-    /// @inheritdoc IOracleRouterV2
+    /// @inheritdoc ILockRouter
     bytes32 public override gtonSubTopic;
-    /// @inheritdoc IOracleRouterV2
+    /// @inheritdoc ILockRouter
     bytes32 public override lpAddTopic;
-    /// @inheritdoc IOracleRouterV2
+    /// @inheritdoc ILockRouter
     bytes32 public override lpSubTopic;
 
     /// @inheritdoc IOracleRouterV2
@@ -55,28 +55,28 @@ contract OracleRouterV2 is IOracleRouterV2 {
         emit SetOwner(ownerOld, _owner);
     }
 
-    /// @inheritdoc IOracleRouterV2
+    /// @inheritdoc ILockRouter
     function setGTONAddTopic(bytes32 _gtonAddTopic) external override isOwner {
         bytes32 topicOld = gtonAddTopic;
         gtonAddTopic = _gtonAddTopic;
         emit SetGTONAddTopic(topicOld, _gtonAddTopic);
     }
 
-    /// @inheritdoc IOracleRouterV2
+    /// @inheritdoc ILockRouter
     function setGTONSubTopic(bytes32 _gtonSubTopic) external override isOwner {
         bytes32 topicOld = gtonSubTopic;
         gtonSubTopic = _gtonSubTopic;
         emit SetGTONSubTopic(topicOld, _gtonSubTopic);
     }
 
-    /// @inheritdoc IOracleRouterV2
+    /// @inheritdoc ILockRouter
     function setLPAddTopic(bytes32 _lpAddTopic) external override isOwner {
         bytes32 topicOld = lpAddTopic;
         lpAddTopic = _lpAddTopic;
         emit SetLPAddTopic(topicOld, _lpAddTopic);
     }
 
-    /// @inheritdoc IOracleRouterV2
+    /// @inheritdoc ILockRouter
     function setLPSubTopic(bytes32 _lpSubTopic) external override isOwner {
         bytes32 topicOld = lpSubTopic;
         lpSubTopic = _lpSubTopic;
@@ -111,28 +111,28 @@ contract OracleRouterV2 is IOracleRouterV2 {
         require(canRoute[msg.sender], "ACR");
 
         if (equal(topic0, gtonAddTopic)) {
-            if (!balanceKeeper.isKnownUser(chain, receiver)) {
-                balanceKeeper.open(chain, receiver);
+            if (!balanceKeeper.isKnownUser("EVM", receiver)) {
+                balanceKeeper.open("EVM", receiver);
             }
-            balanceKeeper.add(chain, receiver, amount);
+            balanceKeeper.add("EVM", receiver, amount);
             emit GTONAdd(uuid, chain, emiter, token, sender, receiver, amount);
         }
         if (equal(topic0, gtonSubTopic)) {
-            balanceKeeper.subtract(chain, sender, amount);
+            balanceKeeper.subtract("EVM", sender, amount);
             emit GTONSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
         if (equal(topic0, lpAddTopic)) {
-            if (!balanceKeeper.isKnownUser(chain, receiver)) {
-                balanceKeeper.open(chain, receiver);
+            if (!balanceKeeper.isKnownUser("EVM", receiver)) {
+                balanceKeeper.open("EVM", receiver);
             }
-            if (!lpKeeper.isKnownToken(chain, token)) {
-                lpKeeper.open(chain, token);
+            if (!lpKeeper.isKnownToken("EVM", token)) {
+                lpKeeper.open("EVM", token);
             }
-            lpKeeper.add(chain, token, chain, receiver, amount);
+            lpKeeper.add("EVM", token, "EVM", receiver, amount);
             emit LPAdd(uuid, chain, emiter, token, sender, receiver, amount);
         }
         if (equal(topic0, lpSubTopic)) {
-            lpKeeper.subtract(chain, token, chain, sender, amount);
+            lpKeeper.subtract("EVM", token, "EVM", sender, amount);
             emit LPSub(uuid, chain, emiter, token, sender, receiver, amount);
         }
 

@@ -41,46 +41,48 @@ Sets address of the user that can send oracle data to `_nebula`
 Can only be called by the current owner.
 
 
-### oracleRouter
+### router
 ```solidity
-  function oracleRouter(
+  function router(
   ) external returns (contract IOracleRouterV2)
 ```
 Address of the contract that routes parsed data to balance keepers
 
 
 
-### setOracleRouter
+### setRouter
 ```solidity
-  function setOracleRouter(
+  function setRouter(
   ) external
 ```
-Sets address of the oracle router to `_oracleRouter`
+Sets address of the oracle router to `_router`
 
 
 
-### evmChains
+### isEVM
 ```solidity
-  function evmChains(
-  ) external returns (string)
+  function isEVM(
+  ) external returns (bool)
 ```
-Index from the array of chains parsed as "EVM"
+TODO
 
 
 
-### setEVMChains
+### setIsEVM
 ```solidity
-  function setEVMChains(
-    string[] _evmChains
+  function setIsEVM(
+    string chain,
+    bool newBool
   ) external
 ```
-Sets the array of chains parsed as "EVM"
+TODO
 
 
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
-|`_evmChains` | string[] | Array of blockchain names, i.e. ["ETH","BNB","FTM"]
+|`chain` | string | TODO
+|`newBool` | bool | TODO
 
 ### uuidIsProcessed
 ```solidity
@@ -180,14 +182,14 @@ Event emitted when the nebula changes via `#setNebula`.
 | :----------------------------- | :------------ | :--------------------------------------------- |
 |`nebulaOld`| address | The account that was the previous nebula
 |`nebulaNew`| address | The account that became the nebula
-### SetOracleRouter
+### SetRouter
 ```solidity
-  event SetOracleRouter(
+  event SetRouter(
     contract IOracleRouterV2 routerOld,
     contract IOracleRouterV2 routerNew
   )
 ```
-Event emitted when the router changes via `#setOracleRouter`.
+Event emitted when the router changes via `#setRouter`.
 
 
 #### Parameters:
@@ -195,19 +197,21 @@ Event emitted when the router changes via `#setOracleRouter`.
 | :----------------------------- | :------------ | :--------------------------------------------- |
 |`routerOld`| contract IOracleRouterV2 | The previous router
 |`routerNew`| contract IOracleRouterV2 | The new router
-### SetEVMChains
+### SetIsEVM
 ```solidity
-  event SetEVMChains(
-    string[] _evmChains
+  event SetIsEVM(
+    string chain,
+    bool newBool
   )
 ```
-Event emitted when the evm chains are set via `#setEVMChains`
+TODO
 
 
 #### Parameters:
 | Name                           | Type          | Description                                    |
 | :----------------------------- | :------------ | :--------------------------------------------- |
-|`_evmChains`| string[] | Array of blockchain names, i.e. ["ETH","BNB","FTM"]
+|`chain`| string | TODO
+|`newBool`| bool | TODO
 ### AttachValue
 ```solidity
   event AttachValue(

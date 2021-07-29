@@ -36,7 +36,7 @@ contract VoterV2 is IVoterV2 {
 
     mapping(uint256 => Round) internal rounds;
     mapping(uint256 => bool) userVoted;
-    uint256[] users;
+    uint256[] public users;
 
     /// @inheritdoc IVoterV2
     uint256 public override totalRounds;
@@ -162,7 +162,7 @@ contract VoterV2 is IVoterV2 {
     {
         uint256 sum;
         for (uint256 i; i < users.length; i++) {
-            if (userVotedInRound(roundId, i)) {
+            if (userVotedInRound(roundId, users[i])) {
                 sum++;
             }
         }
@@ -178,7 +178,7 @@ contract VoterV2 is IVoterV2 {
     {
         uint256 sum;
         for (uint256 i; i < users.length; i++) {
-            if (userVotedForOption(roundId, optionId, i)) {
+            if (userVotedForOption(roundId, optionId, users[i])) {
                 sum++;
             }
         }

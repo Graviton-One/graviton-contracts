@@ -1,5 +1,5 @@
 module.exports = [
-  "",
-  "",
-  []
+  "0x04349651DE1e886d8DC534FabFf5cFe6bc756c0E",
+  "0xBedeB7c59857476394FA93C9F9049cc060B022de",
+  ["BNB", "FTM", "PLG"]
 ];

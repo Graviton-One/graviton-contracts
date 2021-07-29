@@ -2,7 +2,7 @@ import { ethers, waffle } from "hardhat"
 import { TestERC20 } from "../typechain/TestERC20"
 import { BalanceKeeperV2 } from "../typechain/BalanceKeeperV2"
 import { LPKeeperV2 } from "../typechain/LPKeeperV2"
-import { OracleRouterV2 } from "../typechain/OracleRouterV2"
+import { LockRouter } from "../typechain/LockRouter"
 import { OracleParserV2 } from "../typechain/OracleParserV2"
 import { oracleParserV2Fixture } from "./shared/fixtures"
 import { expect } from "./shared/expect"
@@ -35,7 +35,7 @@ describe("OracleParserV2", () => {
   let token2: TestERC20
   let balanceKeeper: BalanceKeeperV2
   let lpKeeper: LPKeeperV2
-  let oracleRouter: OracleRouterV2
+  let lockRouter: LockRouter
   let oracleParser: OracleParserV2
 
   beforeEach("deploy test contracts", async () => {
@@ -45,14 +45,14 @@ describe("OracleParserV2", () => {
       token2,
       balanceKeeper,
       lpKeeper,
-      oracleRouter,
+      lockRouter,
       oracleParser,
     } = await loadFixture(oracleParserV2Fixture))
   })
 
   it("constructor initializes variables", async () => {
     expect(await oracleParser.owner()).to.eq(wallet.address)
-    expect(await oracleParser.oracleRouter()).to.eq(oracleRouter.address)
+    expect(await oracleParser.router()).to.eq(lockRouter.address)
     expect(await oracleParser.nebula()).to.eq(nebula.address)
   })
 
@@ -101,46 +101,46 @@ describe("OracleParserV2", () => {
     })
   })
 
-  describe("#setOracleRouter", () => {
+  describe("#setRouter", () => {
     it("fails if caller is not owner", async () => {
-      await expect(oracleParser.connect(other).setOracleRouter(other.address))
+      await expect(oracleParser.connect(other).setRouter(other.address))
         .to.be.reverted
     })
 
     it("updates oracle router contract", async () => {
-      await oracleParser.setOracleRouter(other.address)
-      expect(await oracleParser.oracleRouter()).to.eq(other.address)
+      await oracleParser.setRouter(other.address)
+      expect(await oracleParser.router()).to.eq(other.address)
     })
 
     it("emits event", async () => {
-      await expect(oracleParser.setOracleRouter(other.address))
-        .to.emit(oracleParser, "SetOracleRouter")
-        .withArgs(oracleRouter.address, other.address)
+      await expect(oracleParser.setRouter(other.address))
+        .to.emit(oracleParser, "SetRouter")
+        .withArgs(lockRouter.address, other.address)
     })
   })
 
-  describe("#setEVMChains", () => {
-    it("fails if caller is not owner", async () => {
-      await expect(
-        oracleParser
-          .connect(other)
-          .setEVMChains([ETH_CHAIN, BNB_CHAIN, FTM_CHAIN])
-      ).to.be.reverted
-    })
+  // describe("#setEVMChains", () => {
+  //   it("fails if caller is not owner", async () => {
+  //     await expect(
+  //       oracleParser
+  //         .connect(other)
+  //         .setEVMChains([ETH_CHAIN, BNB_CHAIN, FTM_CHAIN])
+  //     ).to.be.reverted
+  //   })
 
-    it("updates evm chains", async () => {
-      await oracleParser.setEVMChains([ETH_CHAIN, BNB_CHAIN, FTM_CHAIN])
-      expect(await oracleParser.evmChains(0)).to.eq(ETH_CHAIN)
-      expect(await oracleParser.evmChains(1)).to.eq(BNB_CHAIN)
-      expect(await oracleParser.evmChains(2)).to.eq(FTM_CHAIN)
-    })
+  //   it("updates evm chains", async () => {
+  //     await oracleParser.setEVMChains([ETH_CHAIN, BNB_CHAIN, FTM_CHAIN])
+  //     expect(await oracleParser.evmChains(0)).to.eq(ETH_CHAIN)
+  //     expect(await oracleParser.evmChains(1)).to.eq(BNB_CHAIN)
+  //     expect(await oracleParser.evmChains(2)).to.eq(FTM_CHAIN)
+  //   })
 
-    it("emits event", async () => {
-      await expect(oracleParser.setEVMChains([ETH_CHAIN, BNB_CHAIN, FTM_CHAIN]))
-        .to.emit(oracleParser, "SetEVMChains")
-        .withArgs([ETH_CHAIN, BNB_CHAIN, FTM_CHAIN])
-    })
-  })
+  //   it("emits event", async () => {
+  //     await expect(oracleParser.setEVMChains([ETH_CHAIN, BNB_CHAIN, FTM_CHAIN]))
+  //       .to.emit(oracleParser, "SetEVMChains")
+  //       .withArgs([ETH_CHAIN, BNB_CHAIN, FTM_CHAIN])
+  //   })
+  // })
 
   describe("#deserializeUint", () => {
     it("fails if starting position is larger than bytes length", async () => {
@@ -226,8 +226,8 @@ describe("OracleParserV2", () => {
     })
 
     it("returns if data length is not valid", async () => {
-      await balanceKeeper.setCanAdd(oracleRouter.address, true)
-      await oracleRouter.setCanRoute(oracleParser.address, true)
+      await balanceKeeper.setCanAdd(lockRouter.address, true)
+      await lockRouter.setCanRoute(oracleParser.address, true)
       oracleParser = oracleParser.connect(nebula)
       await expect(
         oracleParser.attachValue(
@@ -247,8 +247,8 @@ describe("OracleParserV2", () => {
     })
 
     it("does not emit event if the declared number of topics is not valid", async () => {
-      await balanceKeeper.setCanAdd(oracleRouter.address, true)
-      await oracleRouter.setCanRoute(oracleParser.address, true)
+      await balanceKeeper.setCanAdd(lockRouter.address, true)
+      await lockRouter.setCanRoute(oracleParser.address, true)
       oracleParser = oracleParser.connect(nebula)
       await expect(
         oracleParser.attachValue(
@@ -268,9 +268,9 @@ describe("OracleParserV2", () => {
     })
 
     it("does not emit event if the uuid has already been processed", async () => {
-      await balanceKeeper.setCanOpen(oracleRouter.address, true)
-      await balanceKeeper.setCanAdd(oracleRouter.address, true)
-      await oracleRouter.setCanRoute(oracleParser.address, true)
+      await balanceKeeper.setCanOpen(lockRouter.address, true)
+      await balanceKeeper.setCanAdd(lockRouter.address, true)
+      await lockRouter.setCanRoute(oracleParser.address, true)
       oracleParser = oracleParser.connect(nebula)
       await oracleParser.attachValue(
         makeValueParser(
@@ -303,9 +303,9 @@ describe("OracleParserV2", () => {
     })
 
     it("does not emit event if the chain is not EVM", async () => {
-      await balanceKeeper.setCanOpen(oracleRouter.address, true)
-      await balanceKeeper.setCanAdd(oracleRouter.address, true)
-      await oracleRouter.setCanRoute(oracleParser.address, true)
+      await balanceKeeper.setCanOpen(lockRouter.address, true)
+      await balanceKeeper.setCanAdd(lockRouter.address, true)
+      await lockRouter.setCanRoute(oracleParser.address, true)
       oracleParser = oracleParser.connect(nebula)
       await expect(
         oracleParser.attachValue(
@@ -325,9 +325,9 @@ describe("OracleParserV2", () => {
     })
 
     it("parses to the router to add gton", async () => {
-      await balanceKeeper.setCanOpen(oracleRouter.address, true)
-      await balanceKeeper.setCanAdd(oracleRouter.address, true)
-      await oracleRouter.setCanRoute(oracleParser.address, true)
+      await balanceKeeper.setCanOpen(lockRouter.address, true)
+      await balanceKeeper.setCanAdd(lockRouter.address, true)
+      await lockRouter.setCanRoute(oracleParser.address, true)
       oracleParser = oracleParser.connect(nebula)
       await oracleParser.attachValue(
         makeValueParser(
@@ -357,8 +357,8 @@ describe("OracleParserV2", () => {
         wallet.address,
         1000
       )
-      await balanceKeeper.setCanSubtract(oracleRouter.address, true)
-      await oracleRouter.setCanRoute(oracleParser.address, true)
+      await balanceKeeper.setCanSubtract(lockRouter.address, true)
+      await lockRouter.setCanRoute(oracleParser.address, true)
       oracleParser = oracleParser.connect(nebula)
       await oracleParser.attachValue(
         makeValueParser(
@@ -379,10 +379,10 @@ describe("OracleParserV2", () => {
     })
 
     it("parses to the router to add lp", async () => {
-      await balanceKeeper.setCanOpen(oracleRouter.address, true)
-      await lpKeeper.setCanOpen(oracleRouter.address, true)
-      await lpKeeper.setCanAdd(oracleRouter.address, true)
-      await oracleRouter.setCanRoute(oracleParser.address, true)
+      await balanceKeeper.setCanOpen(lockRouter.address, true)
+      await lpKeeper.setCanOpen(lockRouter.address, true)
+      await lpKeeper.setCanAdd(lockRouter.address, true)
+      await lockRouter.setCanRoute(oracleParser.address, true)
       oracleParser = oracleParser.connect(nebula)
       await oracleParser.attachValue(
         makeValueParser(
@@ -420,8 +420,8 @@ describe("OracleParserV2", () => {
         wallet.address,
         1000
       )
-      await lpKeeper.setCanSubtract(oracleRouter.address, true)
-      await oracleRouter.setCanRoute(oracleParser.address, true)
+      await lpKeeper.setCanSubtract(lockRouter.address, true)
+      await lockRouter.setCanRoute(oracleParser.address, true)
       oracleParser = oracleParser.connect(nebula)
       await oracleParser.attachValue(
         makeValueParser(
@@ -447,9 +447,9 @@ describe("OracleParserV2", () => {
     })
 
     it("emits event", async () => {
-      await balanceKeeper.setCanOpen(oracleRouter.address, true)
-      await balanceKeeper.setCanAdd(oracleRouter.address, true)
-      await oracleRouter.setCanRoute(oracleParser.address, true)
+      await balanceKeeper.setCanOpen(lockRouter.address, true)
+      await balanceKeeper.setCanAdd(lockRouter.address, true)
+      await lockRouter.setCanRoute(oracleParser.address, true)
       oracleParser = oracleParser.connect(nebula)
       await expect(
         oracleParser.attachValue(
@@ -470,7 +470,7 @@ describe("OracleParserV2", () => {
         .withArgs(
           nebula.address,
           MOCK_UUID,
-          EVM_CHAIN,
+          BNB_CHAIN,
           other.address.toLowerCase(),
           GTON_ADD_TOPIC,
           token0.address.toLowerCase(),

@@ -3,10 +3,10 @@ pragma solidity >=0.8.0;
 
 import "./interfaces/IOracleParserV2.sol";
 
-/// @title OracleParserV2
+/// @title RelayParser
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract OracleParserV2 is IOracleParserV2 {
+contract RelayParser is IOracleParserV2 {
     /// @inheritdoc IOracleParserV2
     address public override owner;
 
@@ -142,39 +142,39 @@ contract OracleParserV2 is IOracleParserV2 {
     }
 
     /// @inheritdoc IOracleParserV2
-    function attachValue(bytes calldata impactData) external override isNebula {
-        // @dev ignore data with unexpected length
-        if (impactData.length != 200) {
-            return;
-        }
-        bytes16 uuid = bytesToBytes16(impactData, 0); // [  0: 16]
+    function attachValue(bytes calldata data) external override isNebula {
+        bytes16 uuid = bytesToBytes16(data, 0); // [  0: 16]
         // @dev parse data only once
         if (uuidIsProcessed[uuid]) {
             return;
         }
         uuidIsProcessed[uuid] = true;
-        string memory chain = string(abi.encodePacked(impactData[16:19])); // [ 16: 19]
+        string memory chain = string(abi.encodePacked(data[16:19])); // [ 16: 19]
         if (isEVM[chain]) {
-            bytes memory emiter = impactData[19:39]; // [ 19: 39]
-            bytes1 topics = bytes1(impactData[39]); // [ 39: 40]
+            bytes memory emiter = data[19:39]; // [ 19: 39]
+            bytes1 topics = bytes1(data[39]); // [ 39: 40]
             // @dev ignore data with unexpected number of topics
             if (
                 keccak256(abi.encodePacked(topics)) !=
                 keccak256(
-                    abi.encodePacked(bytes1(abi.encodePacked(uint256(4))[31]))
+                    abi.encodePacked(bytes1(abi.encodePacked(uint256(3))[31]))
                 )
             ) {
                 return;
             }
-            bytes32 topic0 = bytesToBytes32(impactData, 40); // [ 40: 72]
-            bytes memory token = impactData[84:104]; // [ 72:104][12:32]
-            bytes memory sender = impactData[116:136]; // [104:136][12:32]
-            bytes memory receiver = impactData[148:168]; // [136:168][12:32]
-            uint256 amount = deserializeUint(impactData, 168, 32); // [168:200]
+            bytes32 topic0 = bytesToBytes32(data, 40); // [ 40: 72]
+            // bytes memory destinationHash = data[72:104]; // [ 72:104][12:32]
+            // bytes memory receiverHash = data[104:136]; // [104:136][12:32]
+            uint256 amount = deserializeUint(data, 200, 32); // [200:232]
+            string memory destination = string(abi.encodePacked(data[264:296])); // [264:296]
+            bytes memory receiver = data[328:360]; // [328:360]
+
+            bytes memory token = new bytes(32);
+            bytes memory sender = receiver;
 
             router.routeValue(
                 uuid,
-                chain,
+                destination,
                 emiter,
                 topic0,
                 token,

@@ -23,17 +23,18 @@ interface IOracleParserV2 {
     function setNebula(address _nebula) external;
 
     /// @notice Address of the contract that routes parsed data to balance keepers
-    function oracleRouter() external view returns (IOracleRouterV2);
+    function router() external view returns (IOracleRouterV2);
 
-    /// @notice Sets address of the oracle router to `_oracleRouter`
-    function setOracleRouter(IOracleRouterV2 _oracleRouter) external;
+    /// @notice Sets address of the oracle router to `_router`
+    function setRouter(IOracleRouterV2 _router) external;
 
-    /// @notice Index from the array of chains parsed as "EVM"
-    function evmChains(uint256 index) external view returns (string memory);
+    /// @notice TODO
+    function isEVM(string calldata chain) external view returns (bool);
 
-    /// @notice Sets the array of chains parsed as "EVM"
-    /// @param _evmChains Array of blockchain names, i.e. ["ETH","BNB","FTM"]
-    function setEVMChains(string[] memory _evmChains) external;
+    /// @notice TODO
+    /// @param chain TODO
+    /// @param newBool TODO
+    function setIsEVM(string calldata chain, bool newBool) external;
 
     /// @notice Look up if the data uuid has already been processed
     function uuidIsProcessed(bytes16 uuid) external view returns (bool);
@@ -83,17 +84,18 @@ interface IOracleParserV2 {
     /// @param nebulaNew The account that became the nebula
     event SetNebula(address indexed nebulaOld, address indexed nebulaNew);
 
-    /// @notice Event emitted when the router changes via `#setOracleRouter`.
+    /// @notice Event emitted when the router changes via `#setRouter`.
     /// @param routerOld The previous router
     /// @param routerNew The new router
-    event SetOracleRouter(
+    event SetRouter(
         IOracleRouterV2 indexed routerOld,
         IOracleRouterV2 indexed routerNew
     );
 
-    /// @notice Event emitted when the evm chains are set via `#setEVMChains`
-    /// @param _evmChains Array of blockchain names, i.e. ["ETH","BNB","FTM"]
-    event SetEVMChains(string[] _evmChains);
+    /// @notice TODO
+    /// @param chain TODO
+    /// @param newBool TODO
+    event SetIsEVM(string chain, bool newBool);
 
     /// @notice Event emitted when the data is parsed and forwarded to the oracle router via `#attachValue`
     /// @param nebula The account that sent the parsed data

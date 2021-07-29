@@ -6,7 +6,7 @@ import { EVM_CHAIN } from "./shared/utilities"
 import { expect } from "./shared/expect"
 
 describe("VoterV2", () => {
-  const [wallet, other] = waffle.provider.getWallets()
+  const [wallet, other, wallet2] = waffle.provider.getWallets()
 
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
 
@@ -25,6 +25,12 @@ describe("VoterV2", () => {
     await balanceKeeper["add(string,bytes,uint256)"](
       EVM_CHAIN,
       wallet.address,
+      "100"
+    )
+    await balanceKeeper.open(EVM_CHAIN, wallet2.address)
+    await balanceKeeper["add(string,bytes,uint256)"](
+      EVM_CHAIN,
+      wallet2.address,
       "100"
     )
   })
@@ -300,6 +306,14 @@ describe("VoterV2", () => {
       expect(await voter.totalUsersInRound(0)).to.eq(1)
       await voter["castVotes(uint256,uint256[])"](0, [0, 0])
       expect(await voter.totalUsersInRound(0)).to.eq(0)
+    })
+
+    it("increments the number of users for two users", async () => {
+      await voter.startRound("name", ["option1", "option2"])
+      await voter.connect(wallet)["castVotes(uint256,uint256[])"](0, [20, 40])
+      expect(await voter.totalUsersForOption(0, 0)).to.eq(1)
+      await voter.connect(wallet2)["castVotes(uint256,uint256[])"](0, [10, 60])
+      expect(await voter.totalUsersForOption(0, 0)).to.eq(2)
     })
 
     it("emits event", async () => {
