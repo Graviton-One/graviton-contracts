@@ -55,7 +55,9 @@ import {
   LP_SUB_TOPIC,
   RELAY_TOPIC,
   EVM_CHAIN,
+  FTM_CHAIN,
   BNB_CHAIN,
+  PLG_CHAIN,
   expandTo18Decimals,
 } from "./utilities"
 
@@ -1037,7 +1039,8 @@ export const relayFixture: Fixture<RelayFixture> =
       weth.address,
       uniswapV2Router01.address,
       token0.address,
-      RELAY_TOPIC
+      RELAY_TOPIC,
+      [FTM_CHAIN, BNB_CHAIN, PLG_CHAIN]
     )) as Relay
 
     const relayParserFactory = await ethers.getContractFactory(

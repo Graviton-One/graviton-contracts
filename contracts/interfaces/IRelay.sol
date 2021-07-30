@@ -23,22 +23,30 @@ interface IRelay is IOracleRouterV2 {
     /// @notice relay token
     function gton() external view returns (IERC20);
 
+    /// @notice chains for relay swaps to and from
+    function isAllowedChain(string calldata chain) external view returns (bool);
+
+    /// @notice allow/forbid chain to relay swap
+    /// @param chain blockchain name, e.g. 'FTM', 'PLG'
+    /// @param newBool new permission for the chain
+    function setIsAllowedChain(string calldata chain, bool newBool) external;
+
     /// @notice minimum fee for a destination
     function feeMin(string calldata destination) external view returns (uint256);
 
     /// @notice percentage fee for a destination
     function feePercent(string calldata destination) external view returns (uint256);
 
+    /// @notice Sets fees for a destination
+    /// @param _feeMin Minimum fee
+    /// @param _feePercent Percentage fee
+    function setFees(string calldata destination, uint256 _feeMin, uint256 _feePercent) external;
+
     /// @notice topic0 of the event associated with initiating a relay transfer
     function relayTopic() external view returns (bytes32);
 
     /// @notice Sets topic0 of the event associated with initiating a relay transfer
     function setRelayTopic(bytes32 _relayTopic) external;
-
-    /// @notice Sets fees for a destination
-    /// @param _feeMin Minimum fee
-    /// @param _feePercent Percentage fee
-    function setFees(string calldata destination, uint256 _feeMin, uint256 _feePercent) external;
 
     /// @notice Trades native tokens for relay, takes fees,
     /// emits event to start crosschain transfer
@@ -102,4 +110,9 @@ interface IRelay is IOracleRouterV2 {
     /// @param walletOld The previous wallet address
     /// @param walletNew The new wallet address
     event SetWallet(address indexed walletOld, address indexed walletNew);
+
+    /// @notice Event emitted when permission for a chain is set via '#setIsAllowedChain'
+    /// @param chain Name of blockchain whose permission is changed, i.e. "FTM", "PLG"
+    /// @param newBool Updated permission
+    event SetIsAllowedChain(string chain, bool newBool);
 }

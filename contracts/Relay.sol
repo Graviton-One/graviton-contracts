@@ -35,21 +35,29 @@ contract Relay is IRelay {
     /// @inheritdoc IOracleRouterV2
     mapping(address => bool) public override canRoute;
 
+    /// @inheritdoc IRelay
+    mapping(string => bool) public override isAllowedChain;
+
     receive() external payable {
-        assert(msg.sender == address(wnative)); // only accept ETH via fallback from the WETH contract
+        // only accept ETH via fallback from the WETH contract
+        assert(msg.sender == address(wnative));
     }
 
     constructor (
         IWETH _wnative,
         IUniswapV2Router01 _router,
         IERC20 _gton,
-        bytes32 _relayTopic
+        bytes32 _relayTopic,
+        string[] memory allowedChains
     ) {
         owner = msg.sender;
         wnative = _wnative;
         router = _router;
         gton = _gton;
         relayTopic = _relayTopic;
+        for (uint256 i = 0; i < allowedChains.length; i++) {
+            isAllowedChain[allowedChains[i]] = true;
+        }
     }
 
     /// @inheritdoc IOracleRouterV2
@@ -60,6 +68,16 @@ contract Relay is IRelay {
     }
 
     /// @inheritdoc IRelay
+    function setIsAllowedChain(string calldata chain, bool newBool)
+        external
+        override
+        isOwner
+    {
+        isAllowedChain[chain] = newBool;
+        emit SetIsAllowedChain(chain, newBool);
+    }
+
+    /// @inheritdoc IRelay
     function setFees(string calldata destination, uint256 _feeMin, uint256 _feePercent) external override {
         feeMin[destination] = _feeMin;
         feePercent[destination] = _feePercent;
@@ -67,6 +85,7 @@ contract Relay is IRelay {
 
     /// @inheritdoc IRelay
     function lock(string calldata destination, bytes calldata receiver) external payable override {
+        require(isAllowedChain[destination], "R1");
         // wrap native tokens
         wnative.deposit{value: msg.value}();
         // trade wrapped native tokens for relay tokens
@@ -84,8 +103,8 @@ contract Relay is IRelay {
             amountMinusFee = amounts[1] - feeMin[destination];
         }
         emit CalculateFee(amounts[0], amounts[1], feeMin[destination], feePercent[destination], fee, amountMinusFee);
-        // check that the amount is larger than the fee
-        require(amountMinusFee > 0, "RL1");
+        // check that remainder after subtracting fees is larger than 0
+        require(amountMinusFee > 0, "R2");
         // emit event to notify oracles and initiate crosschain transfer
         emit Lock(destination, receiver, destination, receiver, amountMinusFee);
     }

@@ -13,6 +13,7 @@ import {
   FTM_CHAIN,
   BNB_CHAIN,
   PLG_CHAIN,
+  SOL_CHAIN,
   expandTo18Decimals,
   RELAY_TOPIC,
   MOCK_UUID
@@ -61,7 +62,7 @@ describe("Relay", () => {
   describe("#setOwner", () => {
     it("fails if caller is not owner", async () => {
       await expect(relay.connect(other).setOwner(wallet.address)).to.be
-        .reverted
+        .revertedWith("ACW")
     })
 
     it("emits a SetOwner event", async () => {
@@ -77,21 +78,28 @@ describe("Relay", () => {
 
     it("cannot be called by original owner", async () => {
       await relay.setOwner(other.address)
-      await expect(relay.setOwner(wallet.address)).to.be.reverted
+      await expect(relay.setOwner(wallet.address)).to.be.revertedWith("ACW")
     })
   })
 
   describe("#lock", () => {
-    it("fails if amount out is equal to fees", async () => {
-      await relay.setFees(FTM_CHAIN, "10000", 100)
-      await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
-        .to.be.reverted
+    it("fails if chain is not allowed", async () => {
+      await expect(relay.lock(SOL_CHAIN, wallet.address, {value: "10000"}))
+        .to.be.revertedWith("R1")
     })
 
-    it("fails if amount out is less then fees", async () => {
-      await relay.setFees(FTM_CHAIN, "10001", 100)
+    it("fails if remainder after subtracting fees is equal to 0", async () => {
+      await relay.setFees(FTM_CHAIN, "9969", 0)
       await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
-        .to.be.reverted
+        .to.be.revertedWith("R2")
+    })
+
+    it("fails if remainder after subtracting fees is less than 0", async () => {
+      await relay.setFees(FTM_CHAIN, "9970", 0)
+      await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+        .to.be.revertedWith('VM Exception while processing transaction: ' +
+         'reverted with panic code 0x11 (Arithmetic operation underflowed ' +
+         'or overflowed outside of an unchecked block)')
     })
 
     it("swaps native tokens for gton", async () => {
@@ -174,7 +182,7 @@ describe("Relay", () => {
   describe("#reclaimERC20", () => {
     it("fails if caller is not owner", async () => {
       await expect(relay.connect(other).reclaimERC20(token0.address))
-          .to.be.reverted
+          .to.be.revertedWith("ACW")
     })
 
     it("transfers ERC20 tokens to caller", async () => {
@@ -192,7 +200,7 @@ describe("Relay", () => {
   describe("#reclaimNative", () => {
     it("fails if caller is not owner", async () => {
       await expect(relay.connect(other).reclaimNative(token0.address))
-          .to.be.reverted
+          .to.be.revertedWith("ACW")
     })
 
     it("transfers native tokens to caller", async () => {
