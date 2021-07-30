@@ -40,8 +40,8 @@ import { UniswapV2Factory } from "../../typechain/UniswapV2Factory"
 import { UniswapV2Router01 } from "../../typechain/UniswapV2Router01"
 import { RelayLock } from "../../typechain/RelayLock"
 import { RelayRouter } from "../../typechain/RelayRouter"
-
 import { RelayParser } from "../../typechain/RelayParser"
+import { Relay } from "../../typechain/Relay"
 
 import {
   makeValueImpact,
@@ -1010,5 +1010,54 @@ export const relayRouterFixture: Fixture<RelayRouterFixture> =
       uniswapV2Pair,
       relayRouter,
       relayParser
+    }
+  }
+
+interface RelayFixture extends UniswapFixture {
+  relayParser: RelayParser
+  relay: Relay
+}
+
+export const relayFixture: Fixture<RelayFixture> =
+  async function ([wallet, other, nebula], provider): Promise<RelayFixture> {
+    const {
+      token0,
+      token1,
+      token2,
+      weth,
+      uniswapV2Factory,
+      uniswapV2Router01,
+      uniswapV2Pair
+    } = await uniswapFixture([wallet, other], provider)
+
+    const relayFactory = await ethers.getContractFactory(
+      "Relay"
+    )
+    const relay = (await relayFactory.deploy(
+      weth.address,
+      uniswapV2Router01.address,
+      token0.address,
+      RELAY_TOPIC
+    )) as Relay
+
+    const relayParserFactory = await ethers.getContractFactory(
+      "RelayParser"
+    )
+    const relayParser = (await relayParserFactory.deploy(
+      relay.address,
+      nebula.address,
+      [BNB_CHAIN]
+    )) as RelayParser
+
+    return {
+      token0,
+      token1,
+      token2,
+      weth,
+      uniswapV2Factory,
+      uniswapV2Router01,
+      uniswapV2Pair,
+      relayParser,
+      relay
     }
   }

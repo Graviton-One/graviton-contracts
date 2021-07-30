@@ -1,0 +1,304 @@
+import { ethers, waffle } from "hardhat"
+import { BigNumber } from "ethers"
+import { TestERC20 } from "../typechain/TestERC20"
+import { WrappedNative } from "../typechain/WrappedNative"
+import { UniswapV2Pair } from "../typechain/UniswapV2Pair"
+import { UniswapV2Factory } from "../typechain/UniswapV2Factory"
+import { UniswapV2Router01 } from "../typechain/UniswapV2Router01"
+import { Relay } from "../typechain/Relay"
+import { RelayParser } from "../typechain/RelayParser"
+import { relayFixture } from "./shared/fixtures"
+import { expect } from "./shared/expect"
+import {
+  FTM_CHAIN,
+  BNB_CHAIN,
+  PLG_CHAIN,
+  expandTo18Decimals,
+  RELAY_TOPIC,
+  MOCK_UUID
+} from "./shared/utilities"
+
+describe("Relay", () => {
+  const [wallet, other, nebula] = waffle.provider.getWallets()
+
+  let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
+
+  before("create fixture loader", async () => {
+    loadFixture = waffle.createFixtureLoader([wallet, other, nebula])
+  })
+
+  let token0: TestERC20
+  let token1: TestERC20
+  let token2: TestERC20
+  let weth: WrappedNative
+  let uniswapV2Pair: UniswapV2Pair
+  let uniswapV2Factory: UniswapV2Factory
+  let uniswapV2Router01: UniswapV2Router01
+  let relay: Relay
+  let relayParser: RelayParser
+
+  beforeEach("deploy test contracts", async () => {
+    ;({ token0,
+        token1,
+        token2,
+        weth,
+        uniswapV2Factory,
+        uniswapV2Router01,
+        uniswapV2Pair,
+        relayParser,
+        relay
+      } = await loadFixture(relayFixture))
+  })
+
+  it("constructor initializes variables", async () => {
+      expect(await relay.owner()).to.eq(wallet.address)
+      expect(await relay.wnative()).to.eq(weth.address)
+      expect(await relay.router()).to.eq(uniswapV2Router01.address)
+      expect(await relay.gton()).to.eq(token0.address)
+      expect(await relay.relayTopic()).to.eq(RELAY_TOPIC)
+  })
+
+  describe("#setOwner", () => {
+    it("fails if caller is not owner", async () => {
+      await expect(relay.connect(other).setOwner(wallet.address)).to.be
+        .reverted
+    })
+
+    it("emits a SetOwner event", async () => {
+      expect(await relay.setOwner(other.address))
+        .to.emit(relay, "SetOwner")
+        .withArgs(wallet.address, other.address)
+    })
+
+    it("updates owner", async () => {
+      await relay.setOwner(other.address)
+      expect(await relay.owner()).to.eq(other.address)
+    })
+
+    it("cannot be called by original owner", async () => {
+      await relay.setOwner(other.address)
+      await expect(relay.setOwner(wallet.address)).to.be.reverted
+    })
+  })
+
+  describe("#lock", () => {
+    it("fails if amount out is equal to fees", async () => {
+      await relay.setFees(FTM_CHAIN, "10000", 100)
+      await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+        .to.be.reverted
+    })
+
+    it("fails if amount out is less then fees", async () => {
+      await relay.setFees(FTM_CHAIN, "10001", 100)
+      await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+        .to.be.reverted
+    })
+
+    it("swaps native tokens for gton", async () => {
+      await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+            .to.emit(relay, "CalculateFee")
+            .withArgs(
+              "10000",
+              "9969",
+              "0",
+              "0",
+              "0",
+              "9969"
+            )
+            .to.emit(relay, "Lock")
+            .withArgs(
+                ethers.utils.solidityKeccak256(["string"], [FTM_CHAIN]),
+                ethers.utils.solidityKeccak256(["bytes"], [wallet.address]),
+                FTM_CHAIN,
+                wallet.address.toLowerCase(),
+                "9969"
+            )
+      expect(await token0.balanceOf(relay.address)).to.eq("9969")
+    })
+
+    it("subtracts minimum fee when it's larger than percentage", async () => {
+      await relay.setFees(FTM_CHAIN, "1000", 1000)
+      await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+            .to.emit(relay, "CalculateFee")
+            .withArgs(
+              "10000",
+              "9969",
+              "1000",
+              "1000",
+              "99",
+              "8969"
+            )
+    })
+
+    it("subtracts percentage fee when it's larger than minimum", async () => {
+      await relay.setFees(FTM_CHAIN, "100", 2000)
+      await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+            .to.emit(relay, "CalculateFee")
+            .withArgs(
+              "10000",
+              "9969",
+              "100",
+              "2000",
+              "199",
+              "9770"
+            )
+    })
+
+    it("emits event", async () => {
+        await relay.setFees(FTM_CHAIN, "100", 2000)
+        await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+            .to.emit(relay, "CalculateFee")
+            .withArgs(
+              "10000",
+              "9969",
+              "100",
+              "2000",
+              "199",
+              "9770"
+            )
+    })
+
+    it("emits event", async () => {
+        await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+            .to.emit(relay, "Lock")
+            .withArgs(
+                ethers.utils.solidityKeccak256(["string"], [FTM_CHAIN]),
+                ethers.utils.solidityKeccak256(["bytes"], [wallet.address]),
+                FTM_CHAIN,
+                wallet.address.toLowerCase(),
+                "9969"
+            )
+    })
+  })
+
+  describe("#reclaimERC20", () => {
+    it("fails if caller is not owner", async () => {
+      await expect(relay.connect(other).reclaimERC20(token0.address))
+          .to.be.reverted
+    })
+
+    it("transfers ERC20 tokens to caller", async () => {
+        let balance = await token0.balanceOf(wallet.address)
+        await token0.transfer(other.address, balance.sub(10))
+        await token0.transfer(relay.address, 10)
+        expect(await token0.balanceOf(wallet.address)).to.eq(0)
+        expect(await token0.balanceOf(relay.address)).to.eq(10)
+        await relay.reclaimERC20(token0.address)
+        expect(await token0.balanceOf(relay.address)).to.eq(0)
+        expect(await token0.balanceOf(wallet.address)).to.eq(10)
+    })
+  })
+
+  describe("#reclaimNative", () => {
+    it("fails if caller is not owner", async () => {
+      await expect(relay.connect(other).reclaimNative(token0.address))
+          .to.be.reverted
+    })
+
+    it("transfers native tokens to caller", async () => {
+        await relay.lock(FTM_CHAIN, wallet.address, {value: expandTo18Decimals(10)})
+        expect(await wallet.provider.getBalance(relay.address)).to.eq(0)
+        await relay.reclaimNative(0)
+        expect(await wallet.provider.getBalance(relay.address)).to.eq(0)
+    })
+  })
+
+  describe("#routeValue", async () => {
+    it("transfers native tokens", async () => {
+      let balance1 = await wallet.getBalance()
+      await token0.transfer(relay.address, expandTo18Decimals(10))
+      await relay.setCanRoute(wallet.address, true)
+      await relay.routeValue(
+          MOCK_UUID,
+          FTM_CHAIN,
+          other.address,
+          RELAY_TOPIC,
+          token0.address,
+          wallet.address,
+          wallet.address,
+          expandTo18Decimals(1)
+      )
+      let balance3 = await wallet.getBalance()
+      expect(balance3).to.be.gt(balance1)
+    })
+
+    it("emits event", async () => {
+      let balance1 = await wallet.getBalance()
+      await token0.transfer(relay.address, expandTo18Decimals(10))
+      await relay.setCanRoute(wallet.address, true)
+      await expect(relay.routeValue(
+          MOCK_UUID,
+          FTM_CHAIN,
+          other.address,
+          RELAY_TOPIC,
+          token0.address,
+          wallet.address,
+          wallet.address,
+          expandTo18Decimals(1)
+      )).to.emit(relay, "DeliverRelay")
+        .withArgs(wallet.address, expandTo18Decimals(1))
+    })
+
+    it("transfers native tokens", async () => {
+      let balance1 = await wallet.getBalance()
+      await token0.transfer(relay.address, expandTo18Decimals(10))
+
+      await relay.setCanRoute(relayParser.address, true)
+      relayParser = relayParser.connect(nebula)
+
+      let receiver = wallet.address
+      let destination = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(BNB_CHAIN))
+      let amount = expandTo18Decimals(10)
+      let destinationHash = ethers.utils.solidityKeccak256(["string"],[PLG_CHAIN])
+      let receiverHash = ethers.utils.solidityKeccak256(["bytes"],[receiver])
+      let dataEncoded = new ethers.utils.AbiCoder().encode(
+        ["string", "bytes", "uint256"],[PLG_CHAIN, receiver, amount])
+
+      let value = ethers.utils.concat([
+       ethers.utils.arrayify(MOCK_UUID),
+       ethers.utils.arrayify(destination),
+       ethers.utils.arrayify(nebula.address),
+       ethers.utils.arrayify("0x03"),
+       ethers.utils.arrayify(RELAY_TOPIC),
+       ethers.utils.arrayify(destinationHash),
+       ethers.utils.arrayify(receiverHash),
+       ethers.utils.arrayify(dataEncoded),
+      ])
+
+      await relayParser.attachValue(value)
+      let balance3 = await wallet.getBalance()
+      expect(balance3).to.gt(balance1)
+    })
+
+    it("transfers native tokens", async () => {
+      let balance1 = await wallet.getBalance()
+      await token0.transfer(relay.address, expandTo18Decimals(10))
+
+      await relay.setCanRoute(relayParser.address, true)
+      relayParser = relayParser.connect(nebula)
+
+      let receiver = wallet.address
+      let destination = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(BNB_CHAIN))
+      let amount = expandTo18Decimals(10)
+      let destinationHash = ethers.utils.solidityKeccak256(["string"],[PLG_CHAIN])
+      let receiverHash = ethers.utils.solidityKeccak256(["bytes"],[receiver])
+      let dataEncoded = new ethers.utils.AbiCoder().encode(
+        ["string", "bytes", "uint256"],[PLG_CHAIN, receiver, amount])
+
+      let value = ethers.utils.concat([
+       ethers.utils.arrayify(MOCK_UUID),
+       ethers.utils.arrayify(destination),
+       ethers.utils.arrayify(nebula.address),
+       ethers.utils.arrayify("0x03"),
+       ethers.utils.arrayify(RELAY_TOPIC),
+       ethers.utils.arrayify(destinationHash),
+       ethers.utils.arrayify(receiverHash),
+       ethers.utils.arrayify(dataEncoded),
+      ])
+
+      await expect(relayParser.attachValue(value))
+        .to.emit(relay, "DeliverRelay")
+        .withArgs(wallet.address, expandTo18Decimals(10))
+    })
+  })
+})
