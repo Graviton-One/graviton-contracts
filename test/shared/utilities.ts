@@ -24,6 +24,7 @@ export const FTM_CHAIN = "FTM"
 export const PLG_CHAIN = "PLG"
 export const ETH_CHAIN = "ETH"
 export const SOL_CHAIN = "SOL"
+export const MAX_UINT = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 
 export function expandTo18Decimals(n: number): BigNumber {
   return BigNumber.from(n).mul(BigNumber.from(10).pow(18))

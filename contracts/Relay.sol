@@ -30,6 +30,12 @@ contract Relay is IRelay {
     mapping (string => uint256) public override feePercent;
 
     /// @inheritdoc IRelay
+    mapping(string => uint256) public override lowerLimit;
+
+    /// @inheritdoc IRelay
+    mapping(string => uint256) public override upperLimit;
+
+    /// @inheritdoc IRelay
     bytes32 public override relayTopic;
 
     /// @inheritdoc IOracleRouterV2
@@ -48,7 +54,9 @@ contract Relay is IRelay {
         IUniswapV2Router01 _router,
         IERC20 _gton,
         bytes32 _relayTopic,
-        string[] memory allowedChains
+        string[] memory allowedChains,
+        uint[2][] memory fees,
+        uint[2][] memory limits
     ) {
         owner = msg.sender;
         wnative = _wnative;
@@ -57,6 +65,10 @@ contract Relay is IRelay {
         relayTopic = _relayTopic;
         for (uint256 i = 0; i < allowedChains.length; i++) {
             isAllowedChain[allowedChains[i]] = true;
+            feeMin[allowedChains[i]] = fees[i][0];
+            feePercent[allowedChains[i]] = fees[i][1];
+            lowerLimit[allowedChains[i]] = limits[i][0];
+            upperLimit[allowedChains[i]] = limits[i][1];
         }
     }
 
@@ -81,11 +93,21 @@ contract Relay is IRelay {
     function setFees(string calldata destination, uint256 _feeMin, uint256 _feePercent) external override {
         feeMin[destination] = _feeMin;
         feePercent[destination] = _feePercent;
+        emit SetFees(destination, _feeMin, _feePercent);
+    }
+
+    /// @inheritdoc IRelay
+    function setLimits(string calldata destination, uint256 _lowerLimit, uint256 _upperLimit) external override {
+        lowerLimit[destination] = _lowerLimit;
+        upperLimit[destination] = _upperLimit;
+        emit SetLimits(destination, _lowerLimit, _upperLimit);
     }
 
     /// @inheritdoc IRelay
     function lock(string calldata destination, bytes calldata receiver) external payable override {
         require(isAllowedChain[destination], "R1");
+        require(msg.value > lowerLimit[destination], "R2");
+        require(msg.value < upperLimit[destination], "R3");
         // wrap native tokens
         wnative.deposit{value: msg.value}();
         // trade wrapped native tokens for relay tokens
@@ -104,7 +126,7 @@ contract Relay is IRelay {
         }
         emit CalculateFee(amounts[0], amounts[1], feeMin[destination], feePercent[destination], fee, amountMinusFee);
         // check that remainder after subtracting fees is larger than 0
-        require(amountMinusFee > 0, "R2");
+        require(amountMinusFee > 0, "R4");
         // emit event to notify oracles and initiate crosschain transfer
         emit Lock(destination, receiver, destination, receiver, amountMinusFee);
     }

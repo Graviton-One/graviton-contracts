@@ -42,6 +42,17 @@ interface IRelay is IOracleRouterV2 {
     /// @param _feePercent Percentage fee
     function setFees(string calldata destination, uint256 _feeMin, uint256 _feePercent) external;
 
+    /// @notice minimum amount of native tokens allowed to swap
+    function lowerLimit(string calldata destination) external view returns (uint256);
+
+    /// @notice maximum amount of native tokens allowed to swap
+    function upperLimit(string calldata destination) external view returns (uint256);
+
+    /// @notice Sets limits for a destination
+    /// @param _lowerLimit Minimum amount of native tokens allowed to swap
+    /// @param _upperLimit Maximum amount of native tokens allowed to swap
+    function setLimits(string calldata destination, uint256 _lowerLimit, uint256 _upperLimit) external;
+
     /// @notice topic0 of the event associated with initiating a relay transfer
     function relayTopic() external view returns (bytes32);
 
@@ -115,4 +126,14 @@ interface IRelay is IOracleRouterV2 {
     /// @param chain Name of blockchain whose permission is changed, i.e. "FTM", "PLG"
     /// @param newBool Updated permission
     event SetIsAllowedChain(string chain, bool newBool);
+
+    /// @notice Event emitted when fees are set via '#setFees'
+    /// @param _feeMin Minimum fee
+    /// @param _feePercent Percentage fee
+    event SetFees(string destination, uint256 _feeMin, uint256 _feePercent);
+
+    /// @notice Event emitted when limits are set via '#setLimits'
+    /// @param _lowerLimit Minimum fee
+    /// @param _upperLimit Percentage fee
+    event SetLimits(string destination, uint256 _lowerLimit, uint256 _upperLimit);
 }

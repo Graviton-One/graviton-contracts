@@ -16,7 +16,8 @@ import {
   SOL_CHAIN,
   expandTo18Decimals,
   RELAY_TOPIC,
-  MOCK_UUID
+  MOCK_UUID,
+  MAX_UINT
 } from "./shared/utilities"
 
 describe("Relay", () => {
@@ -88,10 +89,22 @@ describe("Relay", () => {
         .to.be.revertedWith("R1")
     })
 
+    it("fails if msg.value is smaller than lower limit", async () => {
+      await relay.setLimits(FTM_CHAIN, "100000", MAX_UINT)
+      await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+        .to.be.revertedWith("R2")
+    })
+
+    it("fails if msg.value is larger than upper limit", async () => {
+      await relay.setLimits(FTM_CHAIN, 0, "9999")
+      await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
+        .to.be.revertedWith("R3")
+    })
+
     it("fails if remainder after subtracting fees is equal to 0", async () => {
       await relay.setFees(FTM_CHAIN, "9969", 0)
       await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
-        .to.be.revertedWith("R2")
+        .to.be.revertedWith("R4")
     })
 
     it("fails if remainder after subtracting fees is less than 0", async () => {

@@ -59,6 +59,7 @@ import {
   BNB_CHAIN,
   PLG_CHAIN,
   expandTo18Decimals,
+  MAX_UINT
 } from "./utilities"
 
 import { Fixture } from "ethereum-waffle"
@@ -1040,7 +1041,9 @@ export const relayFixture: Fixture<RelayFixture> =
       uniswapV2Router01.address,
       token0.address,
       RELAY_TOPIC,
-      [FTM_CHAIN, BNB_CHAIN, PLG_CHAIN]
+      [FTM_CHAIN, BNB_CHAIN, PLG_CHAIN],
+      [[0,0],[0,0],[0,0]],
+      [[0,MAX_UINT],[0,MAX_UINT],[0,MAX_UINT]]
     )) as Relay
 
     const relayParserFactory = await ethers.getContractFactory(
