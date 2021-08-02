@@ -132,8 +132,8 @@ contract Relay is IRelay {
     }
 
     /// @inheritdoc IRelay
-    function reclaimERC20(IERC20 token) external override isOwner {
-        token.transfer(msg.sender, token.balanceOf(address(this)));
+    function reclaimERC20(IERC20 token, uint256 amount) external override isOwner {
+        token.transfer(msg.sender, amount);
     }
 
     /// @inheritdoc IRelay

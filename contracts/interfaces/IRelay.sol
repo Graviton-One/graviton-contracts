@@ -66,7 +66,7 @@ interface IRelay is IOracleRouterV2 {
     function lock(string calldata destination, bytes calldata receiver) external payable;
 
     /// @notice Transfers locked ERC20 tokens to owner
-    function reclaimERC20(IERC20 token) external;
+    function reclaimERC20(IERC20 token, uint256 amount) external;
 
     /// @notice Transfers locked native tokens to owner
     function reclaimNative(uint256 amount) external;

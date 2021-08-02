@@ -194,7 +194,7 @@ describe("Relay", () => {
 
   describe("#reclaimERC20", () => {
     it("fails if caller is not owner", async () => {
-      await expect(relay.connect(other).reclaimERC20(token0.address))
+      await expect(relay.connect(other).reclaimERC20(token0.address, "10000"))
           .to.be.revertedWith("ACW")
     })
 
@@ -204,7 +204,7 @@ describe("Relay", () => {
         await token0.transfer(relay.address, 10)
         expect(await token0.balanceOf(wallet.address)).to.eq(0)
         expect(await token0.balanceOf(relay.address)).to.eq(10)
-        await relay.reclaimERC20(token0.address)
+        await relay.reclaimERC20(token0.address, 10)
         expect(await token0.balanceOf(relay.address)).to.eq(0)
         expect(await token0.balanceOf(wallet.address)).to.eq(10)
     })
