@@ -200,18 +200,13 @@ contract Relay is IRelay {
             address[] memory path = new address[](2);
             path[0] = address(gton);
             path[1] = address(wnative);
-            address pair = IUniswapV2Factory(router.factory()).getPair(address(gton), address(wnative));
-            uint112 reserve0;
-            uint112 reserve1;
-            (reserve0, reserve1,) = IUniswapV2Pair(pair).getReserves();
-            uint256 quote = router.getAmountOut(amount, reserve0, reserve1);
-            uint[] memory amounts = router.swapExactTokensForTokens(amount, quote, path, address(this), block.timestamp+3600);
+            uint[] memory amounts = router.swapExactTokensForTokens(amount, 0, path, address(this), block.timestamp+3600);
             // unwrap to get native tokens
             wnative.withdraw(amounts[1]);
             // transfer native tokens to the receiver
             address payable user = payable(deserializeAddress(receiver, 0));
             user.transfer(amounts[1]);
-            emit DeliverRelay(user, amounts[0]);
+            emit DeliverRelay(user, amounts[0], amounts[1]);
         }
         emit RouteValue(uuid, chain, emiter, token, sender, receiver, amount);
     }

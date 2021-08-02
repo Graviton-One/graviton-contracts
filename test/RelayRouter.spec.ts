@@ -17,7 +17,7 @@ import {
   MOCK_UUID
 } from "./shared/utilities"
 
-describe("LockRouter", () => {
+describe("RelayRouter", () => {
   const [wallet, other, nebula] = waffle.provider.getWallets()
 
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
@@ -72,10 +72,10 @@ describe("LockRouter", () => {
           token0.address,
           wallet.address,
           wallet.address,
-          expandTo18Decimals(1)
+          "1000000000000000000"
       )
-      let balance3 = await wallet.getBalance()
-      expect(balance3).to.be.gt(balance1)
+      let balance2 = await wallet.getBalance()
+      expect(balance2).to.be.gt(balance1)
     })
 
     it("emits event", async () => {
@@ -91,9 +91,9 @@ describe("LockRouter", () => {
           token0.address,
           wallet.address,
           wallet.address,
-          expandTo18Decimals(1)
+          "1000000000000000000"
       )).to.emit(relayRouter, "DeliverRelay")
-        .withArgs(wallet.address, expandTo18Decimals(1))
+        .withArgs(wallet.address, "1000000000000000000", "474829737581559270")
     })
   })
 
@@ -108,7 +108,7 @@ describe("LockRouter", () => {
 
       let receiver = wallet.address
       let destination = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(BNB_CHAIN))
-      let amount = expandTo18Decimals(10)
+      let amount = "1000000000000000000"
       let destinationHash = ethers.utils.solidityKeccak256(["string"],[PLG_CHAIN])
       let receiverHash = ethers.utils.solidityKeccak256(["bytes"],[receiver])
       let dataEncoded = new ethers.utils.AbiCoder().encode(
@@ -142,7 +142,7 @@ describe("LockRouter", () => {
 
       let receiver = wallet.address
       let destination = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(BNB_CHAIN))
-      let amount = expandTo18Decimals(10)
+      let amount = "1000000000000000000"
       let destinationHash = ethers.utils.solidityKeccak256(["string"],[PLG_CHAIN])
       let receiverHash = ethers.utils.solidityKeccak256(["bytes"],[receiver])
       let dataEncoded = new ethers.utils.AbiCoder().encode(
@@ -161,7 +161,7 @@ describe("LockRouter", () => {
 
       await expect(relayParser.attachValue(value))
         .to.emit(relayRouter, "DeliverRelay")
-        .withArgs(wallet.address, expandTo18Decimals(10))
+        .withArgs(wallet.address, "1000000000000000000", "474829737581559270")
     })
   })
 })

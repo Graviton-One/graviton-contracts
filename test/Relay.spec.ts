@@ -102,13 +102,13 @@ describe("Relay", () => {
     })
 
     it("fails if remainder after subtracting fees is equal to 0", async () => {
-      await relay.setFees(FTM_CHAIN, "9969", 0)
+      await relay.setFees(FTM_CHAIN, "19939", 0)
       await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
         .to.be.revertedWith("R4")
     })
 
     it("fails if remainder after subtracting fees is less than 0", async () => {
-      await relay.setFees(FTM_CHAIN, "9970", 0)
+      await relay.setFees(FTM_CHAIN, "19940", 0)
       await expect(relay.lock(FTM_CHAIN, wallet.address, {value: "10000"}))
         .to.be.revertedWith('VM Exception while processing transaction: ' +
          'reverted with panic code 0x11 (Arithmetic operation underflowed ' +
@@ -120,11 +120,11 @@ describe("Relay", () => {
             .to.emit(relay, "CalculateFee")
             .withArgs(
               "10000",
-              "9969",
+              "19939",
               "0",
               "0",
               "0",
-              "9969"
+              "19939"
             )
             .to.emit(relay, "Lock")
             .withArgs(
@@ -132,9 +132,9 @@ describe("Relay", () => {
                 ethers.utils.solidityKeccak256(["bytes"], [wallet.address]),
                 FTM_CHAIN,
                 wallet.address.toLowerCase(),
-                "9969"
+                "19939"
             )
-      expect(await token0.balanceOf(relay.address)).to.eq("9969")
+      expect(await token0.balanceOf(relay.address)).to.eq("19939")
     })
 
     it("subtracts minimum fee when it's larger than percentage", async () => {
@@ -143,11 +143,11 @@ describe("Relay", () => {
             .to.emit(relay, "CalculateFee")
             .withArgs(
               "10000",
-              "9969",
+              "19939",
               "1000",
               "1000",
-              "99",
-              "8969"
+              "199",
+              "18939"
             )
     })
 
@@ -157,11 +157,11 @@ describe("Relay", () => {
             .to.emit(relay, "CalculateFee")
             .withArgs(
               "10000",
-              "9969",
+              "19939",
               "100",
               "2000",
-              "199",
-              "9770"
+              "398",
+              "19541"
             )
     })
 
@@ -171,11 +171,11 @@ describe("Relay", () => {
             .to.emit(relay, "CalculateFee")
             .withArgs(
               "10000",
-              "9969",
+              "19939",
               "100",
               "2000",
-              "199",
-              "9770"
+              "398",
+              "19541"
             )
     })
 
@@ -187,7 +187,7 @@ describe("Relay", () => {
                 ethers.utils.solidityKeccak256(["bytes"], [wallet.address]),
                 FTM_CHAIN,
                 wallet.address.toLowerCase(),
-                "9969"
+                "19939"
             )
     })
   })
@@ -237,7 +237,7 @@ describe("Relay", () => {
           token0.address,
           wallet.address,
           wallet.address,
-          expandTo18Decimals(1)
+          "1000000000000000000"
       )
       let balance3 = await wallet.getBalance()
       expect(balance3).to.be.gt(balance1)
@@ -255,9 +255,9 @@ describe("Relay", () => {
           token0.address,
           wallet.address,
           wallet.address,
-          expandTo18Decimals(1)
+          "1000000000000000000"
       )).to.emit(relay, "DeliverRelay")
-        .withArgs(wallet.address, expandTo18Decimals(1))
+        .withArgs(wallet.address, "1000000000000000000", "474829737581559270")
     })
 
     it("transfers native tokens", async () => {
@@ -269,7 +269,7 @@ describe("Relay", () => {
 
       let receiver = wallet.address
       let destination = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(BNB_CHAIN))
-      let amount = expandTo18Decimals(10)
+      let amount = "1000000000000000000"
       let destinationHash = ethers.utils.solidityKeccak256(["string"],[PLG_CHAIN])
       let receiverHash = ethers.utils.solidityKeccak256(["bytes"],[receiver])
       let dataEncoded = new ethers.utils.AbiCoder().encode(
@@ -300,7 +300,7 @@ describe("Relay", () => {
 
       let receiver = wallet.address
       let destination = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(BNB_CHAIN))
-      let amount = expandTo18Decimals(10)
+      let amount = "1000000000000000000"
       let destinationHash = ethers.utils.solidityKeccak256(["string"],[PLG_CHAIN])
       let receiverHash = ethers.utils.solidityKeccak256(["bytes"],[receiver])
       let dataEncoded = new ethers.utils.AbiCoder().encode(
@@ -319,7 +319,7 @@ describe("Relay", () => {
 
       await expect(relayParser.attachValue(value))
         .to.emit(relay, "DeliverRelay")
-        .withArgs(wallet.address, expandTo18Decimals(10))
+        .withArgs(wallet.address, "1000000000000000000", "474829737581559270")
     })
   })
 })

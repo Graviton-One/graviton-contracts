@@ -902,13 +902,14 @@ const uniswapFixture: Fixture<UniswapFixture> =
   const uniswapV2Pair = uniswapV2PairFactory.attach(pairAddress) as UniswapV2Pair
 
   let liquidity = expandTo18Decimals(10)
-  await token0.approve(uniswapV2Router01.address, liquidity)
+  let liquidityx2 = expandTo18Decimals(20)
+  await token0.approve(uniswapV2Router01.address, liquidityx2)
   let block = await wallet.provider.getBlock("latest")
   let timestamp = block.timestamp
   await uniswapV2Router01.addLiquidityETH(
     token0.address,
-    liquidity,
-    liquidity,
+    liquidityx2,
+    liquidityx2,
     liquidity,
     wallet.address,
     timestamp + 3600,

@@ -109,8 +109,9 @@ interface IRelay is IOracleRouterV2 {
     );
 
     /// @notice Event emitted when the relay tokens are traded for
-    /// `amount` of native tokens and are sent to the `user` via '#routeValue'
-    event DeliverRelay(address user, uint256 amount);
+    /// `amount0` of gton swaped for native tokens via '#routeValue'
+    /// `amount1` of native tokens sent to the `user` via '#routeValue'
+    event DeliverRelay(address user, uint256 amount0, uint256 amount1);
 
     /// @notice Event emitted when the RelayTopic is set via '#setRelayTopic'
     /// @param topicOld The previous topic
