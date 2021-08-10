@@ -29,6 +29,8 @@ contract OTC is IOTC {
     uint256 public override upperLimit;
     /// @inheritdoc IOTC
     uint256 public override setLimitsLast;
+    /// @inheritdoc IOTC
+    mapping (address => bool) public override canSetPrice;
 
     /// @inheritdoc IOTC
     mapping (address => uint256) public override startTime;
@@ -60,6 +62,7 @@ contract OTC is IOTC {
         upperLimit = _upperLimit;
         setPriceLast = _blockTimestamp();
         setLimitsLast = _blockTimestamp();
+        canSetPrice[msg.sender] = true;
     }
 
     /// @dev Returns the block timestamp. This method is overridden in tests.
@@ -75,11 +78,22 @@ contract OTC is IOTC {
     }
 
     /// @inheritdoc IOTC
-    function setPrice(uint256 _price) external override isOwner {
+    function setPrice(uint256 _price) external override {
         require(_blockTimestamp()-setPriceLast > DAY, "OTC1");
+        require(canSetPrice[msg.sender], "ACS");
         setPriceLast = _blockTimestamp();
         price = _price;
         emit SetPrice(_price);
+    }
+
+    /// @inheritdoc IOTC
+    function setCanSetPrice(address setter, bool _canSetPrice)
+        external
+        override
+        isOwner
+    {
+        canSetPrice[setter] = _canSetPrice;
+        emit SetCanSetPrice(msg.sender, setter, canSetPrice[setter]);
     }
 
     /// @inheritdoc IOTC

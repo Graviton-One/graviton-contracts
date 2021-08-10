@@ -29,6 +29,13 @@ interface IOTC {
     /// @notice updates price
     function setPrice(uint256 _price) external;
 
+    /// @notice Look up if `user` is allowed to set price
+    function canSetPrice(address user) external view returns (bool);
+
+    /// @notice Sets `setter` permission to open new governance balances to `_canSetPrice`
+    /// @dev Can only be called by the current owner.
+    function setCanSetPrice(address setter, bool _canSetPrice) external;
+
     /// @notice Minimum amount of GTON to exchange
     function lowerLimit() external view returns (uint256);
 
@@ -74,6 +81,16 @@ interface IOTC {
     /// @notice Event emitted when the owner updates the price via `#setPrice`.
     /// @param _price amount of quote tokens needed to receive one GTON
     event SetPrice(uint256 _price);
+
+    /// @notice Event emitted when the `setter` permission is updated via `#setCanSetPrice`
+    /// @param owner The owner account at the time of change
+    /// @param setter The account whose permission to set price was updated
+    /// @param newBool Updated permission
+    event SetCanSetPrice(
+        address indexed owner,
+        address indexed setter,
+        bool indexed newBool
+    );
 
     /// @notice Event emitted when the owner updates exchange limits via `#setLimits`.
     /// @param _lowerLimit minimum amount of GTON to exchange

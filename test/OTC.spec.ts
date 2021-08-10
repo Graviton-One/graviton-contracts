@@ -35,6 +35,8 @@ describe("OTC", () => {
     expect(await otc.claimed(other.address)).to.eq(0)
     expect(await otc.startTime(wallet.address)).to.eq(0)
     expect(await otc.startTime(other.address)).to.eq(0)
+    expect(await otc.canSetPrice(wallet.address)).to.eq(true)
+    expect(await otc.canSetPrice(other.address)).to.eq(false)
   })
 
   describe("#setOwner", () => {
@@ -60,12 +62,13 @@ describe("OTC", () => {
   })
 
   describe("#setPrice", () => {
-    it("fails if caller is not owner", async () => {
-      await expect(otc.connect(other).setPrice(500)).to.be.revertedWith("ACW")
+    it("fails if caller is not allowed to set price", async () => {
+        await otc.advanceTime(86401)
+        await expect(otc.connect(other).setPrice(500)).to.be.revertedWith("ACS")
     })
 
     it("fails if timestamp change since deployment is less than a day", async () => {
-      await expect(otc.setPrice(600)).to.be.revertedWith("OTC1")
+        await expect(otc.setPrice(600)).to.be.revertedWith("OTC1")
     })
 
     it("fails if timestamp change since last setPrice is less than a day", async () => {
@@ -104,6 +107,43 @@ describe("OTC", () => {
         await expect(otc.setPrice(600))
             .to.emit(otc, "SetPrice")
             .withArgs(600)
+    })
+  })
+
+  describe("#setCanSetPrice", () => {
+    it("fails if caller is not owner", async () => {
+      await expect(
+        otc.connect(other).setCanSetPrice(wallet.address, true)
+      ).to.be.reverted
+    })
+
+    it("sets permission to true", async () => {
+      await otc.setCanSetPrice(wallet.address, true)
+      expect(await otc.canSetPrice(wallet.address)).to.eq(true)
+    })
+
+    it("sets permission to true idempotent", async () => {
+      await otc.setCanSetPrice(wallet.address, true)
+      await otc.setCanSetPrice(wallet.address, true)
+      expect(await otc.canSetPrice(wallet.address)).to.eq(true)
+    })
+
+    it("sets permission to false", async () => {
+      await otc.setCanSetPrice(wallet.address, true)
+      await otc.setCanSetPrice(wallet.address, false)
+      expect(await otc.canSetPrice(wallet.address)).to.eq(false)
+    })
+
+    it("sets permission to false idempotent", async () => {
+      await otc.setCanSetPrice(wallet.address, false)
+      await otc.setCanSetPrice(wallet.address, false)
+      expect(await otc.canSetPrice(wallet.address)).to.eq(false)
+    })
+
+    it("emits event", async () => {
+      await expect(otc.setCanSetPrice(other.address, true))
+        .to.emit(otc, "SetCanSetPrice")
+        .withArgs(wallet.address, other.address, true)
     })
   })
 
