@@ -1047,7 +1047,7 @@ export const otcFixture: Fixture<OTCFixture> =
     const { token0, token1, token2 } = await tokensFixture()
 
     // transfer all USDC to the counterparty
-    token1.transfer(other.address, await token1.balanceOf(wallet.address))
+    await token1.transfer(other.address, await token1.balanceOf(wallet.address))
 
     // set GTON/USDC price, with two decimal precision, 5.00
     let price = 500;

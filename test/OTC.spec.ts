@@ -89,10 +89,11 @@ describe("OTC", () => {
         expect(await otc.price()).to.eq(700)
     })
 
-    it("exchanges for a new price", async () => {
+    it.only("exchanges for a new price", async () => {
         await otc.advanceTime(86401)
         await otc.setPrice(600)
         await token0.transfer(otc.address, expandTo18Decimals(10))
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(60))
         await otc.connect(other).exchange(expandTo18Decimals(10))
         expect(await token1.balanceOf(other.address)).to.eq(0)
         expect(await otc.balance(other.address)).to.eq(expandTo18Decimals(10))
@@ -170,7 +171,9 @@ describe("OTC", () => {
 
     it("transfers amount*price of quote tokens from caller,\
         increases caller's balance by amount, remembers startTime", async () => {
+        // wallet deposits 10 GTON
         await token0.transfer(otc.address, expandTo18Decimals(10))
+        // other buys 10 GTON for 50 USDC
         await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
         await otc.connect(other).exchange(expandTo18Decimals(10))
         expect(await token1.balanceOf(otc.address)).to.eq(expandTo18Decimals(50))
@@ -218,23 +221,25 @@ describe("OTC", () => {
 
     it("transfers BALANCE/NUMBER_CLAIMS base token to caller", async () => {
         // wallet deposits 10 GTON
-        token0.transfer(otc.address, expandTo18Decimals(10))
+        await token0.transfer(otc.address, expandTo18Decimals(10))
         // other buys 10 GTON for 50 USDC
-        otc.connect(other).exchange(expandTo18Decimals(10))
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
+        await otc.connect(other).exchange(expandTo18Decimals(10))
         // other claims after a day
-        otc.advanceTime(86400)
-        otc.connect(other).claim()
+        await otc.advanceTime(86401)
+        await otc.connect(other).claim()
         expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).div(12))
         expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12))
     })
 
     it("emits Claim event", async () => {
         // wallet deposits 10 GTON
-        token0.transfer(otc.address, expandTo18Decimals(10))
+        await token0.transfer(otc.address, expandTo18Decimals(10))
         // other buys 10 GTON for 50 USDC
-        otc.connect(other).exchange(expandTo18Decimals(10))
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
+        await otc.connect(other).exchange(expandTo18Decimals(10))
         // other claims after a day
-        otc.advanceTime(86400)
+        await otc.advanceTime(86401)
         await expect(otc.connect(other).claim())
             .to.emit(otc, "Claim")
             .withArgs(other.address, expandTo18Decimals(10).div(12))
@@ -250,11 +255,12 @@ describe("OTC", () => {
         // wallet has no USDC
         expect(await token1.balanceOf(wallet.address)).to.eq(expandTo18Decimals(0))
         // wallet deposits 10 GTON
-        token0.transfer(otc.address, expandTo18Decimals(10))
+        await token0.transfer(otc.address, expandTo18Decimals(10))
         // other buys 10 GTON for 50 USDC
-        otc.connect(other).exchange(expandTo18Decimals(10))
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
+        await otc.connect(other).exchange(expandTo18Decimals(10))
         // wallet collects all USDC
-        otc.collect()
+        await otc.collect()
         // wallet has 50 USDC
         expect(await token1.balanceOf(wallet.address)).to.eq(expandTo18Decimals(50))
     })
@@ -263,9 +269,10 @@ describe("OTC", () => {
         // wallet has no USDC
         expect(await token1.balanceOf(wallet.address)).to.eq(expandTo18Decimals(0))
         // wallet deposits 10 GTON
-        token0.transfer(otc.address, expandTo18Decimals(10))
+        await token0.transfer(otc.address, expandTo18Decimals(10))
         // other buys 10 GTON for 50 USDC
-        otc.connect(other).exchange(expandTo18Decimals(10))
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
+        await otc.connect(other).exchange(expandTo18Decimals(10))
         // wallet collects all USDC
         await expect(otc.collect())
             .to.emit(otc, "Collect")

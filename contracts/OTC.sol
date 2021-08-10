@@ -106,10 +106,6 @@ contract OTC is IOTC {
 
     /// @inheritdoc IOTC
     function claim() external override {
-        console.log(startTime[msg.sender]);
-        console.log(claimLast[msg.sender]);
-        console.log(_blockTimestamp());
-        console.log(_blockTimestamp()-claimLast[msg.sender]);
         require(_blockTimestamp()-startTime[msg.sender] > DAY, "OTC4");
         require(_blockTimestamp()-claimLast[msg.sender] > MONTH, "OTC5");
         uint256 timeMonths = (_blockTimestamp() - startTime[msg.sender]) / MONTH;
@@ -123,5 +119,8 @@ contract OTC is IOTC {
 
     /// @inheritdoc IOTC
     function collect() external override isOwner {
+        uint256 amount = quote.balanceOf(address(this));
+        quote.transfer(msg.sender, amount);
+        emit Collect(amount);
     }
 }
