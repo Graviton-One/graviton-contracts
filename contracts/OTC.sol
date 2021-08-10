@@ -95,9 +95,10 @@ contract OTC is IOTC {
     function exchange(uint256 amountBase) external override {
         require(balance[msg.sender] == 0, "OTC4");
         uint256 undistributed = base.balanceOf(address(this)) - balanceTotal;
-        require(amountBase >= undistributed, "OTC2");
+        require(amountBase <= undistributed, "OTC2");
         require(lowerLimit <= amountBase && amountBase <= upperLimit, "OTC3");
         balance[msg.sender] = amountBase;
+        balanceTotal += amountBase;
         uint256 amountQuote = amountBase*price/100;
         startTime[msg.sender] = _blockTimestamp();
         quote.transferFrom(msg.sender, address(this), amountQuote);
@@ -108,10 +109,12 @@ contract OTC is IOTC {
     function claim() external override {
         require(_blockTimestamp()-startTime[msg.sender] > DAY, "OTC4");
         require(_blockTimestamp()-claimLast[msg.sender] > MONTH, "OTC5");
-        uint256 timeMonths = (_blockTimestamp() - startTime[msg.sender]) / MONTH;
-        uint256 share = (100 * balance[msg.sender] * timeMonths / YEAR) / 100;
-        uint256 amount = share < balance[msg.sender] ? share : balance[msg.sender];
-        balance[msg.sender] -= amount;
+        uint256 timeMonths = ((_blockTimestamp() - startTime[msg.sender]) / MONTH);
+        uint256 months = 1 + (timeMonths < 11 ? timeMonths : 11);
+        uint256 share = (balance[msg.sender] * months) / 12;
+        uint256 claimable = share - claimed[msg.sender];
+        uint256 amount = claimable < balance[msg.sender] ? claimable : balance[msg.sender];
+        claimed[msg.sender] += amount;
         claimLast[msg.sender] = _blockTimestamp();
         base.transfer(msg.sender, amount);
         emit Claim(msg.sender, amount);

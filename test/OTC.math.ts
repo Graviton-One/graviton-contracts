@@ -7,12 +7,12 @@ import { expandTo18Decimals } from "./shared/utilities"
 import { expect } from "./shared/expect"
 
 describe("OTC", () => {
-  const [wallet, other] = waffle.provider.getWallets()
+  const [wallet, other, another] = waffle.provider.getWallets()
 
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
 
   before("create fixture loader", async () => {
-    loadFixture = waffle.createFixtureLoader([wallet, other])
+    loadFixture = waffle.createFixtureLoader([wallet, other, another])
   })
 
   let token0: TestERC20
@@ -25,94 +25,115 @@ describe("OTC", () => {
   })
 
   describe("#claim", () => {
+    it("transfers gton at once", async () => {
+        // buy 10 GTON for 50 USDC
+        await token0.transfer(otc.address, expandTo18Decimals(10))
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
+        await otc.connect(other).exchange(expandTo18Decimals(10))
+        // claim after a year and a day
+        await otc.advanceTime(86400)
+        await otc.advanceTime(86400*365)
+        await otc.connect(other).claim()
+
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10))
+        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10))
+    })
+
+    it("transfers all gton in two claims of 6 months", async () => {
+        // buy 10 GTON for 50 USDC
+        await token0.transfer(otc.address, expandTo18Decimals(10))
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
+        await otc.connect(other).exchange(expandTo18Decimals(10))
+
+        // claim after half a year
+        await otc.advanceTime((86400*7*4*6))
+        await otc.connect(other).claim()
+
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).mul(7).div(12))
+        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).mul(7).div(12))
+
+        // claim after half a year
+        await otc.advanceTime((86400*7*4*6))
+        await otc.connect(other).claim()
+
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10))
+        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10))
+    })
 
     it("transfers gton in 12 portions", async () => {
         // buy 10 GTON for 50 USDC
-        token1.transfer(other.address, expandTo18Decimals(50))
-        token0.transfer(otc.address, expandTo18Decimals(10))
-        otc.connect(other).exchange(expandTo18Decimals(10))
+        await token0.transfer(otc.address, expandTo18Decimals(10))
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
+        await otc.connect(other).exchange(expandTo18Decimals(10))
+
         // claim after a day
-        otc.advanceTime(86400)
-        otc.connect(other).claim()
+        await otc.advanceTime(86401)
+        await otc.connect(other).claim()
         expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).div(12))
         expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12))
 
-        otc.advanceTime(86400*365/12)
-        otc.connect(other).claim()
+        await otc.advanceTime(86400*365/12)
+        await otc.connect(other).claim()
 
         expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(2))
         expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(2))
 
-        otc.advanceTime(86400*365/12)
-        otc.connect(other).claim()
+        await otc.advanceTime(86400*365/12)
+        await otc.connect(other).claim()
 
-        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(3))
-        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(3))
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).mul(3).div(12))
+        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).mul(3).div(12))
 
-        otc.advanceTime(86400*365/12)
-        otc.connect(other).claim()
+        await otc.advanceTime(86400*365/12)
+        await otc.connect(other).claim()
 
-        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(4))
-        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(4))
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).mul(4).div(12))
+        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).mul(4).div(12))
 
-        otc.advanceTime(86400*365/12)
-        otc.connect(other).claim()
+        await otc.advanceTime(86400*365/12)
+        await otc.connect(other).claim()
 
-        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(5))
-        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(5))
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).mul(5).div(12))
+        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).mul(5).div(12))
 
-        otc.advanceTime(86400*365/12)
-        otc.connect(other).claim()
+        await otc.advanceTime(86400*365/12)
+        await otc.connect(other).claim()
 
-        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(6))
-        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(6))
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).mul(6).div(12))
+        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).mul(6).div(12))
 
-        otc.advanceTime(86400*365/12)
-        otc.connect(other).claim()
+        await otc.advanceTime(86400*365/12)
+        await otc.connect(other).claim()
 
-        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(7))
-        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(7))
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).mul(7).div(12))
+        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).mul(7).div(12))
 
-        otc.advanceTime(86400*365/12)
-        otc.connect(other).claim()
+        await otc.advanceTime(86400*365/12)
+        await otc.connect(other).claim()
 
-        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(8))
-        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(8))
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).mul(8).div(12))
+        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).mul(8).div(12))
 
-        otc.advanceTime(86400*365/12)
-        otc.connect(other).claim()
+        await otc.advanceTime(86400*365/12)
+        await otc.connect(other).claim()
 
-        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(9))
-        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(9))
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).mul(9).div(12))
+        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).mul(9).div(12))
 
-        otc.advanceTime(86400*365/12)
-        otc.connect(other).claim()
+        await otc.advanceTime(86400*365/12)
+        await otc.connect(other).claim()
 
-        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(10))
-        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(10))
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).mul(10).div(12))
+        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).mul(10).div(12))
 
-        otc.advanceTime(86400*365/12)
-        otc.connect(other).claim()
+        await otc.advanceTime(86400*365/12)
+        await otc.connect(other).claim()
 
-        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(11))
-        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(11))
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).mul(11).div(12))
+        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).mul(11).div(12))
 
-        otc.advanceTime(86400*365/12)
-        otc.connect(other).claim()
-
-        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10))
-        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10))
-
-    })
-    it("transfers all gton at once", async () => {
-        // buy 10 GTON for 50 USDC
-        token1.transfer(other.address, expandTo18Decimals(50))
-        token0.transfer(otc.address, expandTo18Decimals(10))
-        otc.connect(other).exchange(expandTo18Decimals(10))
-        // claim after a year and a day
-        otc.advanceTime(86400)
-        otc.advanceTime(86400*365)
-        otc.connect(other).claim()
+        await otc.advanceTime(86400*365/12)
+        await otc.connect(other).claim()
 
         expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10))
         expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10))

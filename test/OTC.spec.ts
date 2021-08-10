@@ -7,12 +7,12 @@ import { expandTo18Decimals, START_TIME } from "./shared/utilities"
 import { expect } from "./shared/expect"
 
 describe("OTC", () => {
-  const [wallet, other] = waffle.provider.getWallets()
+  const [wallet, other, another] = waffle.provider.getWallets()
 
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
 
   before("create fixture loader", async () => {
-    loadFixture = waffle.createFixtureLoader([wallet, other])
+    loadFixture = waffle.createFixtureLoader([wallet, other, another])
   })
 
   let token0: TestERC20
@@ -89,20 +89,21 @@ describe("OTC", () => {
         expect(await otc.price()).to.eq(700)
     })
 
-    it.only("exchanges for a new price", async () => {
+    it("exchanges for a new price", async () => {
         await otc.advanceTime(86401)
         await otc.setPrice(600)
         await token0.transfer(otc.address, expandTo18Decimals(10))
         await token1.connect(other).approve(otc.address, expandTo18Decimals(60))
         await otc.connect(other).exchange(expandTo18Decimals(10))
-        expect(await token1.balanceOf(other.address)).to.eq(0)
+        expect(await token1.balanceOf(otc.address)).to.eq(expandTo18Decimals(60))
         expect(await otc.balance(other.address)).to.eq(expandTo18Decimals(10))
     })
 
     it("emits a SetPrice event", async () => {
+        await otc.advanceTime(86401)
         await expect(otc.setPrice(600))
             .to.emit(otc, "SetPrice")
-            .withArgs(500, 600)
+            .withArgs(600)
     })
   })
 
@@ -124,12 +125,14 @@ describe("OTC", () => {
     })
 
     it("updates lower and upper limits for amount to exchange", async () => {
+        await otc.advanceTime(86401)
         await otc.setLimits(50, expandTo18Decimals(50))
         expect(await otc.lowerLimit()).to.eq(50)
         expect(await otc.upperLimit()).to.eq(expandTo18Decimals(50))
     })
 
     it("emits a SetLimits event", async () => {
+        await otc.advanceTime(86401)
         await expect(otc.setLimits(50, expandTo18Decimals(50)))
             .to.emit(otc, "SetLimits")
             .withArgs(50, expandTo18Decimals(50))
@@ -139,31 +142,36 @@ describe("OTC", () => {
   describe("#exchange", () => {
     it("fails if amount is less than contract balance", async () => {
         await expect(otc.connect(other).exchange(100))
-            .to.be.revertedWith("underflow")
+            .to.be.revertedWith("OTC2")
     })
 
     it("fails if amount is less than undistributed balance", async () => {
         await token0.transfer(otc.address, expandTo18Decimals(10))
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
         await otc.connect(other).exchange(expandTo18Decimals(1))
-        expect(await token0.balanceOf(otc.address)).to.eq(9)
-        await expect(otc.connect(other).exchange(10))
+        expect(await otc.balance(other.address)).to.eq(expandTo18Decimals(1))
+        await token1.connect(another).approve(otc.address, expandTo18Decimals(50))
+        await expect(otc.connect(another).exchange(expandTo18Decimals(10)))
             .to.be.revertedWith("OTC2")
     })
 
     it("fails if amount is smaller than lower limit", async () => {
-        await token0.transfer(otc.address, expandTo18Decimals(100))
-        await expect(otc.connect(other).exchange(100))
+        await token0.transfer(otc.address, expandTo18Decimals(99))
+        await token1.connect(other).approve(otc.address, 99*5)
+        await expect(otc.connect(other).exchange(99))
             .to.be.revertedWith("OTC3")
     })
 
     it("fails if amount is larger than upper limit", async () => {
-        await token0.transfer(otc.address, expandTo18Decimals(100))
-        await expect(otc.connect(other).exchange(expandTo18Decimals(100)))
+        await token0.transfer(otc.address, expandTo18Decimals(101))
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(505))
+        await expect(otc.connect(other).exchange(expandTo18Decimals(101)))
             .to.be.revertedWith("OTC3")
     })
 
     it("fails if account tries to exchange for the second time", async () => {
         await token0.transfer(otc.address, expandTo18Decimals(100))
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(100))
         await otc.connect(other).exchange(expandTo18Decimals(10))
         await expect(otc.connect(other).exchange(expandTo18Decimals(10)))
             .to.be.revertedWith("OTC4")
@@ -219,7 +227,7 @@ describe("OTC", () => {
         await expect(otc.connect(other).claim()).to.be.revertedWith("OTC5")
     })
 
-    it("transfers BALANCE/NUMBER_CLAIMS base token to caller", async () => {
+    it("transfers BALANCE/NUMBER_CLAIMS base token to caller after a day", async () => {
         // wallet deposits 10 GTON
         await token0.transfer(otc.address, expandTo18Decimals(10))
         // other buys 10 GTON for 50 USDC
@@ -232,17 +240,30 @@ describe("OTC", () => {
         expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12))
     })
 
+    it("transfers BALANCE/NUMBER_CLAIMS base token to caller after a month", async () => {
+        // wallet deposits 10 GTON
+        await token0.transfer(otc.address, expandTo18Decimals(10))
+        // other buys 10 GTON for 50 USDC
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
+        await otc.connect(other).exchange(expandTo18Decimals(10))
+        // other claims after a month
+        await otc.advanceTime(2419200)
+        await otc.connect(other).claim()
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(2))
+        expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10).div(12).mul(2))
+    })
+
     it("emits Claim event", async () => {
         // wallet deposits 10 GTON
         await token0.transfer(otc.address, expandTo18Decimals(10))
         // other buys 10 GTON for 50 USDC
         await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
         await otc.connect(other).exchange(expandTo18Decimals(10))
-        // other claims after a day
-        await otc.advanceTime(86401)
+        // other claims after a month
+        await otc.advanceTime(2419200)
         await expect(otc.connect(other).claim())
             .to.emit(otc, "Claim")
-            .withArgs(other.address, expandTo18Decimals(10).div(12))
+            .withArgs(other.address, expandTo18Decimals(10).div(12).mul(2))
     })
   })
 

@@ -1043,15 +1043,17 @@ interface OTCFixture extends TokensFixture {
 }
 
 export const otcFixture: Fixture<OTCFixture> =
-  async function ([wallet, other], provider): Promise<OTCFixture> {
+  async function ([wallet, other, another], provider): Promise<OTCFixture> {
     const { token0, token1, token2 } = await tokensFixture()
 
-    // transfer all USDC to the counterparty
-    await token1.transfer(other.address, await token1.balanceOf(wallet.address))
+    // distribute USDC between counterparties
+    let tokens1 = await token1.balanceOf(wallet.address)
+    await token1.transfer(other.address, tokens1.div(2))
+    await token1.transfer(another.address, tokens1.div(2))
 
     // set GTON/USDC price, with two decimal precision, 5.00
     let price = 500;
-    let lowerLimit = 0;
+    let lowerLimit = 100;
     let upperLimit = expandTo18Decimals(100);
 
     const otcFactory = await ethers.getContractFactory("MockOTC")
