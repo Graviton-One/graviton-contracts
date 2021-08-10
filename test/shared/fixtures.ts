@@ -23,7 +23,6 @@ import { VoterV2 } from "../../typechain/VoterV2"
 import { LPKeeperV2 } from "../../typechain/LPKeeperV2"
 import { LockRouter } from "../../typechain/LockRouter"
 import { OracleParserV2 } from "../../typechain/OracleParserV2"
-import { MockTimeClaimGTONV2 } from "../../typechain/MockTimeClaimGTONV2"
 import { SharesEB } from "../../typechain/SharesEB"
 import { SharesLP } from "../../typechain/SharesLP"
 import { BalanceAdderV2 } from "../../typechain/BalanceAdderV2"
@@ -42,6 +41,9 @@ import { RelayLock } from "../../typechain/RelayLock"
 import { RelayRouter } from "../../typechain/RelayRouter"
 import { RelayParser } from "../../typechain/RelayParser"
 import { Relay } from "../../typechain/Relay"
+
+import { OTC } from "../../typechain/OTC"
+import { MockOTC } from "../../typechain/MockOTC"
 
 import {
   makeValueImpact,
@@ -507,39 +509,6 @@ export const oracleParserV2Fixture: Fixture<OracleParserV2Fixture> =
   }
 
 type TokensAndVoterV2Fixture = TokensFixture & VoterV2Fixture
-
-interface ClaimGTONV2Fixture extends TokensAndVoterV2Fixture {
-  claimGTON: MockTimeClaimGTONV2
-}
-
-export const claimGTONV2Fixture: Fixture<ClaimGTONV2Fixture> = async function (
-  [wallet, other],
-  provider
-): Promise<ClaimGTONV2Fixture> {
-  const { token0, token1, token2 } = await tokensFixture()
-  const { balanceKeeper, voter } = await voterV2Fixture(
-    [wallet, other],
-    provider
-  )
-
-  const claimGTONFactory = await ethers.getContractFactory(
-    "MockTimeClaimGTONV2"
-  )
-  const claimGTON = (await claimGTONFactory.deploy(
-    token0.address,
-    wallet.address,
-    balanceKeeper.address,
-    voter.address
-  )) as MockTimeClaimGTONV2
-  return {
-    token0,
-    token1,
-    token2,
-    balanceKeeper,
-    voter,
-    claimGTON,
-  }
-}
 
 interface ClaimGTONPercentFixture extends TokensAndVoterV2Fixture {
   claimGTON: MockTimeClaimGTONPercent
@@ -1066,5 +1035,38 @@ export const relayFixture: Fixture<RelayFixture> =
       uniswapV2Pair,
       relayParser,
       relay
+    }
+  }
+
+interface OTCFixture extends TokensFixture {
+  otc: MockOTC
+}
+
+export const otcFixture: Fixture<OTCFixture> =
+  async function ([wallet, other], provider): Promise<OTCFixture> {
+    const { token0, token1, token2 } = await tokensFixture()
+
+    // transfer all USDC to the counterparty
+    token1.transfer(other.address, await token1.balanceOf(wallet.address))
+
+    // set GTON/USDC price, with two decimal precision, 5.00
+    let price = 500;
+    let lowerLimit = 0;
+    let upperLimit = expandTo18Decimals(100);
+
+    const otcFactory = await ethers.getContractFactory("MockOTC")
+    const otc = (await otcFactory.deploy(
+      token0.address,
+      token1.address,
+      price,
+      lowerLimit,
+      upperLimit
+    )) as MockOTC
+
+    return {
+      token0,
+      token1,
+      token2,
+      otc
     }
   }
