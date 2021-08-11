@@ -11,7 +11,7 @@ contract MockOTC is OTC {
         uint256 _price,
         uint256 _lowerLimit,
         uint256 _upperLimit,
-        uint256 _cliff,
+        uint256 _cliffAdmin,
         uint256 _vestingTimeAdmin,
         uint256 _numberOfTranchesAdmin
     ) OTC(
@@ -20,7 +20,7 @@ contract MockOTC is OTC {
         _price,
         _lowerLimit,
         _upperLimit,
-        _cliff,
+        _cliffAdmin,
         _vestingTimeAdmin,
         _numberOfTranchesAdmin
     ) {}

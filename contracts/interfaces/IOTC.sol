@@ -57,15 +57,6 @@ interface IOTC {
     /// @notice number of claims over vesting period to set for otc deals
     function numberOfTranchesAdmin() external view returns (uint256);
 
-    /// @notice claim starting time set for otc deal with `account`
-    function cliff(address account) external view returns (uint256);
-
-    /// @notice total vesting period set for otc deal with `account`
-    function vestingTime(address account) external view returns (uint256);
-
-    /// @notice number of claims over vesting period set for otc deal with `account`
-    function numberOfTranches(address account) external view returns (uint256);
-
     /// @notice last time vesting parameters were updated
     function setVestingParamsLast() external view returns (uint256);
 
@@ -82,20 +73,29 @@ interface IOTC {
     /// @notice beginning of vesting period for `account`
     function startTime(address account) external view returns (uint256);
 
+    /// @notice claim starting time set for otc deal with `account`
+    function cliff(address account) external view returns (uint256);
+
+    /// @notice total vesting period set for otc deal with `account`
+    function vestingTime(address account) external view returns (uint256);
+
+    /// @notice number of claims over vesting period set for otc deal with `account`
+    function numberOfTranches(address account) external view returns (uint256);
+
     /// @notice amount of GTON vested for `account`
     function balance(address account) external view returns (uint256);
-
-    /// @notice total amount of vested GTON
-    function balanceTotal() external view returns (uint256);
 
     /// @notice amount of GTON claimed by `account`
     function claimed(address account) external view returns (uint256);
 
-    /// @notice amount of GTON claimed by all accounts
-    function claimedTotal() external view returns (uint256);
-
     /// @notice last time GTON was claimed by `account`
     function claimLast(address account) external view returns (uint256);
+
+    /// @notice total amount of vested GTON
+    function balanceTotal() external view returns (uint256);
+
+    /// @notice amount of GTON claimed by all accounts
+    function claimedTotal() external view returns (uint256);
 
     /// @notice exchanges quote tokens for vested GTON according to a set price
     /// @param amount amount of GTON to exchange

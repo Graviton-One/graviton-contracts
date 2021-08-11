@@ -2,7 +2,6 @@
 pragma solidity >=0.8.0;
 
 import "./interfaces/IOTC.sol";
-import "hardhat/console.sol";
 
 /// @title OTC
 /// @author Anton Davydov - <fetsorn@gmail.com>
@@ -40,24 +39,21 @@ contract OTC is IOTC {
     /// @inheritdoc IOTC
     uint256 public override setVestingParamsLast;
 
-    /// @inheritdoc IOTC
-    mapping (address => uint256) public override startTime;
-    /// @inheritdoc IOTC
-    mapping (address => uint256) public override balance;
+    struct Deal {
+        uint256 startTime;
+        uint256 cliff;
+        uint256 vestingTime;
+        uint256 numberOfTranches;
+        uint256 balance;
+        uint256 claimed;
+        uint256 claimLast;
+    }
+
+    mapping(address => Deal) internal deals;
     /// @inheritdoc IOTC
     uint256 public override balanceTotal;
     /// @inheritdoc IOTC
-    mapping (address => uint256) public override claimed;
-    /// @inheritdoc IOTC
     uint256 public override claimedTotal;
-    /// @inheritdoc IOTC
-    mapping (address => uint256) public override claimLast;
-    /// @inheritdoc IOTC
-    mapping (address => uint256) public override cliff;
-    /// @inheritdoc IOTC
-    mapping (address => uint256) public override vestingTime;
-    /// @inheritdoc IOTC
-    mapping (address => uint256) public override numberOfTranches;
 
     uint256 DAY = 86400;
 
@@ -84,6 +80,41 @@ contract OTC is IOTC {
         cliffAdmin = _cliffAdmin;
         vestingTimeAdmin = _vestingTimeAdmin;
         numberOfTranchesAdmin = _numberOfTranchesAdmin;
+    }
+
+    /// @inheritdoc IOTC
+    function startTime(address account) external view override returns (uint256) {
+        return deals[account].startTime;
+    }
+
+    /// @inheritdoc IOTC
+    function cliff(address account) external view override returns (uint256) {
+        return deals[account].cliff;
+    }
+
+    /// @inheritdoc IOTC
+    function vestingTime(address account) external view override returns (uint256) {
+        return deals[account].vestingTime;
+    }
+
+    /// @inheritdoc IOTC
+    function numberOfTranches(address account) external view override returns (uint256) {
+        return deals[account].numberOfTranches;
+    }
+
+    /// @inheritdoc IOTC
+    function balance(address account) external view override returns (uint256) {
+        return deals[account].balance;
+    }
+
+    /// @inheritdoc IOTC
+    function claimed(address account) external view override returns (uint256) {
+        return deals[account].claimed;
+    }
+
+    /// @inheritdoc IOTC
+    function claimLast(address account) external view override returns (uint256) {
+        return deals[account].claimLast;
     }
 
     /// @dev Returns the block timestamp. This method is overridden in tests.
@@ -142,33 +173,41 @@ contract OTC is IOTC {
 
     /// @inheritdoc IOTC
     function exchange(uint256 amountBase) external override {
-        require(balance[msg.sender] == 0, "OTC4");
+        // assigning a struct from mapping once like deal.balance is cheaper
+        // than calling values from mapping multiple times like deals[msg.sender].balance
+        Deal memory deal = deals[msg.sender];
+        require(deal.balance == 0, "OTC4");
         uint256 undistributed = base.balanceOf(address(this)) - (balanceTotal - claimedTotal);
         require(amountBase <= undistributed, "OTC2");
         require(lowerLimit <= amountBase && amountBase <= upperLimit, "OTC3");
-        balance[msg.sender] = amountBase;
+        deal.balance = amountBase;
         balanceTotal += amountBase;
         uint256 amountQuote = amountBase*price/100;
-        cliff[msg.sender] = cliffAdmin;
-        vestingTime[msg.sender] = vestingTimeAdmin;
-        numberOfTranches[msg.sender] = numberOfTranchesAdmin;
-        startTime[msg.sender] = _blockTimestamp();
+        deal.cliff = cliffAdmin;
+        deal.vestingTime = vestingTimeAdmin;
+        deal.numberOfTranches = numberOfTranchesAdmin;
+        deal.startTime = _blockTimestamp();
+        deals[msg.sender] = deal;
         quote.transferFrom(msg.sender, address(this), amountQuote);
         emit Exchange(msg.sender, amountQuote, amountBase);
     }
 
     /// @inheritdoc IOTC
     function claim() external override {
-        uint256 interval = vestingTime[msg.sender] / numberOfTranches[msg.sender];
-        require(_blockTimestamp()-startTime[msg.sender] > cliff[msg.sender], "OTC4");
-        require(_blockTimestamp()-claimLast[msg.sender] > interval, "OTC5");
-        uint256 intervals = ((_blockTimestamp() - startTime[msg.sender]) / interval) + 1; // +1 to claim first interval right after the cliff
-        uint256 intervalsAccrued = intervals < numberOfTranches[msg.sender] ? intervals : numberOfTranches[msg.sender]; // min to cap after vesting time is over
-        uint256 claimable = ((balance[msg.sender] * intervalsAccrued) / numberOfTranches[msg.sender]) - claimed[msg.sender];
-        uint256 amount = claimable < balance[msg.sender] ? claimable : balance[msg.sender]; // min for leftovers
-        claimed[msg.sender] += amount;
+        // assigning a struct from mapping once like deal.balance is cheaper
+        // than calling values from mapping multiple times like deals[msg.sender].balance
+        Deal memory deal = deals[msg.sender];
+        uint256 interval = deal.vestingTime / deal.numberOfTranches;
+        require(_blockTimestamp()-deal.startTime > deal.cliff, "OTC4");
+        require(_blockTimestamp()-deal.claimLast > interval, "OTC5");
+        uint256 intervals = ((_blockTimestamp() - deal.startTime) / interval) + 1; // +1 to claim first interval right after the cliff
+        uint256 intervalsAccrued = intervals < deal.numberOfTranches ? intervals : deal.numberOfTranches; // min to cap after vesting time is over
+        uint256 claimable = ((deal.balance * intervalsAccrued) / deal.numberOfTranches) - deal.claimed;
+        uint256 amount = claimable < deal.balance ? claimable : deal.balance; // min for leftovers
+        deal.claimed += amount;
         claimedTotal += amount;
-        claimLast[msg.sender] = _blockTimestamp();
+        deal.claimLast = _blockTimestamp();
+        deals[msg.sender] = deal;
         base.transfer(msg.sender, amount);
         emit Claim(msg.sender, amount);
     }
