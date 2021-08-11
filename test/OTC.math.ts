@@ -25,7 +25,7 @@ describe("OTC", () => {
     ;({ token0, token1, token2, otc } = await loadFixture(otcFixture))
   })
 
-  describe("#claim 12 months", () => {
+  describe("#claim 12 months, cliff 1 day", () => {
     it("transfers gton at once", async () => {
         // buy 10 GTON for 50 USDC
         await token0.transfer(otc.address, expandTo18Decimals(10))
@@ -140,14 +140,15 @@ describe("OTC", () => {
         expect(await otc.claimed(other.address)).to.eq(expandTo18Decimals(10))
     })
   })
-  describe("#claim 4 weeks", () => {
+  describe("#claim 4 weeks, cliff 1 day", () => {
     beforeEach("deploy test contracts", async () => {
-        // set GTON/USDC price, with two decimal precision, 5.00
-        let price = 500;
-        let lowerLimit = 100;
-        let upperLimit = expandTo18Decimals(100);
-        let period = 86400*7*4;
-        let intervals = 4;
+
+        let price = 500
+        let lowerLimit = 100
+        let upperLimit = expandTo18Decimals(100)
+        let cliff = 86400
+        let period = 86400*7*4
+        let intervals = 4
 
         const otcFactory = await ethers.getContractFactory("MockOTC")
         otc4 = (await otcFactory.deploy(
@@ -156,6 +157,7 @@ describe("OTC", () => {
           price,
           lowerLimit,
           upperLimit,
+          cliff,
           period,
           intervals
         )) as MockOTC
@@ -218,12 +220,12 @@ describe("OTC", () => {
     })
   })
 
-  describe("#claim 3 days", () => {
+  describe("#claim 3 days, cliff 1 day", () => {
     it("transfers gton in 3 days", async () => {
 
         await otc.advanceTime(86400+1)
         let numberOfTranches = 3
-        await otc.setVestingParams(86400*2, numberOfTranches)
+        await otc.setVestingParams(86400, 86400*2, numberOfTranches)
 
         let liquidity = expandTo18Decimals(10);
 
@@ -255,12 +257,12 @@ describe("OTC", () => {
     })
   })
 
-  describe("#claim 3 hours", () => {
+  describe("#claim 3 hours, cliff 1 day", () => {
     it("transfers gton in 3 hours", async () => {
 
         await otc.advanceTime(86400+1)
         let numberOfTranches = 3
-        await otc.setVestingParams(3600*3, numberOfTranches)
+        await otc.setVestingParams(86400, 3600*3, numberOfTranches)
 
         let liquidity = expandTo18Decimals(10);
 

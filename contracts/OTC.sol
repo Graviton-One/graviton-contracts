@@ -32,6 +32,8 @@ contract OTC is IOTC {
     /// @inheritdoc IOTC
     uint256 public override setLimitsLast;
     /// @inheritdoc IOTC
+    uint256 public override cliffAdmin;
+    /// @inheritdoc IOTC
     uint256 public override vestingTimeAdmin;
     /// @inheritdoc IOTC
     uint256 public override numberOfTranchesAdmin;
@@ -51,6 +53,8 @@ contract OTC is IOTC {
     /// @inheritdoc IOTC
     mapping (address => uint256) public override claimLast;
     /// @inheritdoc IOTC
+    mapping (address => uint256) public override cliff;
+    /// @inheritdoc IOTC
     mapping (address => uint256) public override vestingTime;
     /// @inheritdoc IOTC
     mapping (address => uint256) public override numberOfTranches;
@@ -63,6 +67,7 @@ contract OTC is IOTC {
         uint256 _price,
         uint256 _lowerLimit,
         uint256 _upperLimit,
+        uint256 _cliffAdmin,
         uint256 _vestingTimeAdmin,
         uint256 _numberOfTranchesAdmin
     ) {
@@ -76,6 +81,7 @@ contract OTC is IOTC {
         setLimitsLast = _blockTimestamp();
         setVestingParamsLast = _blockTimestamp();
         canSetPrice[msg.sender] = true;
+        cliffAdmin = _cliffAdmin;
         vestingTimeAdmin = _vestingTimeAdmin;
         numberOfTranchesAdmin = _numberOfTranchesAdmin;
     }
@@ -121,12 +127,17 @@ contract OTC is IOTC {
     }
 
     /// @inheritdoc IOTC
-    function setVestingParams(uint256 _vestingTimeAdmin, uint256 _numberOfTranchesAdmin) external override isOwner {
+    function setVestingParams(
+        uint256 _cliffAdmin,
+        uint256 _vestingTimeAdmin,
+        uint256 _numberOfTranchesAdmin
+    ) external override isOwner {
         require(_blockTimestamp()-setVestingParamsLast > DAY, "OTC1");
         setVestingParamsLast = _blockTimestamp();
+        cliffAdmin = _cliffAdmin;
         vestingTimeAdmin = _vestingTimeAdmin;
         numberOfTranchesAdmin = _numberOfTranchesAdmin;
-        emit SetVestingParams(_vestingTimeAdmin, _numberOfTranchesAdmin);
+        emit SetVestingParams(_cliffAdmin, _vestingTimeAdmin, _numberOfTranchesAdmin);
     }
 
     /// @inheritdoc IOTC
@@ -138,6 +149,7 @@ contract OTC is IOTC {
         balance[msg.sender] = amountBase;
         balanceTotal += amountBase;
         uint256 amountQuote = amountBase*price/100;
+        cliff[msg.sender] = cliffAdmin;
         vestingTime[msg.sender] = vestingTimeAdmin;
         numberOfTranches[msg.sender] = numberOfTranchesAdmin;
         startTime[msg.sender] = _blockTimestamp();
@@ -148,9 +160,9 @@ contract OTC is IOTC {
     /// @inheritdoc IOTC
     function claim() external override {
         uint256 interval = vestingTime[msg.sender] / numberOfTranches[msg.sender];
-        require(_blockTimestamp()-startTime[msg.sender] > DAY, "OTC4");
+        require(_blockTimestamp()-startTime[msg.sender] > cliff[msg.sender], "OTC4");
         require(_blockTimestamp()-claimLast[msg.sender] > interval, "OTC5");
-        uint256 intervals = ((_blockTimestamp() - startTime[msg.sender]) / interval) + 1; // +1 to claim first interval in the first day
+        uint256 intervals = ((_blockTimestamp() - startTime[msg.sender]) / interval) + 1; // +1 to claim first interval right after the cliff
         uint256 intervalsAccrued = intervals < numberOfTranches[msg.sender] ? intervals : numberOfTranches[msg.sender]; // min to cap after vesting time is over
         uint256 claimable = ((balance[msg.sender] * intervalsAccrued) / numberOfTranches[msg.sender]) - claimed[msg.sender];
         uint256 amount = claimable < balance[msg.sender] ? claimable : balance[msg.sender]; // min for leftovers

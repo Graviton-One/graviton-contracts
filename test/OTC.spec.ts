@@ -183,31 +183,32 @@ describe("OTC", () => {
 
   describe("#setVestingParams", () => {
     it("fails if caller is not owner", async () => {
-      await expect(otc.connect(other).setVestingParams(86400*7*4, 4))
+      await expect(otc.connect(other).setVestingParams(86400, 86400*7*4, 4))
           .to.be.revertedWith("ACW")
     })
 
     it("fails if timestamp change since deployment is less than a day", async () => {
-      await expect(otc.setVestingParams(86400*7*4, 4)).to.be.revertedWith("OTC1")
+      await expect(otc.setVestingParams(86400, 86400*7*4, 4)).to.be.revertedWith("OTC1")
     })
 
     it("fails if timestamp change since last setVestingParams is less than a day", async () => {
         await otc.advanceTime(86401)
-        await otc.setVestingParams(0, expandTo18Decimals(100))
+        await otc.setVestingParams(86400, 86400*7*4, 4)
         await otc.advanceTime(86399)
-        await expect(otc.setVestingParams(86400*7*4, 4)).to.be.revertedWith("OTC1")
+        await expect(otc.setVestingParams(86400, 86400*7*4, 4)).to.be.revertedWith("OTC1")
     })
 
     it("updates lower and upper vestingParams for amount to exchange", async () => {
         await otc.advanceTime(86401)
-        await otc.setVestingParams(86400*7*4, 4)
+        await otc.setVestingParams(86400, 86400*7*4, 4)
+        expect(await otc.cliffAdmin()).to.eq(86400)
         expect(await otc.vestingTimeAdmin()).to.eq(86400*7*4)
         expect(await otc.numberOfTranchesAdmin()).to.eq(4)
     })
 
     it("applies new vesting params to otc exchange", async () => {
         await otc.advanceTime(86401)
-        await otc.setVestingParams(86400*7*4, 4)
+        await otc.setVestingParams(86400, 86400*7*4, 4)
 
         await token0.transfer(otc.address, expandTo18Decimals(10))
         // other buys 10 GTON for 50 USDC
@@ -220,9 +221,9 @@ describe("OTC", () => {
 
     it("emits a SetVestingParams event", async () => {
         await otc.advanceTime(86401)
-        await expect(otc.setVestingParams(86400*7*4, 4))
+        await expect(otc.setVestingParams(86400, 86400*7*4, 4))
             .to.emit(otc, "SetVestingParams")
-            .withArgs(86400*7*4, 4)
+            .withArgs(86400, 86400*7*4, 4)
     })
   })
 
@@ -286,7 +287,7 @@ describe("OTC", () => {
   })
 
   describe("#claim", () => {
-    it("first claim fails if timestamp change since exchange is less than a day", async () => {
+    it("first claim fails if timestamp change since exchange is less than cliff", async () => {
         // wallet deposits 10 GTON
         await token0.transfer(otc.address, expandTo18Decimals(10))
         // other buys 10 GTON for 50 USDC
@@ -314,7 +315,7 @@ describe("OTC", () => {
         await expect(otc.connect(other).claim()).to.be.revertedWith("OTC5")
     })
 
-    it("transfers BALANCE/NUMBER_CLAIMS base token to caller after a day", async () => {
+    it("transfers BALANCE/NUMBER_CLAIMS base token to caller after cliff", async () => {
         // wallet deposits 10 GTON
         await token0.transfer(otc.address, expandTo18Decimals(10))
         // other buys 10 GTON for 50 USDC

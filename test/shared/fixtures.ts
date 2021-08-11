@@ -1052,9 +1052,12 @@ export const otcFixture: Fixture<OTCFixture> =
     await token1.transfer(another.address, tokens1.div(2))
 
     // set GTON/USDC price, with two decimal precision, 5.00
-    let price = 500;
-    let lowerLimit = 100;
-    let upperLimit = expandTo18Decimals(100);
+    let price = 500
+    let lowerLimit = 100
+    let upperLimit = expandTo18Decimals(100)
+    let cliff = 86400
+    let vestingTime = 86400*7*4*12
+    let numberOfTranches = 12
 
     const otcFactory = await ethers.getContractFactory("MockOTC")
     const otc = (await otcFactory.deploy(
@@ -1063,8 +1066,9 @@ export const otcFixture: Fixture<OTCFixture> =
       price,
       lowerLimit,
       upperLimit,
-      86400*7*4*12,
-      12
+      cliff,
+      vestingTime,
+      numberOfTranches
     )) as MockOTC
 
     return {

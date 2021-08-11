@@ -48,23 +48,36 @@ interface IOTC {
     /// @notice updates exchange limits
     function setLimits(uint256 _lowerLimit, uint256 _upperLimit) external;
 
+    /// @notice claim starting time to set for otc deals
+    function cliffAdmin() external view returns (uint256);
+
     /// @notice total vesting period to set for otc deals
     function vestingTimeAdmin() external view returns (uint256);
 
-    /// @notice number of tranches to set for otc deals
+    /// @notice number of claims over vesting period to set for otc deals
     function numberOfTranchesAdmin() external view returns (uint256);
 
-    /// @notice total vesting period set for otc deal with account
+    /// @notice claim starting time set for otc deal with `account`
+    function cliff(address account) external view returns (uint256);
+
+    /// @notice total vesting period set for otc deal with `account`
     function vestingTime(address account) external view returns (uint256);
 
-    /// @notice number of tranches set for otc deal with account
+    /// @notice number of claims over vesting period set for otc deal with `account`
     function numberOfTranches(address account) external view returns (uint256);
 
     /// @notice last time vesting parameters were updated
     function setVestingParamsLast() external view returns (uint256);
 
     /// @notice updates vesting parameters
-    function setVestingParams(uint256 _vestingTimeAdmin, uint256 _numberOfTranchesAdmin) external;
+    /// @param _cliff claim starting time
+    /// @param _vestingTimeAdmin total vesting period
+    /// @param _numberOfTranchesAdmin number of claims over vesting period
+    function setVestingParams(
+        uint256 _cliff,
+        uint256 _vestingTimeAdmin,
+        uint256 _numberOfTranchesAdmin
+    ) external;
 
     /// @notice beginning of vesting period for `account`
     function startTime(address account) external view returns (uint256);
@@ -119,9 +132,10 @@ interface IOTC {
     event SetLimits(uint256 _lowerLimit, uint256 _upperLimit);
 
     /// @notice Event emitted when the owner updates vesting parameters via `#setVestingParams`.
+    /// @param _cliffAdmin claim starting time to set for otc deals
     /// @param _vestingTimeAdmin total vesting period to set for otc deals
     /// @param _numberOfTranchesAdmin number of tranches to set for otc deals
-    event SetVestingParams(uint256 _vestingTimeAdmin, uint256 _numberOfTranchesAdmin);
+    event SetVestingParams(uint256 _cliffAdmin, uint256 _vestingTimeAdmin, uint256 _numberOfTranchesAdmin);
 
     /// @notice Event emitted when OTC exchange is initiated via `#exchange`.
     /// @param account account that initiated the exchange
