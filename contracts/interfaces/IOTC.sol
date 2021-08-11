@@ -48,11 +48,23 @@ interface IOTC {
     /// @notice updates exchange limits
     function setLimits(uint256 _lowerLimit, uint256 _upperLimit) external;
 
-    /// @notice total period of vesting to claim
-    function period() external view returns (uint256);
+    /// @notice total vesting period to set for otc deals
+    function vestingTimeAdmin() external view returns (uint256);
 
-    /// @notice number of parts to claim
-    function parts() external view returns (uint256);
+    /// @notice number of tranches to set for otc deals
+    function numberOfTranchesAdmin() external view returns (uint256);
+
+    /// @notice total vesting period set for otc deal with account
+    function vestingTime(address account) external view returns (uint256);
+
+    /// @notice number of tranches set for otc deal with account
+    function numberOfTranches(address account) external view returns (uint256);
+
+    /// @notice last time vesting parameters were updated
+    function setVestingParamsLast() external view returns (uint256);
+
+    /// @notice updates vesting parameters
+    function setVestingParams(uint256 _vestingTimeAdmin, uint256 _numberOfTranchesAdmin) external;
 
     /// @notice beginning of vesting period for `account`
     function startTime(address account) external view returns (uint256);
@@ -65,6 +77,9 @@ interface IOTC {
 
     /// @notice amount of GTON claimed by `account`
     function claimed(address account) external view returns (uint256);
+
+    /// @notice amount of GTON claimed by all accounts
+    function claimedTotal() external view returns (uint256);
 
     /// @notice last time GTON was claimed by `account`
     function claimLast(address account) external view returns (uint256);
@@ -102,6 +117,11 @@ interface IOTC {
     /// @param _lowerLimit minimum amount of GTON to exchange
     /// @param _upperLimit maximum amount of GTON to exchange
     event SetLimits(uint256 _lowerLimit, uint256 _upperLimit);
+
+    /// @notice Event emitted when the owner updates vesting parameters via `#setVestingParams`.
+    /// @param _vestingTimeAdmin total vesting period to set for otc deals
+    /// @param _numberOfTranchesAdmin number of tranches to set for otc deals
+    event SetVestingParams(uint256 _vestingTimeAdmin, uint256 _numberOfTranchesAdmin);
 
     /// @notice Event emitted when OTC exchange is initiated via `#exchange`.
     /// @param account account that initiated the exchange

@@ -207,8 +207,84 @@ describe("OTC", () => {
         await otc4.advanceTime(86400*7+1)
         await otc4.connect(other).claim()
 
-        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10).mul(4).div(4))
-        expect(await otc4.claimed(other.address)).to.eq(expandTo18Decimals(10).mul(4).div(4))
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10))
+        expect(await otc4.claimed(other.address)).to.eq(expandTo18Decimals(10))
+
+        await otc4.advanceTime(86400*7+1)
+        await otc4.connect(other).claim()
+
+        expect(await token0.balanceOf(other.address)).to.eq(expandTo18Decimals(10))
+        expect(await otc4.claimed(other.address)).to.eq(expandTo18Decimals(10))
+    })
+  })
+
+  describe("#claim 3 days", () => {
+    it("transfers gton in 3 days", async () => {
+
+        await otc.advanceTime(86400+1)
+        let numberOfTranches = 3
+        await otc.setVestingParams(86400*2, numberOfTranches)
+
+        let liquidity = expandTo18Decimals(10);
+
+        // buy 10 GTON for 50 USDC
+        await token0.transfer(otc.address, liquidity)
+        await token1.connect(other).approve(otc.address, liquidity.mul(5))
+        await otc.connect(other).exchange(liquidity)
+
+        // claim after a day
+        await otc.advanceTime(86400+1)
+        await otc.connect(other).claim()
+
+        expect(await token0.balanceOf(other.address))
+            .to.eq(liquidity.mul(2).div(numberOfTranches))
+        expect(await otc.claimed(other.address))
+            .to.eq(liquidity.mul(2).div(numberOfTranches))
+
+        await otc.advanceTime(86400+1)
+        await otc.connect(other).claim()
+
+        expect(await token0.balanceOf(other.address)).to.eq(liquidity)
+        expect(await otc.claimed(other.address)).to.eq(liquidity)
+
+        await otc.advanceTime(86400+1)
+        await otc.connect(other).claim()
+
+        expect(await token0.balanceOf(other.address)).to.eq(liquidity)
+        expect(await otc.claimed(other.address)).to.eq(liquidity)
+    })
+  })
+
+  describe("#claim 3 hours", () => {
+    it("transfers gton in 3 hours", async () => {
+
+        await otc.advanceTime(86400+1)
+        let numberOfTranches = 3
+        await otc.setVestingParams(3600*3, numberOfTranches)
+
+        let liquidity = expandTo18Decimals(10);
+
+        // buy 10 GTON for 50 USDC
+        await token0.transfer(otc.address, liquidity)
+        await token1.connect(other).approve(otc.address, liquidity.mul(5))
+        await otc.connect(other).exchange(liquidity)
+
+        // claim after an hour
+        await otc.advanceTime(3600+1)
+        await expect(otc.connect(other).claim()).to.be.revertedWith("OTC4")
+
+        // claim after a day
+        await otc.advanceTime(86400+1)
+        await otc.connect(other).claim()
+
+        expect(await token0.balanceOf(other.address)).to.eq(liquidity)
+        expect(await otc.claimed(other.address)).to.eq(liquidity)
+
+        await otc.advanceTime(86400+1)
+        await otc.connect(other).claim()
+
+        expect(await token0.balanceOf(other.address)).to.eq(liquidity)
+        expect(await otc.claimed(other.address)).to.eq(liquidity)
     })
   })
 })

@@ -24,17 +24,19 @@ contract OTC is IOTC {
     /// @inheritdoc IOTC
     uint256 public override setPriceLast;
     /// @inheritdoc IOTC
+    mapping (address => bool) public override canSetPrice;
+    /// @inheritdoc IOTC
     uint256 public override lowerLimit;
     /// @inheritdoc IOTC
     uint256 public override upperLimit;
     /// @inheritdoc IOTC
     uint256 public override setLimitsLast;
     /// @inheritdoc IOTC
-    uint256 public override period;
+    uint256 public override vestingTimeAdmin;
     /// @inheritdoc IOTC
-    uint256 public override parts;
+    uint256 public override numberOfTranchesAdmin;
     /// @inheritdoc IOTC
-    mapping (address => bool) public override canSetPrice;
+    uint256 public override setVestingParamsLast;
 
     /// @inheritdoc IOTC
     mapping (address => uint256) public override startTime;
@@ -45,7 +47,13 @@ contract OTC is IOTC {
     /// @inheritdoc IOTC
     mapping (address => uint256) public override claimed;
     /// @inheritdoc IOTC
+    uint256 public override claimedTotal;
+    /// @inheritdoc IOTC
     mapping (address => uint256) public override claimLast;
+    /// @inheritdoc IOTC
+    mapping (address => uint256) public override vestingTime;
+    /// @inheritdoc IOTC
+    mapping (address => uint256) public override numberOfTranches;
 
     uint256 DAY = 86400;
 
@@ -55,8 +63,8 @@ contract OTC is IOTC {
         uint256 _price,
         uint256 _lowerLimit,
         uint256 _upperLimit,
-        uint256 _period,
-        uint256 _parts
+        uint256 _vestingTimeAdmin,
+        uint256 _numberOfTranchesAdmin
     ) {
         owner = msg.sender;
         base = _base;
@@ -66,9 +74,10 @@ contract OTC is IOTC {
         upperLimit = _upperLimit;
         setPriceLast = _blockTimestamp();
         setLimitsLast = _blockTimestamp();
+        setVestingParamsLast = _blockTimestamp();
         canSetPrice[msg.sender] = true;
-        period = _period;
-        parts = _parts;
+        vestingTimeAdmin = _vestingTimeAdmin;
+        numberOfTranchesAdmin = _numberOfTranchesAdmin;
     }
 
     /// @dev Returns the block timestamp. This method is overridden in tests.
@@ -112,14 +121,25 @@ contract OTC is IOTC {
     }
 
     /// @inheritdoc IOTC
+    function setVestingParams(uint256 _vestingTimeAdmin, uint256 _numberOfTranchesAdmin) external override isOwner {
+        require(_blockTimestamp()-setVestingParamsLast > DAY, "OTC1");
+        setVestingParamsLast = _blockTimestamp();
+        vestingTimeAdmin = _vestingTimeAdmin;
+        numberOfTranchesAdmin = _numberOfTranchesAdmin;
+        emit SetVestingParams(_vestingTimeAdmin, _numberOfTranchesAdmin);
+    }
+
+    /// @inheritdoc IOTC
     function exchange(uint256 amountBase) external override {
         require(balance[msg.sender] == 0, "OTC4");
-        uint256 undistributed = base.balanceOf(address(this)) - balanceTotal;
+        uint256 undistributed = base.balanceOf(address(this)) - (balanceTotal - claimedTotal);
         require(amountBase <= undistributed, "OTC2");
         require(lowerLimit <= amountBase && amountBase <= upperLimit, "OTC3");
         balance[msg.sender] = amountBase;
         balanceTotal += amountBase;
         uint256 amountQuote = amountBase*price/100;
+        vestingTime[msg.sender] = vestingTimeAdmin;
+        numberOfTranches[msg.sender] = numberOfTranchesAdmin;
         startTime[msg.sender] = _blockTimestamp();
         quote.transferFrom(msg.sender, address(this), amountQuote);
         emit Exchange(msg.sender, amountQuote, amountBase);
@@ -127,15 +147,15 @@ contract OTC is IOTC {
 
     /// @inheritdoc IOTC
     function claim() external override {
-        uint256 interval = period / parts;
+        uint256 interval = vestingTime[msg.sender] / numberOfTranches[msg.sender];
         require(_blockTimestamp()-startTime[msg.sender] > DAY, "OTC4");
         require(_blockTimestamp()-claimLast[msg.sender] > interval, "OTC5");
         uint256 intervals = ((_blockTimestamp() - startTime[msg.sender]) / interval) + 1; // +1 to claim first interval in the first day
-        uint256 intervalsAccrued = intervals < parts ? intervals : parts; // min to cap after period
-        uint256 claimable = ((balance[msg.sender] * intervalsAccrued) / parts) - claimed[msg.sender];
-        // TODO: check if possible
-        uint256 amount = claimable < balance[msg.sender] ? claimable : balance[msg.sender]; // min to account for possible leftovers
+        uint256 intervalsAccrued = intervals < numberOfTranches[msg.sender] ? intervals : numberOfTranches[msg.sender]; // min to cap after vesting time is over
+        uint256 claimable = ((balance[msg.sender] * intervalsAccrued) / numberOfTranches[msg.sender]) - claimed[msg.sender];
+        uint256 amount = claimable < balance[msg.sender] ? claimable : balance[msg.sender]; // min for leftovers
         claimed[msg.sender] += amount;
+        claimedTotal += amount;
         claimLast[msg.sender] = _blockTimestamp();
         base.transfer(msg.sender, amount);
         emit Claim(msg.sender, amount);

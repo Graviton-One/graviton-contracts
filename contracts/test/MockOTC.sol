@@ -11,9 +11,17 @@ contract MockOTC is OTC {
         uint256 _price,
         uint256 _lowerLimit,
         uint256 _upperLimit,
-        uint256 _period,
-        uint256 _parts
-    ) OTC(_base, _quote, _price, _lowerLimit, _upperLimit, _period, _parts) {}
+        uint256 _vestingTimeAdmin,
+        uint256 _numberOfTranchesAdmin
+    ) OTC(
+        _base,
+        _quote,
+        _price,
+        _lowerLimit,
+        _upperLimit,
+        _vestingTimeAdmin,
+        _numberOfTranchesAdmin
+    ) {}
 
     // Monday, October 5, 2020 9:00:00 AM GMT-05:00
     uint256 public time = 1601906400;

@@ -37,6 +37,8 @@ describe("OTC", () => {
     expect(await otc.startTime(other.address)).to.eq(0)
     expect(await otc.canSetPrice(wallet.address)).to.eq(true)
     expect(await otc.canSetPrice(other.address)).to.eq(false)
+    expect(await otc.vestingTimeAdmin()).to.eq(86400*7*4*12)
+    expect(await otc.numberOfTranchesAdmin()).to.eq(12)
   })
 
   describe("#setOwner", () => {
@@ -176,6 +178,51 @@ describe("OTC", () => {
         await expect(otc.setLimits(50, expandTo18Decimals(50)))
             .to.emit(otc, "SetLimits")
             .withArgs(50, expandTo18Decimals(50))
+    })
+  })
+
+  describe("#setVestingParams", () => {
+    it("fails if caller is not owner", async () => {
+      await expect(otc.connect(other).setVestingParams(86400*7*4, 4))
+          .to.be.revertedWith("ACW")
+    })
+
+    it("fails if timestamp change since deployment is less than a day", async () => {
+      await expect(otc.setVestingParams(86400*7*4, 4)).to.be.revertedWith("OTC1")
+    })
+
+    it("fails if timestamp change since last setVestingParams is less than a day", async () => {
+        await otc.advanceTime(86401)
+        await otc.setVestingParams(0, expandTo18Decimals(100))
+        await otc.advanceTime(86399)
+        await expect(otc.setVestingParams(86400*7*4, 4)).to.be.revertedWith("OTC1")
+    })
+
+    it("updates lower and upper vestingParams for amount to exchange", async () => {
+        await otc.advanceTime(86401)
+        await otc.setVestingParams(86400*7*4, 4)
+        expect(await otc.vestingTimeAdmin()).to.eq(86400*7*4)
+        expect(await otc.numberOfTranchesAdmin()).to.eq(4)
+    })
+
+    it("applies new vesting params to otc exchange", async () => {
+        await otc.advanceTime(86401)
+        await otc.setVestingParams(86400*7*4, 4)
+
+        await token0.transfer(otc.address, expandTo18Decimals(10))
+        // other buys 10 GTON for 50 USDC
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
+        await otc.connect(other).exchange(expandTo18Decimals(10))
+
+        expect(await otc.vestingTime(other.address)).to.eq(86400*7*4)
+        expect(await otc.numberOfTranches(other.address)).to.eq(4)
+    })
+
+    it("emits a SetVestingParams event", async () => {
+        await otc.advanceTime(86401)
+        await expect(otc.setVestingParams(86400*7*4, 4))
+            .to.emit(otc, "SetVestingParams")
+            .withArgs(86400*7*4, 4)
     })
   })
 
