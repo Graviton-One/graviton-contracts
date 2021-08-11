@@ -10,8 +10,10 @@ contract MockOTC is OTC {
         IERC20 _quote,
         uint256 _price,
         uint256 _lowerLimit,
-        uint256 _upperLimit
-    ) OTC(_base, _quote, _price, _lowerLimit, _upperLimit) {}
+        uint256 _upperLimit,
+        uint256 _period,
+        uint256 _parts
+    ) OTC(_base, _quote, _price, _lowerLimit, _upperLimit, _period, _parts) {}
 
     // Monday, October 5, 2020 9:00:00 AM GMT-05:00
     uint256 public time = 1601906400;

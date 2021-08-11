@@ -30,6 +30,10 @@ contract OTC is IOTC {
     /// @inheritdoc IOTC
     uint256 public override setLimitsLast;
     /// @inheritdoc IOTC
+    uint256 public override period;
+    /// @inheritdoc IOTC
+    uint256 public override parts;
+    /// @inheritdoc IOTC
     mapping (address => bool) public override canSetPrice;
 
     /// @inheritdoc IOTC
@@ -44,15 +48,15 @@ contract OTC is IOTC {
     mapping (address => uint256) public override claimLast;
 
     uint256 DAY = 86400;
-    uint256 MONTH = DAY*7*4;
-    uint256 YEAR = DAY*365;
 
     constructor(
         IERC20 _base,
         IERC20 _quote,
         uint256 _price,
         uint256 _lowerLimit,
-        uint256 _upperLimit
+        uint256 _upperLimit,
+        uint256 _period,
+        uint256 _parts
     ) {
         owner = msg.sender;
         base = _base;
@@ -63,6 +67,8 @@ contract OTC is IOTC {
         setPriceLast = _blockTimestamp();
         setLimitsLast = _blockTimestamp();
         canSetPrice[msg.sender] = true;
+        period = _period;
+        parts = _parts;
     }
 
     /// @dev Returns the block timestamp. This method is overridden in tests.
@@ -121,13 +127,14 @@ contract OTC is IOTC {
 
     /// @inheritdoc IOTC
     function claim() external override {
+        uint256 interval = period / parts;
         require(_blockTimestamp()-startTime[msg.sender] > DAY, "OTC4");
-        require(_blockTimestamp()-claimLast[msg.sender] > MONTH, "OTC5");
-        uint256 timeMonths = ((_blockTimestamp() - startTime[msg.sender]) / MONTH);
-        uint256 months = 1 + (timeMonths < 11 ? timeMonths : 11);
-        uint256 share = (balance[msg.sender] * months) / 12;
-        uint256 claimable = share - claimed[msg.sender];
-        uint256 amount = claimable < balance[msg.sender] ? claimable : balance[msg.sender];
+        require(_blockTimestamp()-claimLast[msg.sender] > interval, "OTC5");
+        uint256 intervals = ((_blockTimestamp() - startTime[msg.sender]) / interval) + 1; // +1 to claim first interval in the first day
+        uint256 intervalsAccrued = intervals < parts ? intervals : parts; // min to cap after period
+        uint256 claimable = ((balance[msg.sender] * intervalsAccrued) / parts) - claimed[msg.sender];
+        // TODO: check if possible
+        uint256 amount = claimable < balance[msg.sender] ? claimable : balance[msg.sender]; // min to account for possible leftovers
         claimed[msg.sender] += amount;
         claimLast[msg.sender] = _blockTimestamp();
         base.transfer(msg.sender, amount);

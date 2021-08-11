@@ -48,6 +48,12 @@ interface IOTC {
     /// @notice updates exchange limits
     function setLimits(uint256 _lowerLimit, uint256 _upperLimit) external;
 
+    /// @notice total period of vesting to claim
+    function period() external view returns (uint256);
+
+    /// @notice number of parts to claim
+    function parts() external view returns (uint256);
+
     /// @notice beginning of vesting period for `account`
     function startTime(address account) external view returns (uint256);
 

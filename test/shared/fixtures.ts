@@ -1062,7 +1062,9 @@ export const otcFixture: Fixture<OTCFixture> =
       token1.address,
       price,
       lowerLimit,
-      upperLimit
+      upperLimit,
+      86400*7*4*12,
+      12
     )) as MockOTC
 
     return {
