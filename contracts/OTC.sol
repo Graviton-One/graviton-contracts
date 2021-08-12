@@ -173,7 +173,7 @@ contract OTC is IOTC {
 
     /// @inheritdoc IOTC
     function exchange(uint256 amountBase) external override {
-        // assigning a struct from mapping once like deal.balance is cheaper
+        // assigning a struct is cheaper
         // than calling values from mapping multiple times like deals[msg.sender].balance
         Deal memory deal = deals[msg.sender];
         require(deal.balance == 0, "OTC4");
@@ -194,7 +194,7 @@ contract OTC is IOTC {
 
     /// @inheritdoc IOTC
     function claim() external override {
-        // assigning a struct from mapping once like deal.balance is cheaper
+        // assigning a struct is cheaper
         // than calling values from mapping multiple times like deals[msg.sender].balance
         Deal memory deal = deals[msg.sender];
         uint256 interval = deal.vestingTime / deal.numberOfTranches;
@@ -202,8 +202,7 @@ contract OTC is IOTC {
         require(_blockTimestamp()-deal.claimLast > interval, "OTC5");
         uint256 intervals = ((_blockTimestamp() - deal.startTime) / interval) + 1; // +1 to claim first interval right after the cliff
         uint256 intervalsAccrued = intervals < deal.numberOfTranches ? intervals : deal.numberOfTranches; // min to cap after vesting time is over
-        uint256 claimable = ((deal.balance * intervalsAccrued) / deal.numberOfTranches) - deal.claimed;
-        uint256 amount = claimable < deal.balance ? claimable : deal.balance; // min for leftovers
+        uint256 amount = ((deal.balance * intervalsAccrued) / deal.numberOfTranches) - deal.claimed;
         deal.claimed += amount;
         claimedTotal += amount;
         deal.claimLast = _blockTimestamp();
