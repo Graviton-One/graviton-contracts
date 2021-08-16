@@ -29,8 +29,8 @@ describe("OTC", () => {
     expect(await otc.base()).to.eq(token0.address)
     expect(await otc.quote()).to.eq(token1.address)
     expect(await otc.price()).to.eq(500)
-    expect(await otc.balance(wallet.address)).to.eq(0)
-    expect(await otc.balance(other.address)).to.eq(0)
+    expect(await otc.vested(wallet.address)).to.eq(0)
+    expect(await otc.vested(other.address)).to.eq(0)
     expect(await otc.claimed(wallet.address)).to.eq(0)
     expect(await otc.claimed(other.address)).to.eq(0)
     expect(await otc.startTime(wallet.address)).to.eq(0)
@@ -101,7 +101,7 @@ describe("OTC", () => {
         await token1.connect(other).approve(otc.address, expandTo18Decimals(60))
         await otc.connect(other).exchange(expandTo18Decimals(10))
         expect(await token1.balanceOf(otc.address)).to.eq(expandTo18Decimals(60))
-        expect(await otc.balance(other.address)).to.eq(expandTo18Decimals(10))
+        expect(await otc.vested(other.address)).to.eq(expandTo18Decimals(10))
     })
 
     it("emits a SetPrice event", async () => {
@@ -237,7 +237,7 @@ describe("OTC", () => {
         await token0.transfer(otc.address, expandTo18Decimals(10))
         await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
         await otc.connect(other).exchange(expandTo18Decimals(1))
-        expect(await otc.balance(other.address)).to.eq(expandTo18Decimals(1))
+        expect(await otc.vested(other.address)).to.eq(expandTo18Decimals(1))
         await token1.connect(another).approve(otc.address, expandTo18Decimals(50))
         await expect(otc.connect(another).exchange(expandTo18Decimals(10)))
             .to.be.revertedWith("OTC2")
@@ -273,7 +273,7 @@ describe("OTC", () => {
         await token1.connect(other).approve(otc.address, expandTo18Decimals(50))
         await otc.connect(other).exchange(expandTo18Decimals(10))
         expect(await token1.balanceOf(otc.address)).to.eq(expandTo18Decimals(50))
-        expect(await otc.balance(other.address)).to.eq(expandTo18Decimals(10))
+        expect(await otc.vested(other.address)).to.eq(expandTo18Decimals(10))
         expect(await otc.startTime(other.address)).to.eq(START_TIME)
     })
 
