@@ -18,6 +18,8 @@ contract OTC is IOTC {
     IERC20 public override base;
     /// @inheritdoc IOTC
     IERC20 public override quote;
+
+    uint256 public quoteDecimals;
     /// @inheritdoc IOTC
     uint256 public override price;
     /// @inheritdoc IOTC
@@ -62,6 +64,7 @@ contract OTC is IOTC {
     constructor(
         IERC20 _base,
         IERC20 _quote,
+        uint256 _quoteDecimals,
         uint256 _price,
         uint256 _lowerLimit,
         uint256 _upperLimit,
@@ -73,6 +76,7 @@ contract OTC is IOTC {
         owner = msg.sender;
         base = _base;
         quote = _quote;
+        quoteDecimals = _quoteDecimals;
         price = _price;
         lowerLimit = _lowerLimit;
         upperLimit = _upperLimit;
@@ -186,7 +190,7 @@ contract OTC is IOTC {
         require(lowerLimit <= amountBase && amountBase <= upperLimit, "OTC3");
         deal.vested = amountBase;
         vestedTotal += amountBase;
-        uint256 amountQuote = amountBase*price/100;
+        uint256 amountQuote = ((amountBase*price)/100)/(10**(18-quoteDecimals));
         deal.cliff = cliffAdmin;
         deal.vestingTime = vestingTimeAdmin;
         deal.numberOfTranches = numberOfTranchesAdmin;

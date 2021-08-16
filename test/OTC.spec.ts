@@ -1,5 +1,6 @@
 import { ethers, waffle } from "hardhat"
 import { TestERC20 } from "../typechain/TestERC20"
+import { TestUSDC } from "../typechain/TestUSDC"
 import { MockOTC } from "../typechain/MockOTC"
 import { otcFixture } from "./shared/fixtures"
 import { expandTo18Decimals, START_TIME } from "./shared/utilities"
@@ -18,10 +19,11 @@ describe("OTC", () => {
   let token0: TestERC20
   let token1: TestERC20
   let token2: TestERC20
+  let usdc: TestUSDC
   let otc: MockOTC
 
   beforeEach("deploy test contracts", async () => {
-    ;({ token0, token1, token2, otc } = await loadFixture(otcFixture))
+    ;({ token0, token1, token2, usdc, otc } = await loadFixture(otcFixture))
   })
 
   it("constructor initializes variables", async () => {

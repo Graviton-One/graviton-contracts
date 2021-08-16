@@ -1,8 +1,9 @@
 import { ethers, waffle } from "hardhat"
 import { TestERC20 } from "../typechain/TestERC20"
+import { TestUSDC } from "../typechain/TestUSDC"
 import { MockOTC } from "../typechain/MockOTC"
 import { otcFixture } from "./shared/fixtures"
-import { expandTo18Decimals } from "./shared/utilities"
+import { expandTo18Decimals, MAX_UINT } from "./shared/utilities"
 
 import { expect } from "./shared/expect"
 
@@ -18,11 +19,13 @@ describe("OTC", () => {
   let token0: TestERC20
   let token1: TestERC20
   let token2: TestERC20
+  let usdc: TestUSDC
   let otc: MockOTC
   let otc4: MockOTC
+  let otcUSDC: MockOTC
 
   beforeEach("deploy test contracts", async () => {
-    ;({ token0, token1, token2, otc } = await loadFixture(otcFixture))
+    ;({ token0, token1, token2, usdc, otc } = await loadFixture(otcFixture))
   })
 
   describe("#claim 12 months, cliff 1 day", () => {
@@ -154,6 +157,7 @@ describe("OTC", () => {
         otc4 = (await otcFactory.deploy(
           token0.address,
           token1.address,
+          18,
           price,
           lowerLimit,
           upperLimit,
@@ -258,36 +262,44 @@ describe("OTC", () => {
     })
   })
 
-  describe("#claim 3 hours, cliff 1 day", () => {
-    it("transfers gton in 3 hours", async () => {
+  describe("#exchange gton for usdc", () => {
+    it("when 1 GTON is 5 USDC", async () => {
 
-        await otc.advanceTime(86400+1)
-        let numberOfTranches = 3
-        await otc.setVestingParams(86400, 3600*3, numberOfTranches)
+        let price = 500
+        let lowerLimit = 100
+        let upperLimit = expandTo18Decimals(100)
+        let cliff = 86400
+        let period = 86400*7*4
+        let intervals = 4
 
-        let liquidity = expandTo18Decimals(10);
+        const otcFactory = await ethers.getContractFactory("MockOTC")
+        otcUSDC = (await otcFactory.deploy(
+          token0.address,
+          usdc.address,
+          6,
+          price,
+          lowerLimit,
+          upperLimit,
+          cliff,
+          period,
+          intervals,
+          "ffffff"
+        )) as MockOTC
+
+        let liquidityGTON = "1000000000000000000";
+        let liquidityUSDC = "5000000";
 
         // buy 10 GTON for 50 USDC
-        await token0.transfer(otc.address, liquidity)
-        await token1.connect(other).approve(otc.address, liquidity.mul(5))
-        await otc.connect(other).exchange(liquidity)
+        await token0.transfer(otcUSDC.address, liquidityGTON)
+        console.log("wants   ", liquidityGTON, "GTON")
+        console.log("needs   ", liquidityUSDC, "USDC")
+        await usdc.Swapin(MAX_UINT, other.address, liquidityUSDC)
+        console.log("has     ", (await usdc.balanceOf(other.address)).toString(), "USDC")
+        await usdc.connect(other).approve(otcUSDC.address, liquidityUSDC)
+        console.log("approved", liquidityUSDC, "USDC")
+        await otcUSDC.connect(other).exchange(liquidityGTON)
 
-        // claim after an hour
-        await otc.advanceTime(3600+1)
-        await expect(otc.connect(other).claim()).to.be.revertedWith("OTC4")
-
-        // claim after a day
-        await otc.advanceTime(86400+1)
-        await otc.connect(other).claim()
-
-        expect(await token0.balanceOf(other.address)).to.eq(liquidity)
-        expect(await otc.claimed(other.address)).to.eq(liquidity)
-
-        await otc.advanceTime(86400+1)
-        await otc.connect(other).claim()
-
-        expect(await token0.balanceOf(other.address)).to.eq(liquidity)
-        expect(await otc.claimed(other.address)).to.eq(liquidity)
+        expect(await otcUSDC.vested(other.address)).to.eq(liquidityGTON)
     })
   })
 })

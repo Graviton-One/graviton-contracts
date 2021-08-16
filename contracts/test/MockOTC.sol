@@ -8,6 +8,7 @@ contract MockOTC is OTC {
     constructor(
         IERC20 _base,
         IERC20 _quote,
+        uint256 _quoteDecimals,
         uint256 _price,
         uint256 _lowerLimit,
         uint256 _upperLimit,
@@ -18,6 +19,7 @@ contract MockOTC is OTC {
     ) OTC(
         _base,
         _quote,
+        _quoteDecimals,
         _price,
         _lowerLimit,
         _upperLimit,

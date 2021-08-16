@@ -44,6 +44,7 @@ import { Relay } from "../../typechain/Relay"
 
 import { OTC } from "../../typechain/OTC"
 import { MockOTC } from "../../typechain/MockOTC"
+import { TestUSDC } from "../../typechain/TestUSDC"
 
 import {
   makeValueImpact,
@@ -1038,13 +1039,34 @@ export const relayFixture: Fixture<RelayFixture> =
     }
   }
 
-interface OTCFixture extends TokensFixture {
+interface USDCFixture {
+  usdc: TestUSDC
+}
+
+async function usdcFixture(owner: string): Promise<USDCFixture> {
+  const tokenFactory = await ethers.getContractFactory("TestUSDC")
+
+  let name = "USDC"
+  let symbol = "USDC"
+  let decimals = 6
+
+  const usdc = (await tokenFactory.deploy(
+    name, symbol, decimals, owner
+  )) as TestUSDC
+
+  return { usdc }
+}
+
+type USDCAndTokensFixture = USDCFixture & TokensFixture
+
+interface OTCFixture extends USDCAndTokensFixture {
   otc: MockOTC
 }
 
 export const otcFixture: Fixture<OTCFixture> =
   async function ([wallet, other, another], provider): Promise<OTCFixture> {
     const { token0, token1, token2 } = await tokensFixture()
+    const { usdc } = await usdcFixture(wallet.address)
 
     // distribute USDC between counterparties
     let tokens1 = await token1.balanceOf(wallet.address)
@@ -1063,6 +1085,7 @@ export const otcFixture: Fixture<OTCFixture> =
     const otc = (await otcFactory.deploy(
       token0.address,
       token1.address,
+      18,
       price,
       lowerLimit,
       upperLimit,
@@ -1076,6 +1099,7 @@ export const otcFixture: Fixture<OTCFixture> =
       token0,
       token1,
       token2,
+      usdc,
       otc
     }
   }
