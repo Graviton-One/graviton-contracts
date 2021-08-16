@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 import "./IERC20.sol";
 
 /// @title The interface for Graviton OTC contract
-/// @notice Exchanges ERC20 token for GTON for with a linear unlocking schedule
+/// @notice Exchanges ERC20 token for GTON with a linear unlocking schedule
 /// @author Anton Davydov - <fetsorn@gmail.com>
 interface IOTC {
     /// @notice User that can grant access permissions and perform privileged actions
