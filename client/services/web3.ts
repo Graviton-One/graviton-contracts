@@ -509,17 +509,25 @@ export default class Invoker {
         const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
         return await contract.claimLast(address)
     }
-    async claimable(otc: string, address: string): Promise<BigNumber> {
-        // const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
-        // return await contract.claimable(address)
-        return BigNumber.from(0)
+    async balanceGTONotc(gton: string, otc: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(gton, IERC20ABI, this.signer) as IERC20
+        return await contract.balanceOf(otc)
+    }
+    async vestedTotal(otc: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.vestedTotal()
     }
     async approve(token: string, otc: string, amount: string) {
+        console.log("approve", token, otc, amount)
         const contract = new ethers.Contract(token, IERC20ABI, this.signer) as IERC20
-        return await contract.approve(otc, amount)
+        await contract.approve(otc, amount)
     }
     async exchange(otc: string, amount: string) {
         const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
-        return await contract.exchange(amount)
+        await contract.exchange(amount)
+    }
+    async claim(otc: string) {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        await contract.claim()
     }
 }

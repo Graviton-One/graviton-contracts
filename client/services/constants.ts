@@ -27,7 +27,8 @@ export interface Fantom {
     consul2: string,
     consul3: string,
     otc: string,
-    usdc: string
+    usdc: string,
+    busd: string
 }
 export interface Chain {
     provider: ethers.providers.JsonRpcProvider
@@ -38,7 +39,8 @@ export interface Chain {
     lockLP: string,
     relayLock: string,
     otc: string,
-    usdc: string
+    usdc: string,
+    busd: string
 }
 
 export const FTM: Fantom = {
@@ -67,8 +69,9 @@ export const FTM: Fantom = {
     consul1: '0x6ac9bd01C19aBfF57119e859652D4A2a5e4f9217',
     consul2: '0xD13a6Cd149336A323f925Fd5B660e322E048558e',
     consul3: '0x977fa57A02cc421E26099a4F499605cb7Dd853d2',
-    otc: '0x8a0c5FDe945048A12ae69da0dDe54506BdCAAe09',
-    usdc: '0x04068da6c83afcfa0e13ba15a6696662335d5b75'
+    otc: '0x60E54bdb32785502326452366Fd4E063c7854A93',
+    usdc: '0x04068da6c83afcfa0e13ba15a6696662335d5b75',
+    busd: ''
 }
 
 export const ETH: Chain = {
@@ -80,7 +83,8 @@ export const ETH: Chain = {
     faucet: '',
     relayLock: '0xBC13c09a5098E3CF0c71Aa4F6D467D53b68C278F',
     otc: '',
-    usdc: ''
+    usdc: '',
+    busd: ''
 }
 
 export const PLG: Chain = {
@@ -91,8 +95,9 @@ export const PLG: Chain = {
     lockLP: '0xbba98EA00ab995a467e9aFabBb15dBDDD29E1f44',
     faucet: '',
     relayLock: '0xDc9F9ece8d24214fc8De90BCD21808b73060B63f',
-    otc: '',
-    usdc: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174'
+    otc: '0xC721B4B560471bFD39bEa41BC7549559B076b680',
+    usdc: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+    busd: ''
 }
 
 export const BSC: Chain = {
@@ -103,8 +108,9 @@ export const BSC: Chain = {
     lockLP: '0xF8405Aebd87E37E60549D4f28a5A88Deb38bEA7B',
     faucet: '0x49b6431BDcd6CFaf79a3a5309261cB268642d8C0',
     relayLock: '0x7DF3ba8e3a8aC6759f215d734Dc4afdB34739618',
-    otc: '',
-    usdc: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d'
+    otc: '0x5aC59d3DE6D16AEB38f872298D9e176817c656F4',
+    usdc: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
+    busd: '0xe9e7cea3dedca5984780bafc599bd69add087d56'
 }
 
 export const HEC: Chain = {
@@ -116,7 +122,8 @@ export const HEC: Chain = {
     faucet: '',
     relayLock: '0x08D751281654cF6E6951E303eC3c55f92a4B22bd',
     otc: '',
-    usdc: ''
+    usdc: '',
+    busd: ''
 }
 
 export const AVA: Chain = {
@@ -128,7 +135,9 @@ export const AVA: Chain = {
     faucet: '',
     relayLock: '0x9366EA2931F069C115Dd7ea041d8eAFd1C76f444',
     otc: '',
-    usdc: ''
+    usdc: '',
+    busd: ''
+
 }
 
 export const DAI: Chain = {
@@ -140,5 +149,7 @@ export const DAI: Chain = {
     faucet: '',
     relayLock: '0x08D751281654cF6E6951E303eC3c55f92a4B22bd',
     otc: '',
-    usdc: ''
+    usdc: '',
+    busd: ''
+
 }
