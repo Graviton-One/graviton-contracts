@@ -9,7 +9,6 @@ import { VoterV2 } from "../../typechain/VoterV2"
 import { LPKeeperV2 } from "../../typechain/LPKeeperV2"
 import { LockRouter } from "../../typechain/LockRouter"
 import { OracleParserV2 } from "../../typechain/OracleParserV2"
-import { ClaimGTONV2 } from "../../typechain/ClaimGTONV2"
 import { IShares } from "../../typechain/IShares"
 import { SharesEB } from "../../typechain/SharesEB"
 import { BalanceAdderV2 } from '../../typechain/BalanceAdderV2'
@@ -28,7 +27,6 @@ const BalanceAdderV2ABI  = require('../../abi/BalanceAdderV2.json')
 const IFarmABI           = require('../../abi/IFarm.json')
 const ISharesABI         = require('../../abi/IShares.json')
 const SharesEBABI        = require('../../abi/SharesEB.json')
-const ClaimGTONV2ABI     = require('../../abi/ClaimGTONV2.json')
 const FaucetABI          = require('../../abi/Faucet.json')
 const RelayLockABI          = require('../../abi/RelayLock.json')
 
@@ -66,6 +64,15 @@ export default class Invoker {
         this.metamask = _metamask
         this.signer = this.metamask.getSigner()
     }
+
+    async balanceNT(provider: ethers.providers.JsonRpcProvider, address: string): Promise<BigNumber> {
+        return await provider.getBalance(address)
+    }
+    async balanceOf(provider: ethers.providers.JsonRpcProvider, token: string, address: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(token, IERC20ABI, provider) as IERC20
+        return await contract.balanceOf(address)
+    }
+
     async balance(chain: string): Promise<string> {
         var provider: ethers.providers.JsonRpcProvider
         if (chain == "FTM") {
@@ -392,10 +399,10 @@ export default class Invoker {
         const contract = new ethers.Contract(FTM.farmStaking, IFarmABI, this.signer) as IFarm
         await contract.unlockAsset()
     }
-    async claim(amount: string) {
-        const contract = new ethers.Contract(FTM.claim, ClaimGTONV2ABI, this.signer) as ClaimGTONV2
-        await contract.claim(amount)
-    }
+    // async claim(amount: string) {
+    //     const contract = new ethers.Contract(FTM.claim, ClaimGTONV2ABI, this.signer) as ClaimGTONV2
+    //     await contract.claim(amount)
+    // }
     async castVotes(roundId: string, votes1: string, votes2: string) {
         const contract = new ethers.Contract(FTM.voter, VoterV2ABI, this.signer) as VoterV2
         await contract['castVotes(uint256,uint256[])'](roundId, [votes1, votes2])
@@ -418,4 +425,21 @@ export default class Invoker {
         const contract = new ethers.Contract(faucet, FaucetABI, this.signer) as Faucet
         await contract.drop(gton)
     }
+
+    // async signDigest(digest: string) {
+    //     var address: string
+    //     var provider: ethers.providers.JsonRpcProvider
+    //     if (chain == "FTM") {
+    //         address = FTM.relayLock
+    //     } else if (chain == "BSC") {
+    //         address = BSC.relayLock
+    //     } else if (chain == "PLG") {
+    //         address = PLG.relayLock
+    //     } else {
+    //         return
+    //     }
+
+    //     const contract = new ethers.Contract(address, RelayLockABI, this.signer) as RelayLock
+    //     await contract.lock(destination, await this.signer.getAddress(), {value: amount})
+    // }
 }
