@@ -159,7 +159,8 @@ describe("OTC", () => {
           upperLimit,
           cliff,
           period,
-          intervals
+          intervals,
+          "ffffff"
         )) as MockOTC
     })
 

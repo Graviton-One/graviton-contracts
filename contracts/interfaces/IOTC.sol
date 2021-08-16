@@ -83,7 +83,7 @@ interface IOTC {
     function numberOfTranches(address account) external view returns (uint256);
 
     /// @notice amount of GTON vested for `account`
-    function balance(address account) external view returns (uint256);
+    function vested(address account) external view returns (uint256);
 
     /// @notice amount of GTON claimed by `account`
     function claimed(address account) external view returns (uint256);
@@ -92,7 +92,7 @@ interface IOTC {
     function claimLast(address account) external view returns (uint256);
 
     /// @notice total amount of vested GTON
-    function balanceTotal() external view returns (uint256);
+    function vestedTotal() external view returns (uint256);
 
     /// @notice amount of GTON claimed by all accounts
     function claimedTotal() external view returns (uint256);

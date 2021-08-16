@@ -13,7 +13,8 @@ contract MockOTC is OTC {
         uint256 _upperLimit,
         uint256 _cliffAdmin,
         uint256 _vestingTimeAdmin,
-        uint256 _numberOfTranchesAdmin
+        uint256 _numberOfTranchesAdmin,
+        string memory _VERSION
     ) OTC(
         _base,
         _quote,
@@ -22,7 +23,8 @@ contract MockOTC is OTC {
         _upperLimit,
         _cliffAdmin,
         _vestingTimeAdmin,
-        _numberOfTranchesAdmin
+        _numberOfTranchesAdmin,
+        _VERSION
     ) {}
 
     // Monday, October 5, 2020 9:00:00 AM GMT-05:00

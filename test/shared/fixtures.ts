@@ -1068,7 +1068,8 @@ export const otcFixture: Fixture<OTCFixture> =
       upperLimit,
       cliff,
       vestingTime,
-      numberOfTranches
+      numberOfTranches,
+      "ffffff"
     )) as MockOTC
 
     return {
