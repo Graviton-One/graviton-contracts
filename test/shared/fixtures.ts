@@ -1061,6 +1061,7 @@ type USDCAndTokensFixture = USDCFixture & TokensFixture
 
 interface OTCFixture extends USDCAndTokensFixture {
   otc: MockOTC
+  otcUSDC: MockOTC
 }
 
 export const otcFixture: Fixture<OTCFixture> =
@@ -1095,11 +1096,32 @@ export const otcFixture: Fixture<OTCFixture> =
       "ffffff"
     )) as MockOTC
 
+    price = 500
+    lowerLimit = 100
+    upperLimit = expandTo18Decimals(100)
+    cliff = 86400
+    vestingTime = 86400*7*4
+    numberOfTranches = 4
+
+    const otcUSDC = (await otcFactory.deploy(
+      token0.address,
+      usdc.address,
+      6,
+      price,
+      lowerLimit,
+      upperLimit,
+      cliff,
+      vestingTime,
+      numberOfTranches,
+      "ffffff"
+    )) as MockOTC
+
     return {
       token0,
       token1,
       token2,
       usdc,
-      otc
+      otc,
+      otcUSDC
     }
   }

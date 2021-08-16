@@ -158,7 +158,7 @@ contract OTC is IOTC {
 
     /// @inheritdoc IOTC
     function setLimits(uint256 _lowerLimit, uint256 _upperLimit) external override isOwner {
-        require(_blockTimestamp()-setLimitsLast > DAY, "OTC1");
+        require(_blockTimestamp()-setLimitsLast > DAY, "OTC2");
         setLimitsLast = _blockTimestamp();
         lowerLimit = _lowerLimit;
         upperLimit = _upperLimit;
@@ -171,7 +171,7 @@ contract OTC is IOTC {
         uint256 _vestingTimeAdmin,
         uint256 _numberOfTranchesAdmin
     ) external override isOwner {
-        require(_blockTimestamp()-setVestingParamsLast > DAY, "OTC1");
+        require(_blockTimestamp()-setVestingParamsLast > DAY, "OTC3");
         setVestingParamsLast = _blockTimestamp();
         cliffAdmin = _cliffAdmin;
         vestingTimeAdmin = _vestingTimeAdmin;
@@ -186,11 +186,12 @@ contract OTC is IOTC {
         Deal memory deal = deals[msg.sender];
         require(deal.vested == 0, "OTC4");
         uint256 undistributed = base.balanceOf(address(this)) - (vestedTotal - claimedTotal);
-        require(amountBase <= undistributed, "OTC2");
-        require(lowerLimit <= amountBase && amountBase <= upperLimit, "OTC3");
+        require(amountBase <= undistributed, "OTC5");
+        require(lowerLimit <= amountBase && amountBase <= upperLimit, "OTC6");
         deal.vested = amountBase;
         vestedTotal += amountBase;
         uint256 amountQuote = ((amountBase*price)/100)/(10**(18-quoteDecimals));
+        require(amountQuote > 0, "OTC7");
         deal.cliff = cliffAdmin;
         deal.vestingTime = vestingTimeAdmin;
         deal.numberOfTranches = numberOfTranchesAdmin;
@@ -206,8 +207,8 @@ contract OTC is IOTC {
         // than calling values from mapping multiple times like deals[msg.sender].vested
         Deal memory deal = deals[msg.sender];
         uint256 interval = deal.vestingTime / deal.numberOfTranches;
-        require(_blockTimestamp()-deal.startTime > deal.cliff, "OTC4");
-        require(_blockTimestamp()-deal.claimLast > interval, "OTC5");
+        require(_blockTimestamp()-deal.startTime > deal.cliff, "OTC8");
+        require(_blockTimestamp()-deal.claimLast > interval, "OTC9");
         uint256 intervals = ((_blockTimestamp() - deal.startTime) / interval) + 1; // +1 to claim first interval right after the cliff
         uint256 intervalsAccrued = intervals < deal.numberOfTranches ? intervals : deal.numberOfTranches; // min to cap after vesting time is over
         uint256 amount = ((deal.vested * intervalsAccrued) / deal.numberOfTranches) - deal.claimed;

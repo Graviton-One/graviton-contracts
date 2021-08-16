@@ -3,7 +3,7 @@ import { TestERC20 } from "../typechain/TestERC20"
 import { TestUSDC } from "../typechain/TestUSDC"
 import { MockOTC } from "../typechain/MockOTC"
 import { otcFixture } from "./shared/fixtures"
-import { expandTo18Decimals, START_TIME } from "./shared/utilities"
+import { expandTo18Decimals, START_TIME, MAX_UINT } from "./shared/utilities"
 
 import { expect } from "./shared/expect"
 
@@ -21,9 +21,10 @@ describe("OTC", () => {
   let token2: TestERC20
   let usdc: TestUSDC
   let otc: MockOTC
+  let otcUSDC: MockOTC
 
   beforeEach("deploy test contracts", async () => {
-    ;({ token0, token1, token2, usdc, otc } = await loadFixture(otcFixture))
+    ;({ token0, token1, token2, usdc, otc, otcUSDC } = await loadFixture(otcFixture))
   })
 
   it("constructor initializes variables", async () => {
@@ -158,14 +159,14 @@ describe("OTC", () => {
     })
 
     it("fails if timestamp change since deployment is less than a day", async () => {
-      await expect(otc.setLimits(0, expandTo18Decimals(100))).to.be.revertedWith("OTC1")
+      await expect(otc.setLimits(0, expandTo18Decimals(100))).to.be.revertedWith("OTC2")
     })
 
     it("fails if timestamp change since last setLimits is less than a day", async () => {
         await otc.advanceTime(86401)
         await otc.setLimits(0, expandTo18Decimals(100))
         await otc.advanceTime(86399)
-        await expect(otc.setLimits(0, expandTo18Decimals(100))).to.be.revertedWith("OTC1")
+        await expect(otc.setLimits(0, expandTo18Decimals(100))).to.be.revertedWith("OTC2")
     })
 
     it("updates lower and upper limits for amount to exchange", async () => {
@@ -190,14 +191,14 @@ describe("OTC", () => {
     })
 
     it("fails if timestamp change since deployment is less than a day", async () => {
-      await expect(otc.setVestingParams(86400, 86400*7*4, 4)).to.be.revertedWith("OTC1")
+      await expect(otc.setVestingParams(86400, 86400*7*4, 4)).to.be.revertedWith("OTC3")
     })
 
     it("fails if timestamp change since last setVestingParams is less than a day", async () => {
         await otc.advanceTime(86401)
         await otc.setVestingParams(86400, 86400*7*4, 4)
         await otc.advanceTime(86399)
-        await expect(otc.setVestingParams(86400, 86400*7*4, 4)).to.be.revertedWith("OTC1")
+        await expect(otc.setVestingParams(86400, 86400*7*4, 4)).to.be.revertedWith("OTC3")
     })
 
     it("updates lower and upper vestingParams for amount to exchange", async () => {
@@ -230,9 +231,12 @@ describe("OTC", () => {
   })
 
   describe("#exchange", () => {
-    it("fails if amount is less than contract balance", async () => {
-        await expect(otc.connect(other).exchange(100))
-            .to.be.revertedWith("OTC2")
+    it("fails if account tries to exchange for the second time", async () => {
+        await token0.transfer(otc.address, expandTo18Decimals(100))
+        await token1.connect(other).approve(otc.address, expandTo18Decimals(100))
+        await otc.connect(other).exchange(expandTo18Decimals(10))
+        await expect(otc.connect(other).exchange(expandTo18Decimals(10)))
+            .to.be.revertedWith("OTC4")
     })
 
     it("fails if amount is less than undistributed balance", async () => {
@@ -242,29 +246,33 @@ describe("OTC", () => {
         expect(await otc.vested(other.address)).to.eq(expandTo18Decimals(1))
         await token1.connect(another).approve(otc.address, expandTo18Decimals(50))
         await expect(otc.connect(another).exchange(expandTo18Decimals(10)))
-            .to.be.revertedWith("OTC2")
+            .to.be.revertedWith("OTC5")
     })
 
     it("fails if amount is smaller than lower limit", async () => {
         await token0.transfer(otc.address, expandTo18Decimals(99))
         await token1.connect(other).approve(otc.address, 99*5)
         await expect(otc.connect(other).exchange(99))
-            .to.be.revertedWith("OTC3")
+            .to.be.revertedWith("OTC6")
     })
 
     it("fails if amount is larger than upper limit", async () => {
         await token0.transfer(otc.address, expandTo18Decimals(101))
         await token1.connect(other).approve(otc.address, expandTo18Decimals(505))
         await expect(otc.connect(other).exchange(expandTo18Decimals(101)))
-            .to.be.revertedWith("OTC3")
+            .to.be.revertedWith("OTC6")
     })
 
-    it("fails if account tries to exchange for the second time", async () => {
-        await token0.transfer(otc.address, expandTo18Decimals(100))
-        await token1.connect(other).approve(otc.address, expandTo18Decimals(100))
-        await otc.connect(other).exchange(expandTo18Decimals(10))
-        await expect(otc.connect(other).exchange(expandTo18Decimals(10)))
-            .to.be.revertedWith("OTC4")
+    it("fails if no quote is paid", async () => {
+        let liquidityGTON = "1000000000000000000";
+        let liquidityUSDC = "5000000";
+
+        // buy 10 GTON for 50 USDC
+        await token0.transfer(otcUSDC.address, liquidityGTON)
+        await usdc.Swapin(MAX_UINT, other.address, liquidityUSDC)
+        await usdc.connect(other).approve(otcUSDC.address, liquidityUSDC)
+        await expect(otcUSDC.connect(other).exchange(100))
+            .to.be.revertedWith("OTC7")
     })
 
     it("transfers amount*price of quote tokens from caller,\
@@ -297,7 +305,7 @@ describe("OTC", () => {
         await otc.connect(other).exchange(expandTo18Decimals(10))
         // other tries to claim after less than a day
         await otc.advanceTime(86399)
-        await expect(otc.connect(other).claim()).to.be.revertedWith("OTC4")
+        await expect(otc.connect(other).claim()).to.be.revertedWith("OTC8")
     })
 
     it("second claim fails if timestamp change since last claim is less than CLAIM_PERIOD", async () => {
@@ -314,7 +322,7 @@ describe("OTC", () => {
         await otc.connect(other).claim()
 
         await otc.advanceTime((86400*7*4))
-        await expect(otc.connect(other).claim()).to.be.revertedWith("OTC5")
+        await expect(otc.connect(other).claim()).to.be.revertedWith("OTC9")
     })
 
     it("transfers BALANCE/NUMBER_CLAIMS base token to caller after cliff", async () => {
