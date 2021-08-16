@@ -38,8 +38,8 @@
                     <td>{{ formatDuration(cliffAdmin) }}</td>
                     <td>{{ formatDuration(vestingTimeAdmin) }}</td>
                     <td>{{ numberOfTranchesAdmin }}</td>
-                    <td>{{ formatUnits(upperLimit, 18) }}</td>
                     <td>{{ formatUnits(lowerLimit, 18) }}</td>
+                    <td>{{ formatUnits(upperLimit, 18) }}</td>
                 </tr>
             </tbody>
         </table>
