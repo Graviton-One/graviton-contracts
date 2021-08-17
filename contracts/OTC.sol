@@ -41,6 +41,7 @@ contract OTC is IOTC {
     /// @inheritdoc IOTC
     uint256 public override setVestingParamsLast;
 
+    // commit hash for the revision used to deploy the contract
     string public VERSION;
 
     struct Deal {
@@ -184,14 +185,14 @@ contract OTC is IOTC {
         // assigning a struct is cheaper
         // than calling values from mapping multiple times like deals[msg.sender].vested
         Deal memory deal = deals[msg.sender];
-        require(deal.vested == 0, "OTC4");
+        require(deal.vested == 0, "OTC4"); // fail if msg.sender already has an otc deal
         uint256 undistributed = base.balanceOf(address(this)) - (vestedTotal - claimedTotal);
-        require(amountBase <= undistributed, "OTC5");
-        require(lowerLimit <= amountBase && amountBase <= upperLimit, "OTC6");
+        require(amountBase <= undistributed, "OTC5"); // fail if there is not enough gton to confirm otc deal
+        require(lowerLimit <= amountBase && amountBase <= upperLimit, "OTC6"); // fail if the amount of gton is outside allowed limits
         deal.vested = amountBase;
         vestedTotal += amountBase;
         uint256 amountQuote = ((amountBase*price)/100)/(10**(18-quoteDecimals));
-        require(amountQuote > 0, "OTC7");
+        require(amountQuote > 0, "OTC7"); // fail if the amount of gton is so low that no quote is paid
         deal.cliff = cliffAdmin;
         deal.vestingTime = vestingTimeAdmin;
         deal.numberOfTranches = numberOfTranchesAdmin;
@@ -207,8 +208,8 @@ contract OTC is IOTC {
         // than calling values from mapping multiple times like deals[msg.sender].vested
         Deal memory deal = deals[msg.sender];
         uint256 interval = deal.vestingTime / deal.numberOfTranches;
-        require(_blockTimestamp()-deal.startTime > deal.cliff, "OTC8");
-        require(_blockTimestamp()-deal.claimLast > interval, "OTC9");
+        require(_blockTimestamp()-deal.startTime > deal.cliff, "OTC8"); // fail if claim is made before the cliff ends
+        require(_blockTimestamp()-deal.claimLast > interval, "OTC9"); // fail if not enough time has passed since last claim
         uint256 intervals = ((_blockTimestamp() - deal.startTime) / interval) + 1; // +1 to claim first interval right after the cliff
         uint256 intervalsAccrued = intervals < deal.numberOfTranches ? intervals : deal.numberOfTranches; // min to cap after vesting time is over
         uint256 amount = ((deal.vested * intervalsAccrued) / deal.numberOfTranches) - deal.claimed;
