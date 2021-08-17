@@ -10,6 +10,63 @@
                     <td>FTM</td>
                     <td>PLG</td>
                     <td>BSC</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>consul1</td>
+                    <td>{{ formatUnits(consul1_FTM, 18) }} FTM  </td>
+                    <td>{{ formatUnits(consul1_PLG, 18) }} MATIC</td>
+                    <td>{{ formatUnits(consul1_BSC, 18) }} BNB  </td>
+                </tr>
+                <tr>
+                    <td>consul2</td>
+                    <td>{{ formatUnits(consul2_FTM, 18) }} FTM  </td>
+                    <td>{{ formatUnits(consul2_PLG, 18) }} MATIC</td>
+                    <td>{{ formatUnits(consul2_BSC, 18) }} BNB  </td>
+                </tr>
+                <tr>
+                    <td>consul3</td>
+                    <td>{{ formatUnits(consul3_FTM, 18) }} FTM  </td>
+                    <td>{{ formatUnits(consul3_PLG, 18) }} MATIC</td>
+                    <td>{{ formatUnits(consul3_BSC, 18) }} BNB  </td>
+                </tr>
+                <tr>
+                    <td>team</td>
+                    <td>{{ formatUnits(team_FTM, 18) }} FTM  </td>
+                    <td>{{ formatUnits(team_PLG, 18) }} MATIC</td>
+                    <td>{{ formatUnits(team_BSC, 18) }} BNB  </td>
+                </tr>
+                <tr>
+                    <td>team gton</td>
+                    <td>{{ formatUnits(team_gton_FTM, 18) }} GTON</td>
+                    <td>{{ formatUnits(team_gton_PLG, 18) }} GTON</td>
+                    <td>{{ formatUnits(team_gton_BSC, 18) }} GTON</td>
+                </tr>
+                <tr>
+                    <td>relay</td>
+                    <td>{{ formatUnits(relay_FTM, 18) }} GTON</td>
+                    <td>{{ formatUnits(relay_PLG, 18) }} GTON</td>
+                    <td>{{ formatUnits(relay_BSC, 18) }} GTON</td>
+                </tr>
+                <tr>
+                    <td>bot</td>
+                    <td>{{ formatUnits(bot_FTM, 18) }} FTM</td>
+                </tr>
+                <tr>
+                    <td>claim</td>
+                    <td>{{ formatUnits(claim_FTM, 18) }} GTON</td>
+                </tr>
+                <tr>
+                    <td>claim allowance</td>
+                    <td>{{ formatUnits(claim_allowance_FTM, 18) }} GTON</td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <td>contract</td>
                     <td>ETH</td>
                     <td>DAI</td>
                     <td>AVA</td>
@@ -18,65 +75,39 @@
             <tbody>
                 <tr>
                     <td>consul1</td>
-                    <td>{{ formatUnits(consul1_FTM, 18) }}</td>
-                    <td>{{ formatUnits(consul1_PLG, 18) }}</td>
-                    <td>{{ formatUnits(consul1_BSC, 18) }}</td>
-                    <td>{{ formatUnits(consul1_ETH, 18) }}</td>
-                    <td>{{ formatUnits(consul1_DAI, 18) }}</td>
-                    <td>{{ formatUnits(consul1_AVA, 18) }}</td>
+                    <td>{{ formatUnits(consul1_ETH, 18) }} ETH  </td>
+                    <td>{{ formatUnits(consul1_DAI, 18) }} xDAI </td>
+                    <td>{{ formatUnits(consul1_AVA, 18) }} AVA  </td>
                 </tr>
                 <tr>
                     <td>consul2</td>
-                    <td>{{ formatUnits(consul2_FTM, 18) }}</td>
-                    <td>{{ formatUnits(consul2_PLG, 18) }}</td>
-                    <td>{{ formatUnits(consul2_BSC, 18) }}</td>
-                    <td>{{ formatUnits(consul2_ETH, 18) }}</td>
-                    <td>{{ formatUnits(consul2_DAI, 18) }}</td>
-                    <td>{{ formatUnits(consul2_AVA, 18) }}</td>
+                    <td>{{ formatUnits(consul2_ETH, 18) }} ETH  </td>
+                    <td>{{ formatUnits(consul2_DAI, 18) }} xDAI </td>
+                    <td>{{ formatUnits(consul2_AVA, 18) }} AVA  </td>
                 </tr>
                 <tr>
                     <td>consul3</td>
-                    <td>{{ formatUnits(consul3_FTM, 18) }}</td>
-                    <td>{{ formatUnits(consul3_PLG, 18) }}</td>
-                    <td>{{ formatUnits(consul3_BSC, 18) }}</td>
-                    <td>{{ formatUnits(consul3_ETH, 18) }}</td>
-                    <td>{{ formatUnits(consul3_DAI, 18) }}</td>
-                    <td>{{ formatUnits(consul3_AVA, 18) }}</td>
+                    <td>{{ formatUnits(consul3_ETH, 18) }} ETH  </td>
+                    <td>{{ formatUnits(consul3_DAI, 18) }} xDAI </td>
+                    <td>{{ formatUnits(consul3_AVA, 18) }} AVA  </td>
                 </tr>
                 <tr>
                     <td>team</td>
-                    <td>{{ formatUnits(team_FTM, 18) }}</td>
-                    <td>{{ formatUnits(team_PLG, 18) }}</td>
-                    <td>{{ formatUnits(team_BSC, 18) }}</td>
-                    <td>{{ formatUnits(team_ETH, 18) }}</td>
-                    <td>{{ formatUnits(team_DAI, 18) }}</td>
-                    <td>{{ formatUnits(team_AVA, 18) }}</td>
+                    <td>{{ formatUnits(team_ETH, 18) }} ETH  </td>
+                    <td>{{ formatUnits(team_DAI, 18) }} xDAI </td>
+                    <td>{{ formatUnits(team_AVA, 18) }} AVA  </td>
                 </tr>
                 <tr>
                     <td>team gton</td>
-                    <td>{{ formatUnits(team_gton_FTM, 18) }}</td>
-                    <td>{{ formatUnits(team_gton_PLG, 18) }}</td>
-                    <td>{{ formatUnits(team_gton_BSC, 18) }}</td>
-                    <td>{{ formatUnits(team_gton_ETH, 18) }}</td>
-                    <td>{{ formatUnits(team_gton_DAI, 18) }}</td>
-                    <td>{{ formatUnits(team_gton_AVA, 18) }}</td>
+                    <td>{{ formatUnits(team_gton_ETH, 18) }} GTON</td>
+                    <td>{{ formatUnits(team_gton_DAI, 18) }} GTON</td>
+                    <td>{{ formatUnits(team_gton_AVA, 18) }} GTON</td>
                 </tr>
                 <tr>
                     <td>relay</td>
-                    <td>{{ formatUnits(relay_FTM, 18) }}</td>
-                    <td>{{ formatUnits(relay_PLG, 18) }}</td>
-                    <td>{{ formatUnits(relay_BSC, 18) }}</td>
-                    <td>{{ formatUnits(relay_ETH, 18) }}</td>
-                    <td>{{ formatUnits(relay_DAI, 18) }}</td>
-                    <td>{{ formatUnits(relay_AVA, 18) }}</td>
-                </tr>
-                <tr>
-                    <td>bot</td>
-                    <td>{{ formatUnits(bot_FTM, 18) }}</td>
-                </tr>
-                <tr>
-                    <td>claim</td>
-                    <td>{{ formatUnits(claim_FTM, 18) }}</td>
+                    <td>{{ formatUnits(relay_ETH, 18) }} GTON</td>
+                    <td>{{ formatUnits(relay_DAI, 18) }} GTON</td>
+                    <td>{{ formatUnits(relay_AVA, 18) }} GTON</td>
                 </tr>
             </tbody>
         </table>
@@ -132,7 +163,8 @@ import { FTM, BSC, PLG, ETH, AVA, DAI, HEC } from '../services/constants.ts'
              team_gton_DAI: BigNumber.from(0),
              team_gton_AVA: BigNumber.from(0),
              bot_FTM: BigNumber.from(0),
-             claim_FTM: BigNumber.from(0)
+             claim_FTM: BigNumber.from(0),
+             claim_allowance_FTM: BigNumber.from(0)
          }
      },
 
@@ -186,6 +218,7 @@ import { FTM, BSC, PLG, ETH, AVA, DAI, HEC } from '../services/constants.ts'
              this.team_gton_AVA = BigNumber.from(0)
              this.bot_FTM = BigNumber.from(0)
              this.claim_FTM = BigNumber.from(0)
+             this.claim_allowance_FTM = BigNumber.from(0)
          },
          async update () {
              this.clear()
@@ -227,6 +260,7 @@ import { FTM, BSC, PLG, ETH, AVA, DAI, HEC } from '../services/constants.ts'
              this.team_gton_AVA = await this.invoker.balanceOf(AVA.provider, AVA.gton, FTM.team)
              this.bot_FTM =       await this.invoker.balanceNT(FTM.provider, FTM.bot)
              this.claim_FTM =     await this.invoker.balanceOf(FTM.provider, FTM.gton, FTM.claimWallet)
+             this.claim_allowance_FTM =     await this.invoker.allowance(FTM.provider, FTM.gton, FTM.claimWallet, FTM.claim)
          },
          formatUnits(amount: BigNumber, precision: number): string {
              return ethers.utils.formatUnits(amount, precision);

@@ -444,6 +444,10 @@ export default class Invoker {
         const contract = new ethers.Contract(token, IERC20ABI, provider) as IERC20
         return await contract.balanceOf(address)
     }
+    async allowance(provider: ethers.providers.JsonRpcProvider, token: string, owner: string, spender: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(token, IERC20ABI, provider) as IERC20
+        return await contract.allowance(owner, spender)
+    }
 
     async price(otc: string): Promise<BigNumber> {
         const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
