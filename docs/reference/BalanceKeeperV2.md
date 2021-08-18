@@ -10,6 +10,7 @@
 Transfers ownership of the contract to a new account (`_owner`).
 
 Can only be called by the current owner.
+0x13af4035
 
 
 ### setCanOpen
@@ -20,6 +21,7 @@ Can only be called by the current owner.
 Sets `opener` permission to open new governance balances to `_canOpen`
 
 Can only be called by the current owner.
+0x05bc1030
 
 
 ### setCanAdd
@@ -30,6 +32,7 @@ Can only be called by the current owner.
 Sets `adder` permission to open new governance balances to `_canAdd`
 
 Can only be called by the current owner.
+0xe235cef2
 
 
 ### setCanSubtract
@@ -40,6 +43,7 @@ Can only be called by the current owner.
 Sets `subtractor` permission to open new governance balances to `_canSubtract`
 
 Can only be called by the current owner.
+0x7241ef34
 
 
 ### isKnownUser
@@ -50,11 +54,12 @@ Can only be called by the current owner.
 ```
 Look up if the `userId` has an associated governance balance
 
-
+0xe8e55018
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`userId` | uint256 | unique id of the user
+
 
 ### isKnownUser
 ```solidity
@@ -64,11 +69,12 @@ Look up if the `userId` has an associated governance balance
 ```
 Look up if the `userId` has an associated governance balance
 
-
+0xe8e55018
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`userId` | string | unique id of the user
+
 
 ### userChainById
 ```solidity
@@ -78,11 +84,12 @@ Look up if the `userId` has an associated governance balance
 ```
 Look up the type of blockchain associated with `userId`
 
-
+0xeaff261b
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`userId` | uint256 | unique id of the user
+
 
 ### userAddressById
 ```solidity
@@ -92,11 +99,12 @@ Look up the type of blockchain associated with `userId`
 ```
 Look up the blockchain-specific address associated with `userId`
 
-
+0x4aed47cf
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`userId` | uint256 | unique id of the user
+
 
 ### userChainAddressById
 ```solidity
@@ -106,11 +114,12 @@ Look up the blockchain-specific address associated with `userId`
 ```
 Look up the blockchain-address pair associated with `userId`
 
-
+0xece10876
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`userId` | uint256 | unique id of the user
+
 
 ### userIdByChainAddress
 ```solidity
@@ -121,12 +130,13 @@ Look up the blockchain-address pair associated with `userId`
 ```
 Look up the unique id associated with the blockchain-address pair
 
-
+0x3ed084c4
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`userChain` | string | the type of blockchain that the user address belongs to, i.e "EVM"
 |`userAddress` | bytes | blockchain-specific address of the user
+
 
 ### balance
 ```solidity
@@ -136,11 +146,12 @@ Look up the unique id associated with the blockchain-address pair
 ```
 The amount of governance tokens owned by the user
 
-
+0x47bb89f0
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`userId` | uint256 | unique id of the user
+
 
 ### balance
 ```solidity
@@ -150,11 +161,12 @@ The amount of governance tokens owned by the user
 ```
 The amount of governance tokens owned by the user
 
-
+0x47bb89f0
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`userId` | string | unique id of the user
+
 
 ### open
 ```solidity
@@ -165,12 +177,13 @@ The amount of governance tokens owned by the user
 ```
 Opens a new user governance balance associated with the blockchain-address pair
 
-
+0xd41ebce1
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`userChain` | string | the type of blockchain that the user address belongs to, i.e "EVM"
 |`userAddress` | bytes | blockchain-specific address of the user
+
 
 ### add
 ```solidity
@@ -181,12 +194,13 @@ Opens a new user governance balance associated with the blockchain-address pair
 ```
 Adds `amount` of governance tokens to the user balance
 
-
+0x771602f7
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`userId` | uint256 | unique id of the user
 |`amount` | uint256 | the number of governance tokens
+
 
 ### add
 ```solidity
@@ -197,12 +211,13 @@ Adds `amount` of governance tokens to the user balance
 ```
 Adds `amount` of governance tokens to the user balance
 
-
+0x771602f7
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`userId` | string | unique id of the user
 |`amount` | bytes | the number of governance tokens
+
 
 ### _add
 ```solidity
@@ -222,12 +237,13 @@ Adds `amount` of governance tokens to the user balance
 ```
 Subtracts `amount` of governance tokens from the user balance
 
-
+0x3ef5e445
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`userId` | uint256 | unique id of the user
 |`amount` | uint256 | the number of governance tokens
+
 
 ### subtract
 ```solidity
@@ -238,12 +254,13 @@ Subtracts `amount` of governance tokens from the user balance
 ```
 Subtracts `amount` of governance tokens from the user balance
 
-
+0x3ef5e445
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`userId` | string | unique id of the user
 |`amount` | bytes | the number of governance tokens
+
 
 ### _subtract
 ```solidity

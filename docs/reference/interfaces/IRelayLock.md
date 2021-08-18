@@ -164,7 +164,8 @@ amount of locked native tokens
 ### CalculateFee
 ```solidity
   event CalculateFee(
-    uint256 amount,
+    uint256 amountIn,
+    uint256 amountOut,
     uint256 feeMin,
     uint256 feePercent,
     uint256 fee,
@@ -178,7 +179,8 @@ precision 3 decimals
 #### Parameters:
 | Name                           | Type          | Description                                    |
 | :----------------------------- | :------------ | :--------------------------------------------- |
-|`amount`| uint256 | Relay tokens to subtract from
+|`amountIn`| uint256 | Native tokens sent to dex
+|`amountOut`| uint256 | Relay tokens received on dex
 |`feeMin`| uint256 | Minimum fee
 |`feePercent`| uint256 | Percentage for the fee in %
 |`fee`| uint256 | Percentage fee in relay tokens
