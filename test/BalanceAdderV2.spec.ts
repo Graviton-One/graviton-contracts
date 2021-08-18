@@ -197,7 +197,7 @@ describe("BalanceAdderV2", () => {
 
   describe("#totalFarms", () => {
     it("returns the number of farms", async () => {
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       expect(await balanceAdder.totalFarms()).to.eq(1)
     })
   })
@@ -207,42 +207,42 @@ describe("BalanceAdderV2", () => {
       await expect(
         balanceAdder
           .connect(other)
-          .addFarm(mockShares1.address, mockFarm1.address)
+          .addFarm(mockShares1.address, mockFarm1.address, 0)
       ).to.be.reverted
     })
 
     it("appends shares", async () => {
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       expect(await balanceAdder.shares(0)).to.eq(mockShares1.address)
     })
 
     it("appends farms", async () => {
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       expect(await balanceAdder.farms(0)).to.eq(mockFarm1.address)
     })
 
     it("appends last portions", async () => {
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       expect(await balanceAdder.lastPortions(0)).to.eq(0)
     })
 
     it("emits event", async () => {
-      await expect(balanceAdder.addFarm(mockShares1.address, mockFarm1.address))
+      await expect(balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0))
         .to.emit(balanceAdder, "AddFarm")
-        .withArgs(1, mockShares1.address, mockFarm1.address)
+        .withArgs(1, mockShares1.address, mockFarm1.address, 0)
     })
   })
 
   describe("#removeFarm", () => {
     it("fails if caller is not owner", async () => {
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       await expect(balanceAdder.connect(other).removeFarm(0)).to.be.reverted
     })
 
     it("fails if the farm is currently processing balances", async () => {
       await openWallet()
       await openOther()
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(1)
       await expect(balanceAdder.removeFarm(0)).to.be.revertedWith(
@@ -251,31 +251,31 @@ describe("BalanceAdderV2", () => {
     })
 
     it("removes shares", async () => {
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       expect(await balanceAdder.shares(0)).to.eq(mockShares1.address)
       await balanceAdder.removeFarm(0)
       await expect(balanceAdder.shares(0)).to.be.reverted
     })
 
     it("removes shares", async () => {
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       expect(await balanceAdder.shares(0)).to.eq(mockShares1.address)
-      await balanceAdder.addFarm(mockShares2.address, mockFarm2.address)
+      await balanceAdder.addFarm(mockShares2.address, mockFarm2.address, 0)
       await balanceAdder.removeFarm(0)
       expect(await balanceAdder.shares(0)).to.eq(mockShares2.address)
     })
 
     it("removes farms", async () => {
-      await balanceAdder.addFarm(mockFarm1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockFarm1.address, mockFarm1.address, 0)
       expect(await balanceAdder.farms(0)).to.eq(mockFarm1.address)
       await balanceAdder.removeFarm(0)
       await expect(balanceAdder.farms(0)).to.be.reverted
     })
 
     it("removes farms", async () => {
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       expect(await balanceAdder.farms(0)).to.eq(mockFarm1.address)
-      await balanceAdder.addFarm(mockShares2.address, mockFarm2.address)
+      await balanceAdder.addFarm(mockShares2.address, mockFarm2.address, 0)
       await balanceAdder.removeFarm(0)
       expect(await balanceAdder.farms(0)).to.eq(mockFarm2.address)
     })
@@ -283,9 +283,9 @@ describe("BalanceAdderV2", () => {
     it("removes last portions", async () => {
       await openWallet()
       await openOther()
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       expect(await balanceAdder.lastPortions(0)).to.eq(0)
-      await balanceAdder.addFarm(mockShares2.address, mockFarm2.address)
+      await balanceAdder.addFarm(mockShares2.address, mockFarm2.address, 0)
       expect(await balanceAdder.lastPortions(1)).to.eq(0)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(2)
@@ -297,9 +297,9 @@ describe("BalanceAdderV2", () => {
     })
 
     it("removes farms", async () => {
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       expect(await balanceAdder.farms(0)).to.eq(mockFarm1.address)
-      await balanceAdder.addFarm(mockShares2.address, mockFarm2.address)
+      await balanceAdder.addFarm(mockShares2.address, mockFarm2.address, 0)
       await expect(balanceAdder.removeFarm(0))
         .to.emit(balanceAdder, "RemoveFarm")
         .withArgs(0, mockShares1.address, mockFarm1.address, 0)
@@ -316,13 +316,13 @@ describe("BalanceAdderV2", () => {
 
     it("fails if not allowed to add value", async () => {
       await openWallet()
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       await expect(balanceAdder.processBalances(1)).to.be.reverted
     })
 
     it("updates total users at the start of each loop", async () => {
       await openWallet()
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await mockShares1.mock.totalUsers.returns(1)
       await balanceAdder.processBalances(1)
@@ -335,7 +335,7 @@ describe("BalanceAdderV2", () => {
 
     it("updates total unlocked at the start of each loop", async () => {
       await openWallet()
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(1)
       expect(await balanceAdder.totalUnlocked()).to.eq(1000)
@@ -343,7 +343,7 @@ describe("BalanceAdderV2", () => {
 
     it("updates current portion at the start of each loop", async () => {
       await openWallet()
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(1)
       expect(await balanceAdder.currentPortion()).to.eq(1000)
@@ -352,7 +352,7 @@ describe("BalanceAdderV2", () => {
     it("updates last user when step is less than total users", async () => {
       await openWallet()
       await openOther()
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(1)
       expect(await balanceAdder.currentUser()).to.eq(1)
@@ -363,7 +363,7 @@ describe("BalanceAdderV2", () => {
     it("does not change last user if step is zero", async () => {
       await openWallet()
       await openOther()
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(0)
       expect(await balanceAdder.currentUser()).to.eq(0)
@@ -376,7 +376,7 @@ describe("BalanceAdderV2", () => {
     it("sets last user to zero when step is equal to total users", async () => {
       await openWallet()
       await openOther()
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(2)
       expect(await balanceAdder.currentUser()).to.eq(0)
@@ -385,7 +385,7 @@ describe("BalanceAdderV2", () => {
     it("sets last user to zero when step is larger than total users", async () => {
       await openWallet()
       await openOther()
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await balanceAdder.processBalances(3)
       expect(await balanceAdder.currentUser()).to.eq(0)
@@ -394,7 +394,7 @@ describe("BalanceAdderV2", () => {
     it("emits event", async () => {
       await openWallet()
       await openOther()
-      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address)
+      await balanceAdder.addFarm(mockShares1.address, mockFarm1.address, 0)
       await balanceKeeper.setCanAdd(balanceAdder.address, true)
       await expect(balanceAdder.processBalances(3))
         .to.emit(balanceAdder, "ProcessBalances")
@@ -409,7 +409,7 @@ describe("BalanceAdderV2", () => {
     describe("#EB", () => {
       it("does not add values if the shares contract is empty", async () => {
         await openWallet()
-        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address, 0)
         await balanceKeeper.setCanAdd(balanceAdder.address, true)
         await expect(balanceAdder.processBalances(1)).to.not.emit(
           balanceAdder,
@@ -419,7 +419,7 @@ describe("BalanceAdderV2", () => {
 
       it("does not add values if farm is not started", async () => {
         await openWallet()
-        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address, 0)
         await addEB(wallet.address, "100")
         await sharesEB.migrate(1)
         await balanceKeeper.setCanAdd(balanceAdder.address, true)
@@ -429,7 +429,7 @@ describe("BalanceAdderV2", () => {
 
       it("does not add values if step is zero", async () => {
         await openWallet()
-        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address, 0)
         await addEB(wallet.address, "100")
         await sharesEB.migrate(1)
         await farmEBForAWeek()
@@ -441,7 +441,7 @@ describe("BalanceAdderV2", () => {
       it("adds value to only one user if step is 1", async () => {
         await openWallet()
         await openOther()
-        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address, 0)
         await addEB(wallet.address, "100")
         await sharesEB.migrate(1)
         await farmEBForAWeek()
@@ -456,7 +456,7 @@ describe("BalanceAdderV2", () => {
       it("adds value to users", async () => {
         await openWallet()
         await openOther()
-        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address, 0)
         await addEB(wallet.address, "100")
         await addEB(other.address, "100")
         await sharesEB.migrate(2)
@@ -474,7 +474,7 @@ describe("BalanceAdderV2", () => {
       it("updates last portion", async () => {
         await openWallet()
         await openOther()
-        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address, 0)
         await addEB(wallet.address, "100")
         await sharesEB.migrate(1)
         await farmEBForAWeek()
@@ -489,7 +489,7 @@ describe("BalanceAdderV2", () => {
     describe("#LP", () => {
       it("does not add values if the shares contract is empty", async () => {
         await openWallet()
-        await balanceAdder.addFarm(sharesEB.address, farmEB.address)
+        await balanceAdder.addFarm(sharesEB.address, farmEB.address, 0)
         await balanceKeeper.setCanAdd(balanceAdder.address, true)
         await expect(balanceAdder.processBalances(1)).to.not.emit(
           balanceAdder,
@@ -499,7 +499,7 @@ describe("BalanceAdderV2", () => {
 
       it("does not add values if farm is not started", async () => {
         await openWallet()
-        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address)
+        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address, 0)
         await addLP(token1.address, wallet.address, 10)
         await balanceKeeper.setCanAdd(balanceAdder.address, true)
         await balanceAdder.processBalances(1)
@@ -508,7 +508,7 @@ describe("BalanceAdderV2", () => {
 
       it("does not add values if step is zero", async () => {
         await openWallet()
-        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address)
+        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address, 0)
         await addLP(token1.address, wallet.address, 10)
         await farmLP1ForAWeek()
         await balanceKeeper.setCanAdd(balanceAdder.address, true)
@@ -519,7 +519,7 @@ describe("BalanceAdderV2", () => {
       it("adds value to only one user if step is 1", async () => {
         await openWallet()
         await openOther()
-        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address)
+        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address, 0)
         await addLP(token1.address, wallet.address, 10)
         await farmLP1ForAWeek()
         await balanceKeeper.setCanAdd(balanceAdder.address, true)
@@ -533,7 +533,7 @@ describe("BalanceAdderV2", () => {
       it("adds value to users", async () => {
         await openWallet()
         await openOther()
-        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address)
+        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address, 0)
         await addLP(token1.address, wallet.address, 10)
         await addLP(token1.address, other.address, 10)
         await farmLP1ForAWeek()
@@ -550,7 +550,7 @@ describe("BalanceAdderV2", () => {
       it("updates last portion", async () => {
         await openWallet()
         await openOther()
-        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address)
+        await balanceAdder.addFarm(sharesLP1.address, farmLP1.address, 0)
         await addLP(token1.address, wallet.address, 10)
         await farmLP1ForAWeek()
         await balanceKeeper.setCanAdd(balanceAdder.address, true)
@@ -564,7 +564,7 @@ describe("BalanceAdderV2", () => {
     describe("#Staking", () => {
       it("fails if the shares contract is empty", async () => {
         await openWallet()
-        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address)
+        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address, 0)
         await balanceKeeper.setCanAdd(balanceAdder.address, true)
         await expect(balanceAdder.processBalances(1)).to.not.emit(
           balanceAdder,
@@ -574,7 +574,7 @@ describe("BalanceAdderV2", () => {
 
       it("does not add values if farm is not started", async () => {
         await openWallet()
-        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address)
+        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address, 0)
         await add(wallet.address, 10)
         await balanceKeeper.setCanAdd(balanceAdder.address, true)
         await balanceAdder.processBalances(1)
@@ -583,7 +583,7 @@ describe("BalanceAdderV2", () => {
 
       it("does not add values if step is zero", async () => {
         await openWallet()
-        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address)
+        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address, 0)
         await add(wallet.address, 10)
         await farmStakingForAWeek()
         await balanceKeeper.setCanAdd(balanceAdder.address, true)
@@ -594,7 +594,7 @@ describe("BalanceAdderV2", () => {
       it("adds value to only one user if step is 1", async () => {
         await openWallet()
         await openOther()
-        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address)
+        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address, 0)
         await add(wallet.address, 10)
         await farmStakingForAWeek()
         await balanceKeeper.setCanAdd(balanceAdder.address, true)
@@ -608,7 +608,7 @@ describe("BalanceAdderV2", () => {
       it("adds value to users", async () => {
         await openWallet()
         await openOther()
-        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address)
+        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address, 0)
         await add(wallet.address, 10)
         await add(other.address, 10)
         await farmStakingForAWeek()
@@ -625,7 +625,7 @@ describe("BalanceAdderV2", () => {
       it("updates last portion", async () => {
         await openWallet()
         await openOther()
-        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address)
+        await balanceAdder.addFarm(balanceKeeper.address, farmStaking.address, 0)
         await add(wallet.address, 10)
         await farmStakingForAWeek()
         await balanceKeeper.setCanAdd(balanceAdder.address, true)
