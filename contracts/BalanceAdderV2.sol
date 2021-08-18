@@ -59,11 +59,11 @@ contract BalanceAdderV2 is IBalanceAdderV2 {
     }
 
     /// @inheritdoc IBalanceAdderV2
-    function addFarm(IShares _share, IFarm _farm) external override isOwner {
+    function addFarm(IShares _share, IFarm _farm, uint256 _lastPortions) external override isOwner {
         shares.push(_share);
         farms.push(_farm);
-        lastPortions.push(0);
-        emit AddFarm(farms.length, _share, _farm);
+        lastPortions.push(_lastPortions);
+        emit AddFarm(farms.length, _share, _farm, _lastPortions);
     }
 
     /// @inheritdoc IBalanceAdderV2

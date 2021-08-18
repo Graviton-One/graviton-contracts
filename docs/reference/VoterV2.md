@@ -19,6 +19,7 @@
 Transfers ownership of the contract to a new account (`_owner`).
 
 Can only be called by the current owner.
+0x13af4035
 
 
 ### setCanCastVotes
@@ -29,6 +30,7 @@ Can only be called by the current owner.
 Sets the permission to cast votes on behalf of other users
 
 Can only be called by the current owner.
+0x730dc1a3
 
 
 ### setCanCheck
@@ -39,6 +41,7 @@ Can only be called by the current owner.
 Sets the permission to check voting balances when governance balances diminish
 
 Can only be called by the current owner.
+0x98925d30
 
 
 ### roundName
@@ -47,6 +50,7 @@ Can only be called by the current owner.
   ) external returns (string)
 ```
 Look up the name of a voting round
+
 getter functions with parameter names
 
 
@@ -58,6 +62,7 @@ getter functions with parameter names
 ```
 Look up the name of an option in a voting round
 
+0xeaac697a
 
 
 ### totalRoundOptions
@@ -67,6 +72,7 @@ Look up the name of an option in a voting round
 ```
 The number of options in a voting round
 
+0x67532670
 
 
 ### votesForOptionByUser
@@ -76,6 +82,7 @@ The number of options in a voting round
 ```
 Look up the amount of votes user sent for an option in a voting round
 
+0xe0c22e86
 
 
 ### votesInRoundByUser
@@ -85,6 +92,7 @@ Look up the amount of votes user sent for an option in a voting round
 ```
 Look up the amount of votes user sent in a voting round
 
+0x4d89f980
 
 
 ### userVotedInRound
@@ -94,6 +102,7 @@ Look up the amount of votes user sent in a voting round
 ```
 Look up if user voted in a voting round
 
+0xb59952a2
 
 
 ### userVotedForOption
@@ -103,6 +112,7 @@ Look up if user voted in a voting round
 ```
 Look up if user voted or an option in a voting round
 
+0xbde9fe72
 
 
 ### totalUsersInRound
@@ -112,6 +122,7 @@ Look up if user voted or an option in a voting round
 ```
 The total number of users that voted in a voting round
 
+0xfae67735
 
 
 ### totalUsersForOption
@@ -121,6 +132,7 @@ The total number of users that voted in a voting round
 ```
 The total number of users that voted for an option in a voting round
 
+0x3abe0c6a
 
 
 ### votesForOption
@@ -130,6 +142,7 @@ The total number of users that voted for an option in a voting round
 ```
 Look up the total amount of votes for an option in a voting round
 
+0x6e07e221
 
 
 ### votesInRound
@@ -139,6 +152,7 @@ Look up the total amount of votes for an option in a voting round
 ```
 The total number of votes in a voting round
 
+0x1a29f1b4
 
 
 ### totalActiveRounds
@@ -148,6 +162,7 @@ The total number of votes in a voting round
 ```
 The number of active voting rounds
 
+0xf9cce505
 
 
 ### totalFinalizedRounds
@@ -157,6 +172,7 @@ The number of active voting rounds
 ```
 The number of finalized voting rounds
 
+0xa2e0cb2b
 
 
 ### isActiveRound
@@ -166,6 +182,7 @@ The number of finalized voting rounds
 ```
 Look up if a voting round is active
 
+0x66abc2a6
 
 
 ### isFinalizedRound
@@ -175,6 +192,7 @@ Look up if a voting round is active
 ```
 Look up if a voting round is finalized
 
+0x8c802f0c
 
 
 ### startRound
@@ -186,12 +204,13 @@ Look up if a voting round is finalized
 ```
 Starts a voting round
 
-
+0xad77c86a
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
 |`_roundName` | string | voting round name, i.e. "Proposal"
 |`optionNames` | string[] | an array of option names, i.e. ["Approve", "Reject"]
+
 
 ### finalizeRound
 ```solidity
@@ -200,6 +219,7 @@ Starts a voting round
 ```
 Finalized a voting round
 
+0x3469f6e2
 
 
 ### castVotes
@@ -212,6 +232,7 @@ Finalized a voting round
 Records votes according to userId governance balance
 
 Can only be called by the account allowed to cast votes on behalf of others
+0xe361f07f
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
@@ -229,6 +250,7 @@ Can only be called by the account allowed to cast votes on behalf of others
 Records votes according to userId governance balance
 
 Can only be called by the account allowed to cast votes on behalf of others
+0xe361f07f
 #### Parameters:
 | Name | Type | Description                                                          |
 | :--- | :--- | :------------------------------------------------------------------- |
@@ -261,5 +283,6 @@ Can only be called by the account allowed to cast votes on behalf of others
 ```
 Decreases votes of `user` when their balance is depleted, preserving proportions
 
+0xebce8e5a
 
 

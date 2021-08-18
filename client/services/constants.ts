@@ -21,6 +21,14 @@ export interface Fantom {
     lockGTON: string,
     lockLP: string,
     relayLock: string,
+    team: string,
+    bot: string,
+    consul1: string,
+    consul2: string,
+    consul3: string,
+    otc: string,
+    usdc: string,
+    busd: string
 }
 export interface Chain {
     provider: ethers.providers.JsonRpcProvider
@@ -30,6 +38,9 @@ export interface Chain {
     faucet: string,
     lockLP: string,
     relayLock: string,
+    otc: string,
+    usdc: string,
+    busd: string
 }
 
 export const FTM: Fantom = {
@@ -45,14 +56,22 @@ export const FTM: Fantom = {
     farmEB: '0x4Cb8824d45312D5dC9d9B5260fb2B1dEC297015b',
     sharesEB: '0x521C9352E2782c947F4354179D144f09D8c0b0c3',
     farmStaking: '0x99587ecA8b1A371e673601E2a4a1be7a65F74867',
-    claim: '0x9d2f7Dc325898E50D32783a95654eb377c994253',
-    claimWallet: '0xCed486E3905F8FE1E8aF5d1791F5E7Ad7915f01a',
+    claim: '0x26F79c88073Dfc9a1E4D3d6c53C087516dc6Bb7b',
+    claimWallet: '0xa38499246f6a88Cf4734598F5fBb32DDE1ECf802',
     lp: '0x070AB37714b96f1A938e75CAbbb64ED5F5748170',
     lockGTON: '0x5B1C102A6d849F9cfe2B1369AffDd57f5678B91d',
     lockLP: '0xF488b8D9a391F27d5e83fa421Bda986B7d4Da41A',
     farmLP: '',
     sharesLP: '',
-    relayLock: '0x30316189849df4ED37F0C5A7165D8f4170BFaAc7'
+    relayLock: '0xf3D45322f06eCd0F579fEC5a917B685FBa488b46',
+    team: '0xCed486E3905F8FE1E8aF5d1791F5E7Ad7915f01a',
+    bot: '0x5685A7350cAE5Fa7ffc16eC3d723c6D5A250c27b',
+    consul1: '0x6ac9bd01C19aBfF57119e859652D4A2a5e4f9217',
+    consul2: '0xD13a6Cd149336A323f925Fd5B660e322E048558e',
+    consul3: '0x977fa57A02cc421E26099a4F499605cb7Dd853d2',
+    otc: '0x60E54bdb32785502326452366Fd4E063c7854A93',
+    usdc: '0x04068da6c83afcfa0e13ba15a6696662335d5b75',
+    busd: ''
 }
 
 export const ETH: Chain = {
@@ -62,7 +81,10 @@ export const ETH: Chain = {
     lp: '0x0b3ecea6bc79be3ecc805528655c4fc173cac2dd',
     lockLP: '0xA69e5e2094e55B80B71C39849DE8186ed9B88b38',
     faucet: '',
-    relayLock: ''
+    relayLock: '0xBC13c09a5098E3CF0c71Aa4F6D467D53b68C278F',
+    otc: '',
+    usdc: '',
+    busd: ''
 }
 
 export const PLG: Chain = {
@@ -72,7 +94,10 @@ export const PLG: Chain = {
     lp: '0xf01a0a0424bda0acdd044a61af88a34636e0001c',
     lockLP: '0xbba98EA00ab995a467e9aFabBb15dBDDD29E1f44',
     faucet: '',
-    relayLock: '0x85599048Ba195a9063528D5104a28C052533B896'
+    relayLock: '0xDc9F9ece8d24214fc8De90BCD21808b73060B63f',
+    otc: '0xC721B4B560471bFD39bEa41BC7549559B076b680',
+    usdc: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+    busd: ''
 }
 
 export const BSC: Chain = {
@@ -82,5 +107,49 @@ export const BSC: Chain = {
     lp: '0xbe2c760aE00CbE6A5857cda719E74715edC22279',
     lockLP: '0xF8405Aebd87E37E60549D4f28a5A88Deb38bEA7B',
     faucet: '0x49b6431BDcd6CFaf79a3a5309261cB268642d8C0',
-    relayLock: '0x391376F92f0B455717f03A52FE5841cb0694F370'
+    relayLock: '0x7DF3ba8e3a8aC6759f215d734Dc4afdB34739618',
+    otc: '0x5aC59d3DE6D16AEB38f872298D9e176817c656F4',
+    usdc: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
+    busd: '0xe9e7cea3dedca5984780bafc599bd69add087d56'
+}
+
+export const HEC: Chain = {
+    provider: new ethers.providers.JsonRpcProvider("https://http-mainnet.hecochain.com"),
+    gton: '0x922d641a426dcffaef11680e5358f34d97d112e1',
+    lockGTON: '',
+    lp: '',
+    lockLP: '',
+    faucet: '',
+    relayLock: '0x08D751281654cF6E6951E303eC3c55f92a4B22bd',
+    otc: '',
+    usdc: '',
+    busd: ''
+}
+
+export const AVA: Chain = {
+    provider: new ethers.providers.JsonRpcProvider("https://api.avax.network/ext/bc/C/rpc"),
+    gton: '0x4E720DD3Ac5CFe1e1fbDE4935f386Bb1C66F4642',
+    lockGTON: '',
+    lp: '',
+    lockLP: '',
+    faucet: '',
+    relayLock: '0x9366EA2931F069C115Dd7ea041d8eAFd1C76f444',
+    otc: '',
+    usdc: '',
+    busd: ''
+
+}
+
+export const DAI: Chain = {
+    provider: new ethers.providers.JsonRpcProvider("https://rpc.xdaichain.com"),
+    gton: '0x6aB6d61428fde76768D7b45D8BFeec19c6eF91A8',
+    lockGTON: '',
+    lp: '',
+    lockLP: '',
+    faucet: '',
+    relayLock: '0x08D751281654cF6E6951E303eC3c55f92a4B22bd',
+    otc: '',
+    usdc: '',
+    busd: ''
+
 }

@@ -9,12 +9,12 @@ import { VoterV2 } from "../../typechain/VoterV2"
 import { LPKeeperV2 } from "../../typechain/LPKeeperV2"
 import { LockRouter } from "../../typechain/LockRouter"
 import { OracleParserV2 } from "../../typechain/OracleParserV2"
-import { ClaimGTONV2 } from "../../typechain/ClaimGTONV2"
 import { IShares } from "../../typechain/IShares"
 import { SharesEB } from "../../typechain/SharesEB"
 import { BalanceAdderV2 } from '../../typechain/BalanceAdderV2'
 import { Faucet } from '../../typechain/Faucet'
 import { RelayLock } from '../../typechain/RelayLock'
+import { OTC } from '../../typechain/OTC'
 
 const IERC20ABI          = require('../../abi/IERC20.json');
 const LockGTONABI        = require('../../abi/LockGTON.json')
@@ -28,11 +28,11 @@ const BalanceAdderV2ABI  = require('../../abi/BalanceAdderV2.json')
 const IFarmABI           = require('../../abi/IFarm.json')
 const ISharesABI         = require('../../abi/IShares.json')
 const SharesEBABI        = require('../../abi/SharesEB.json')
-const ClaimGTONV2ABI     = require('../../abi/ClaimGTONV2.json')
 const FaucetABI          = require('../../abi/Faucet.json')
-const RelayLockABI          = require('../../abi/RelayLock.json')
+const RelayLockABI       = require('../../abi/RelayLock.json')
+const OTCABI             = require('../../abi/OTC.json')
 
-import {FTM, BSC, ETH, PLG} from './constants'
+import {FTM, BSC, ETH, PLG, AVA, HEC, DAI} from './constants'
 
 export function formatETHBalance(amount: string): string {
   return ethers.utils.formatUnits(amount, "ether");
@@ -66,6 +66,7 @@ export default class Invoker {
         this.metamask = _metamask
         this.signer = this.metamask.getSigner()
     }
+
     async balance(chain: string): Promise<string> {
         var provider: ethers.providers.JsonRpcProvider
         if (chain == "FTM") {
@@ -392,10 +393,10 @@ export default class Invoker {
         const contract = new ethers.Contract(FTM.farmStaking, IFarmABI, this.signer) as IFarm
         await contract.unlockAsset()
     }
-    async claim(amount: string) {
-        const contract = new ethers.Contract(FTM.claim, ClaimGTONV2ABI, this.signer) as ClaimGTONV2
-        await contract.claim(amount)
-    }
+    // async claim(amount: string) {
+    //     const contract = new ethers.Contract(FTM.claim, ClaimGTONV2ABI, this.signer) as ClaimGTONV2
+    //     await contract.claim(amount)
+    // }
     async castVotes(roundId: string, votes1: string, votes2: string) {
         const contract = new ethers.Contract(FTM.voter, VoterV2ABI, this.signer) as VoterV2
         await contract['castVotes(uint256,uint256[])'](roundId, [votes1, votes2])
@@ -417,5 +418,120 @@ export default class Invoker {
         }
         const contract = new ethers.Contract(faucet, FaucetABI, this.signer) as Faucet
         await contract.drop(gton)
+    }
+
+    // async signDigest(digest: string) {
+    //     var address: string
+    //     var provider: ethers.providers.JsonRpcProvider
+    //     if (chain == "FTM") {
+    //         address = FTM.relayLock
+    //     } else if (chain == "BSC") {
+    //         address = BSC.relayLock
+    //     } else if (chain == "PLG") {
+    //         address = PLG.relayLock
+    //     } else {
+    //         return
+    //     }
+
+    //     const contract = new ethers.Contract(address, RelayLockABI, this.signer) as RelayLock
+    //     await contract.lock(destination, await this.signer.getAddress(), {value: amount})
+    // }
+
+    async balanceNT(provider: ethers.providers.JsonRpcProvider, address: string): Promise<BigNumber> {
+        return await provider.getBalance(address)
+    }
+    async balanceOf(provider: ethers.providers.JsonRpcProvider, token: string, address: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(token, IERC20ABI, provider) as IERC20
+        return await contract.balanceOf(address)
+    }
+    async allowance(provider: ethers.providers.JsonRpcProvider, token: string, owner: string, spender: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(token, IERC20ABI, provider) as IERC20
+        return await contract.allowance(owner, spender)
+    }
+
+    async price(otc: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.price()
+    }
+    async setPriceLast(otc: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.setPriceLast()
+    }
+    async cliffAdmin(otc: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.cliffAdmin()
+    }
+    async vestingTimeAdmin(otc: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.vestingTimeAdmin()
+    }
+    async numberOfTranchesAdmin(otc: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.numberOfTranchesAdmin()
+    }
+    async setVestingParamsLast(otc: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.setVestingParamsLast()
+    }
+    async upperLimit(otc: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.upperLimit()
+    }
+    async lowerLimit(otc: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.lowerLimit()
+    }
+    async setLimitsLast(otc: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.setLimitsLast()
+    }
+    async cliff(otc: string, address: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.cliff(address)
+    }
+    async vestingTime(otc: string, address: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.vestingTime(address)
+    }
+    async numberOfTranches(otc: string, address: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.numberOfTranches(address)
+    }
+    async startTime(otc: string, address: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.startTime(address)
+    }
+    async vested(otc: string, address: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.vested(address)
+    }
+    async claimed(otc: string, address: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.claimed(address)
+    }
+    async claimLast(otc: string, address: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.claimLast(address)
+    }
+    async balanceGTONotc(gton: string, otc: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(gton, IERC20ABI, this.signer) as IERC20
+        return await contract.balanceOf(otc)
+    }
+    async vestedTotal(otc: string): Promise<BigNumber> {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        return await contract.vestedTotal()
+    }
+    async approve(token: string, otc: string, amount: string) {
+        console.log("approve", token, otc, amount)
+        const contract = new ethers.Contract(token, IERC20ABI, this.signer) as IERC20
+        await contract.approve(otc, amount)
+    }
+    async exchange(otc: string, amount: string) {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        await contract.exchange(amount)
+    }
+    async claim(otc: string) {
+        const contract = new ethers.Contract(otc, OTCABI, this.signer) as OTC
+        await contract.claim()
     }
 }

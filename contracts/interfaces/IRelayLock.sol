@@ -75,14 +75,16 @@ interface IRelayLock {
     );
 
     /// @notice Event emitted when fees are calculated
-    /// @param amount Relay tokens to subtract from
+    /// @param amountIn Native tokens sent to dex
+    /// @param amountOut Relay tokens received on dex
     /// @param feeMin Minimum fee
     /// @param feePercent Percentage for the fee in %
     /// @dev precision 3 decimals
     /// @param fee Percentage fee in relay tokens
     /// @param amountMinusFee Relay tokens minus fees
     event CalculateFee(
-        uint256 amount,
+        uint256 amountIn,
+        uint256 amountOut,
         uint256 feeMin,
         uint256 feePercent,
         uint256 fee,
