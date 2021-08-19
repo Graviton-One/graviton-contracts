@@ -46,6 +46,8 @@ import { OTC } from "../../typechain/OTC"
 import { MockOTC } from "../../typechain/MockOTC"
 import { TestUSDC } from "../../typechain/TestUSDC"
 
+import { BalanceAdderV3 } from "../../typechain/BalanceAdderV3"
+
 import {
   makeValueImpact,
   EARLY_BIRDS_A,
@@ -1123,5 +1125,92 @@ export const otcFixture: Fixture<OTCFixture> =
       usdc,
       otc,
       otcUSDC
+    }
+  }
+
+interface BalanceAdderV3Fixture extends TokensAndBalanceKeeperV2Fixture {
+  farmStaking: MockTimeFarmLinear
+  impactEB: ImpactEB
+  sharesEB: SharesEB
+  farmEB: MockTimeFarmCurved
+  lpKeeper: LPKeeperV2
+  sharesLP1: SharesLP
+  farmLP1: MockTimeFarmLinear
+  sharesLP2: SharesLP
+  farmLP2: MockTimeFarmLinear
+  balanceAdder: BalanceAdderV3
+}
+
+export const balanceAdderV3Fixture: Fixture<BalanceAdderV3Fixture> =
+  async function (
+    [wallet, other, nebula],
+    provider
+  ): Promise<BalanceAdderV3Fixture> {
+    const { token0, token1, token2 } = await tokensFixture()
+
+    const { balanceKeeper } = await balanceKeeperV2Fixture()
+
+    const { farm: farmStaking } = await farmLinearFixture()
+
+    const impactEBFactory = await ethers.getContractFactory("ImpactEB")
+    const impactEB = (await impactEBFactory.deploy(
+      wallet.address,
+      nebula.address,
+      [token1.address, token2.address]
+    )) as ImpactEB
+
+    const sharesEBFactory = await ethers.getContractFactory("SharesEB")
+    const sharesEB = (await sharesEBFactory.deploy(
+      balanceKeeper.address,
+      impactEB.address
+    )) as SharesEB
+
+    const { farm: farmEB } = await farmCurvedFixture()
+
+    const lpKeeperFactory = await ethers.getContractFactory("LPKeeperV2")
+    const lpKeeper = (await lpKeeperFactory.deploy(
+      balanceKeeper.address
+    )) as LPKeeperV2
+
+    await lpKeeper.setCanOpen(wallet.address, true)
+    await lpKeeper.open(EVM_CHAIN, token1.address)
+    await lpKeeper.open(EVM_CHAIN, token2.address)
+
+    const sharesLPFactory = await ethers.getContractFactory("SharesLP")
+    const sharesLP1 = (await sharesLPFactory.deploy(
+      lpKeeper.address,
+      0
+    )) as SharesLP
+
+    const { farm: farmLP1 } = await farmLinearFixture()
+
+    const sharesLP2 = (await sharesLPFactory.deploy(
+      lpKeeper.address,
+      1
+    )) as SharesLP
+
+    const { farm: farmLP2 } = await farmLinearFixture()
+
+    const balanceAdderFactory = await ethers.getContractFactory(
+      "BalanceAdderV3"
+    )
+    const balanceAdder = (await balanceAdderFactory.deploy(
+      balanceKeeper.address
+    )) as BalanceAdderV3
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeper,
+      farmStaking,
+      impactEB,
+      sharesEB,
+      farmEB,
+      lpKeeper,
+      sharesLP1,
+      farmLP1,
+      sharesLP2,
+      farmLP2,
+      balanceAdder
     }
   }
