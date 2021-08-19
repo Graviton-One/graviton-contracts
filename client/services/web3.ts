@@ -13,7 +13,6 @@ import { IShares } from "../../typechain/IShares"
 import { SharesEB } from "../../typechain/SharesEB"
 import { BalanceAdderV2 } from '../../typechain/BalanceAdderV2'
 import { Faucet } from '../../typechain/Faucet'
-import { RelayLock } from '../../typechain/RelayLock'
 import { OTC } from '../../typechain/OTC'
 
 const IERC20ABI          = require('../../abi/IERC20.json');
@@ -29,7 +28,6 @@ const IFarmABI           = require('../../abi/IFarm.json')
 const ISharesABI         = require('../../abi/IShares.json')
 const SharesEBABI        = require('../../abi/SharesEB.json')
 const FaucetABI          = require('../../abi/Faucet.json')
-const RelayLockABI       = require('../../abi/RelayLock.json')
 const OTCABI             = require('../../abi/OTC.json')
 
 import {FTM, BSC, ETH, PLG, AVA, HEC, DAI} from './constants'
@@ -83,23 +81,6 @@ export default class Invoker {
 
         const balance = await provider.getBalance(await this.signer.getAddress())
         return formatETHBalance(balance.toString())
-    }
-
-    async lockRelay(chain: string, destination: string, amount: string) {
-        var address: string
-        var provider: ethers.providers.JsonRpcProvider
-        if (chain == "FTM") {
-            address = FTM.relayLock
-        } else if (chain == "BSC") {
-            address = BSC.relayLock
-        } else if (chain == "PLG") {
-            address = PLG.relayLock
-        } else {
-            return
-        }
-
-        const contract = new ethers.Contract(address, RelayLockABI, this.signer) as RelayLock
-        await contract.lock(destination, await this.signer.getAddress(), {value: amount})
     }
 
     async balanceGTON(chain: string): Promise<string> {
@@ -419,23 +400,6 @@ export default class Invoker {
         const contract = new ethers.Contract(faucet, FaucetABI, this.signer) as Faucet
         await contract.drop(gton)
     }
-
-    // async signDigest(digest: string) {
-    //     var address: string
-    //     var provider: ethers.providers.JsonRpcProvider
-    //     if (chain == "FTM") {
-    //         address = FTM.relayLock
-    //     } else if (chain == "BSC") {
-    //         address = BSC.relayLock
-    //     } else if (chain == "PLG") {
-    //         address = PLG.relayLock
-    //     } else {
-    //         return
-    //     }
-
-    //     const contract = new ethers.Contract(address, RelayLockABI, this.signer) as RelayLock
-    //     await contract.lock(destination, await this.signer.getAddress(), {value: amount})
-    // }
 
     async balanceNT(provider: ethers.providers.JsonRpcProvider, address: string): Promise<BigNumber> {
         return await provider.getBalance(address)
