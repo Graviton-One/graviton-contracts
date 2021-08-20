@@ -82,6 +82,42 @@ describe("Relay", () => {
       await expect(relay.setOwner(wallet.address)).to.be.revertedWith("ACW")
     })
   })
+  describe("#setFees", () => {
+    it("fails if caller is not owner", async () => {
+      await expect(relay.connect(other).setFees(FTM_CHAIN, "19939", 0)).to.be
+        .revertedWith("ACW")
+    })
+
+    it("emits a SetFees event", async () => {
+      expect(await relay.setFees(FTM_CHAIN, "19939", 0))
+        .to.emit(relay, "SetFees")
+        .withArgs(FTM_CHAIN, "19939", 0)
+    })
+
+    it("updates owner", async () => {
+      await relay.setFees(FTM_CHAIN, "19939", 0)
+      expect(await relay.feeMin(FTM_CHAIN)).to.eq("19939")
+      expect(await relay.feePercent(FTM_CHAIN)).to.eq(0)
+    })
+  })
+  describe("#setLimits", () => {
+    it("fails if caller is not owner", async () => {
+      await expect(relay.connect(other).setLimits(FTM_CHAIN, 0, "9999")).to.be
+        .revertedWith("ACW")
+    })
+
+    it("emits a setLimits event", async () => {
+      expect(await relay.setLimits(FTM_CHAIN, 0, "9999"))
+        .to.emit(relay, "SetLimits")
+        .withArgs(FTM_CHAIN, 0, "9999")
+    })
+
+    it("updates owner", async () => {
+      await relay.setLimits(FTM_CHAIN, 0, "9999")
+      expect(await relay.lowerLimit(FTM_CHAIN)).to.eq(0)
+      expect(await relay.upperLimit(FTM_CHAIN)).to.eq("9999")
+    })
+  })
 
   describe("#lock", () => {
     it("fails if chain is not allowed", async () => {

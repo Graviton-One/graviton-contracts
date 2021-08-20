@@ -90,14 +90,14 @@ contract Relay is IRelay {
     }
 
     /// @inheritdoc IRelay
-    function setFees(string calldata destination, uint256 _feeMin, uint256 _feePercent) external override {
+    function setFees(string calldata destination, uint256 _feeMin, uint256 _feePercent) external override isOwner {
         feeMin[destination] = _feeMin;
         feePercent[destination] = _feePercent;
         emit SetFees(destination, _feeMin, _feePercent);
     }
 
     /// @inheritdoc IRelay
-    function setLimits(string calldata destination, uint256 _lowerLimit, uint256 _upperLimit) external override {
+    function setLimits(string calldata destination, uint256 _lowerLimit, uint256 _upperLimit) external override isOwner {
         lowerLimit[destination] = _lowerLimit;
         upperLimit[destination] = _upperLimit;
         emit SetLimits(destination, _lowerLimit, _upperLimit);
