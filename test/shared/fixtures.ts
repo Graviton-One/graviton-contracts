@@ -37,14 +37,14 @@ import { WrappedNative } from "../../typechain/WrappedNative"
 import { UniswapV2Pair } from "../../typechain/UniswapV2Pair"
 import { UniswapV2Factory } from "../../typechain/UniswapV2Factory"
 import { UniswapV2Router01 } from "../../typechain/UniswapV2Router01"
-import { RelayLock } from "../../typechain/RelayLock"
-import { RelayRouter } from "../../typechain/RelayRouter"
 import { RelayParser } from "../../typechain/RelayParser"
 import { Relay } from "../../typechain/Relay"
 
 import { OTC } from "../../typechain/OTC"
 import { MockOTC } from "../../typechain/MockOTC"
 import { TestUSDC } from "../../typechain/TestUSDC"
+
+import { BalanceAdderV3 } from "../../typechain/BalanceAdderV3"
 
 import {
   makeValueImpact,
@@ -897,96 +897,6 @@ const uniswapFixture: Fixture<UniswapFixture> =
   }
 }
 
-interface RelayLockFixture extends UniswapFixture {
-  relayLock: RelayLock
-}
-
-export const relayLockFixture: Fixture<RelayLockFixture> =
-  async function (
-    [wallet, other],
-    provider
-  ): Promise<RelayLockFixture> {
-    const {
-      token0,
-      token1,
-      token2,
-      weth,
-      uniswapV2Factory,
-      uniswapV2Router01,
-      uniswapV2Pair
-    } = await uniswapFixture([wallet, other], provider)
-
-  const relayLockFactory = await ethers.getContractFactory(
-    "RelayLock"
-  )
-  const relayLock = await relayLockFactory.deploy(
-    weth.address,
-    uniswapV2Router01.address,
-    token0.address
-  ) as RelayLock
-
-  return {
-    token0,
-    token1,
-    token2,
-    weth,
-    uniswapV2Factory,
-    uniswapV2Router01,
-    uniswapV2Pair,
-    relayLock
-  }
-}
-
-interface RelayRouterFixture extends UniswapFixture {
-  relayRouter: RelayRouter
-  relayParser: RelayParser
-}
-
-export const relayRouterFixture: Fixture<RelayRouterFixture> =
-  async function ([wallet, other, nebula], provider): Promise<RelayRouterFixture> {
-    const {
-      token0,
-      token1,
-      token2,
-      weth,
-      uniswapV2Factory,
-      uniswapV2Router01,
-      uniswapV2Pair
-    } = await uniswapFixture([wallet, other], provider)
-
-    const relayRouterFactory = await ethers.getContractFactory(
-      "RelayRouter"
-    )
-    const relayRouter = (await relayRouterFactory.deploy(
-      other.address,
-      token0.address,
-      RELAY_TOPIC,
-      weth.address,
-      uniswapV2Router01.address
-    )) as RelayRouter
-
-    const relayParserFactory = await ethers.getContractFactory(
-      "RelayParser"
-    )
-    const relayParser = (await relayParserFactory.deploy(
-      relayRouter.address,
-      nebula.address,
-      [BNB_CHAIN]
-    )) as RelayParser
-
-    return {
-      token0,
-      token1,
-      token2,
-      weth,
-      uniswapV2Factory,
-      uniswapV2Router01,
-      uniswapV2Pair,
-      relayRouter,
-      relayParser
-    }
-  }
-
 interface RelayFixture extends UniswapFixture {
   relayParser: RelayParser
   relay: Relay
@@ -1123,5 +1033,92 @@ export const otcFixture: Fixture<OTCFixture> =
       usdc,
       otc,
       otcUSDC
+    }
+  }
+
+interface BalanceAdderV3Fixture extends TokensAndBalanceKeeperV2Fixture {
+  farmStaking: MockTimeFarmLinear
+  impactEB: ImpactEB
+  sharesEB: SharesEB
+  farmEB: MockTimeFarmCurved
+  lpKeeper: LPKeeperV2
+  sharesLP1: SharesLP
+  farmLP1: MockTimeFarmLinear
+  sharesLP2: SharesLP
+  farmLP2: MockTimeFarmLinear
+  balanceAdder: BalanceAdderV3
+}
+
+export const balanceAdderV3Fixture: Fixture<BalanceAdderV3Fixture> =
+  async function (
+    [wallet, other, nebula],
+    provider
+  ): Promise<BalanceAdderV3Fixture> {
+    const { token0, token1, token2 } = await tokensFixture()
+
+    const { balanceKeeper } = await balanceKeeperV2Fixture()
+
+    const { farm: farmStaking } = await farmLinearFixture()
+
+    const impactEBFactory = await ethers.getContractFactory("ImpactEB")
+    const impactEB = (await impactEBFactory.deploy(
+      wallet.address,
+      nebula.address,
+      [token1.address, token2.address]
+    )) as ImpactEB
+
+    const sharesEBFactory = await ethers.getContractFactory("SharesEB")
+    const sharesEB = (await sharesEBFactory.deploy(
+      balanceKeeper.address,
+      impactEB.address
+    )) as SharesEB
+
+    const { farm: farmEB } = await farmCurvedFixture()
+
+    const lpKeeperFactory = await ethers.getContractFactory("LPKeeperV2")
+    const lpKeeper = (await lpKeeperFactory.deploy(
+      balanceKeeper.address
+    )) as LPKeeperV2
+
+    await lpKeeper.setCanOpen(wallet.address, true)
+    await lpKeeper.open(EVM_CHAIN, token1.address)
+    await lpKeeper.open(EVM_CHAIN, token2.address)
+
+    const sharesLPFactory = await ethers.getContractFactory("SharesLP")
+    const sharesLP1 = (await sharesLPFactory.deploy(
+      lpKeeper.address,
+      0
+    )) as SharesLP
+
+    const { farm: farmLP1 } = await farmLinearFixture()
+
+    const sharesLP2 = (await sharesLPFactory.deploy(
+      lpKeeper.address,
+      1
+    )) as SharesLP
+
+    const { farm: farmLP2 } = await farmLinearFixture()
+
+    const balanceAdderFactory = await ethers.getContractFactory(
+      "BalanceAdderV3"
+    )
+    const balanceAdder = (await balanceAdderFactory.deploy(
+      balanceKeeper.address
+    )) as BalanceAdderV3
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeper,
+      farmStaking,
+      impactEB,
+      sharesEB,
+      farmEB,
+      lpKeeper,
+      sharesLP1,
+      farmLP1,
+      sharesLP2,
+      farmLP2,
+      balanceAdder
     }
   }
