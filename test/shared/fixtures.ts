@@ -567,7 +567,8 @@ export const claimGTONAbsoluteFixture: Fixture<ClaimGTONAbsoluteFixture> = async
     wallet.address,
     balanceKeeper.address,
     voter.address,
-    expandTo18Decimals(100)
+    expandTo18Decimals(100),
+    86400
   )) as MockTimeClaimGTONAbsolute
   return {
     token0,

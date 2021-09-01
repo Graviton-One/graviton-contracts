@@ -13,8 +13,9 @@ contract MockTimeClaimGTONAbsolute is ClaimGTONAbsolute {
         address _wallet,
         IBalanceKeeperV2 _balanceKeeper,
         IVoterV2 _voter,
-        uint256 _limitAbsolute
-    ) ClaimGTONAbsolute(_governanceToken, _wallet, _balanceKeeper, _voter, _limitAbsolute) {}
+        uint256 _limitAbsolute,
+        uint256 _period
+    ) ClaimGTONAbsolute(_governanceToken, _wallet, _balanceKeeper, _voter, _limitAbsolute, _period) {}
 
     // Monday, October 5, 2020 9:00:00 AM GMT-05:00
     uint256 public time = 1601906400;
