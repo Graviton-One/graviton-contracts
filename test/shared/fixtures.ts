@@ -30,8 +30,8 @@ import { BalanceAdderV2 } from "../../typechain/BalanceAdderV2"
 import { LockGTONOnchain } from "../../typechain/LockGTONOnchain"
 import { LockUnlockLPOnchain } from "../../typechain/LockUnlockLPOnchain"
 
-import { MockTimeClaimGTONAbsolute } from '../../typechain/MockTimeClaimGTONAbsolute'
-import { MockTimeClaimGTONPercent } from '../../typechain/MockTimeClaimGTONPercent'
+import { MockTimeClaimGTONAbsolute } from "../../typechain/MockTimeClaimGTONAbsolute"
+import { MockTimeClaimGTONPercent } from "../../typechain/MockTimeClaimGTONPercent"
 
 import { WrappedNative } from "../../typechain/WrappedNative"
 import { UniswapV2Pair } from "../../typechain/UniswapV2Pair"
@@ -62,7 +62,7 @@ import {
   BNB_CHAIN,
   PLG_CHAIN,
   expandTo18Decimals,
-  MAX_UINT
+  MAX_UINT,
 } from "./utilities"
 
 import { Fixture } from "ethereum-waffle"
@@ -452,31 +452,31 @@ interface LockRouterFixture extends LPKeeperV2Fixture {
   lockRouter: LockRouter
 }
 
-export const lockRouterFixture: Fixture<LockRouterFixture> =
-  async function ([wallet, other], provider): Promise<LockRouterFixture> {
-    const { token0, token1, token2, balanceKeeper, lpKeeper } =
-      await lpKeeperV2Fixture([wallet, other], provider)
+export const lockRouterFixture: Fixture<LockRouterFixture> = async function (
+  [wallet, other],
+  provider
+): Promise<LockRouterFixture> {
+  const { token0, token1, token2, balanceKeeper, lpKeeper } =
+    await lpKeeperV2Fixture([wallet, other], provider)
 
-    const lockRouterFactory = await ethers.getContractFactory(
-      "LockRouter"
-    )
-    const lockRouter = (await lockRouterFactory.deploy(
-      balanceKeeper.address,
-      lpKeeper.address,
-      GTON_ADD_TOPIC,
-      GTON_SUB_TOPIC,
-      LP_ADD_TOPIC,
-      LP_SUB_TOPIC
-    )) as LockRouter
-    return {
-      token0,
-      token1,
-      token2,
-      balanceKeeper,
-      lpKeeper,
-      lockRouter,
-    }
+  const lockRouterFactory = await ethers.getContractFactory("LockRouter")
+  const lockRouter = (await lockRouterFactory.deploy(
+    balanceKeeper.address,
+    lpKeeper.address,
+    GTON_ADD_TOPIC,
+    GTON_SUB_TOPIC,
+    LP_ADD_TOPIC,
+    LP_SUB_TOPIC
+  )) as LockRouter
+  return {
+    token0,
+    token1,
+    token2,
+    balanceKeeper,
+    lpKeeper,
+    lockRouter,
   }
+}
 
 interface OracleParserV2Fixture extends LockRouterFixture {
   oracleParser: OracleParserV2
@@ -515,70 +515,69 @@ interface ClaimGTONPercentFixture extends TokensAndVoterV2Fixture {
   claimGTON: MockTimeClaimGTONPercent
 }
 
-export const claimGTONPercentFixture: Fixture<ClaimGTONPercentFixture> = async function (
-  [wallet, other],
-  provider
-): Promise<ClaimGTONPercentFixture> {
-  const { token0, token1, token2 } = await tokensFixture()
-  const { balanceKeeper, voter } = await voterV2Fixture(
-    [wallet, other],
-    provider
-  )
+export const claimGTONPercentFixture: Fixture<ClaimGTONPercentFixture> =
+  async function ([wallet, other], provider): Promise<ClaimGTONPercentFixture> {
+    const { token0, token1, token2 } = await tokensFixture()
+    const { balanceKeeper, voter } = await voterV2Fixture(
+      [wallet, other],
+      provider
+    )
 
-  const claimGTONFactory = await ethers.getContractFactory(
-    "MockTimeClaimGTONPercent"
-  )
-  const claimGTON = (await claimGTONFactory.deploy(
-    token0.address,
-    wallet.address,
-    balanceKeeper.address,
-    voter.address,
-    50
-  )) as MockTimeClaimGTONPercent
-  return {
-    token0,
-    token1,
-    token2,
-    balanceKeeper,
-    voter,
-    claimGTON,
+    const claimGTONFactory = await ethers.getContractFactory(
+      "MockTimeClaimGTONPercent"
+    )
+    const claimGTON = (await claimGTONFactory.deploy(
+      token0.address,
+      wallet.address,
+      balanceKeeper.address,
+      voter.address,
+      50
+    )) as MockTimeClaimGTONPercent
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeper,
+      voter,
+      claimGTON,
+    }
   }
-}
 
 interface ClaimGTONAbsoluteFixture extends TokensAndVoterV2Fixture {
   claimGTON: MockTimeClaimGTONAbsolute
 }
 
-export const claimGTONAbsoluteFixture: Fixture<ClaimGTONAbsoluteFixture> = async function (
-  [wallet, other],
-  provider
-): Promise<ClaimGTONAbsoluteFixture> {
-  const { token0, token1, token2 } = await tokensFixture()
-  const { balanceKeeper, voter } = await voterV2Fixture(
+export const claimGTONAbsoluteFixture: Fixture<ClaimGTONAbsoluteFixture> =
+  async function (
     [wallet, other],
     provider
-  )
+  ): Promise<ClaimGTONAbsoluteFixture> {
+    const { token0, token1, token2 } = await tokensFixture()
+    const { balanceKeeper, voter } = await voterV2Fixture(
+      [wallet, other],
+      provider
+    )
 
-  const claimGTONFactory = await ethers.getContractFactory(
-    "MockTimeClaimGTONAbsolute"
-  )
-  const claimGTON = (await claimGTONFactory.deploy(
-    token0.address,
-    wallet.address,
-    balanceKeeper.address,
-    voter.address,
-    expandTo18Decimals(100),
-    86400
-  )) as MockTimeClaimGTONAbsolute
-  return {
-    token0,
-    token1,
-    token2,
-    balanceKeeper,
-    voter,
-    claimGTON,
+    const claimGTONFactory = await ethers.getContractFactory(
+      "MockTimeClaimGTONAbsolute"
+    )
+    const claimGTON = (await claimGTONFactory.deploy(
+      token0.address,
+      wallet.address,
+      balanceKeeper.address,
+      voter.address,
+      expandTo18Decimals(100),
+      86400
+    )) as MockTimeClaimGTONAbsolute
+    return {
+      token0,
+      token1,
+      token2,
+      balanceKeeper,
+      voter,
+      claimGTON,
+    }
   }
-}
 
 type ImpactEBAndBalanceKeeperV2Fixture = ImpactEBFixture &
   BalanceKeeperV2Fixture
@@ -834,43 +833,40 @@ interface UniswapFixture extends TokensFixture {
   uniswapV2Router01: UniswapV2Router01
 }
 
-const uniswapFixture: Fixture<UniswapFixture> =
-  async function (
-    [wallet, other],
-    provider
-  ): Promise<UniswapFixture> {
+export const uniswapFixture: Fixture<UniswapFixture> = async function (
+  [wallet, other],
+  provider
+): Promise<UniswapFixture> {
   const { token0, token1, token2 } = await tokensFixture()
 
-  const wethFactory = await ethers.getContractFactory(
-    "WrappedNative"
-  )
-  const weth = await wethFactory.deploy() as WrappedNative
+  const wethFactory = await ethers.getContractFactory("WrappedNative")
+  const weth = (await wethFactory.deploy()) as WrappedNative
 
   const uniswapV2FactoryFactory = await ethers.getContractFactory(
     "UniswapV2Factory"
   )
-  const uniswapV2Factory = await uniswapV2FactoryFactory.deploy(
+  const uniswapV2Factory = (await uniswapV2FactoryFactory.deploy(
     wallet.address
-  ) as UniswapV2Factory
+  )) as UniswapV2Factory
 
   const uniswapV2Router01Factory = await ethers.getContractFactory(
     "UniswapV2Router01"
   )
-  const uniswapV2Router01 = await uniswapV2Router01Factory.deploy(
+  const uniswapV2Router01 = (await uniswapV2Router01Factory.deploy(
     uniswapV2Factory.address,
     weth.address
-  ) as UniswapV2Router01
+  )) as UniswapV2Router01
 
   await uniswapV2Factory.createPair(weth.address, token0.address)
 
-  const uniswapV2PairFactory = await ethers.getContractFactory(
-    "UniswapV2Pair"
-  )
+  const uniswapV2PairFactory = await ethers.getContractFactory("UniswapV2Pair")
   // log pairV2 bytecode for init code hash in the router
   // let bytecode = uniswapV2PairFactory.bytecode
   // console.log(ethers.utils.solidityKeccak256(["bytes"],[bytecode]))
   let pairAddress = await uniswapV2Factory.getPair(weth.address, token0.address)
-  const uniswapV2Pair = uniswapV2PairFactory.attach(pairAddress) as UniswapV2Pair
+  const uniswapV2Pair = uniswapV2PairFactory.attach(
+    pairAddress
+  ) as UniswapV2Pair
 
   let liquidity = expandTo18Decimals(10)
   let liquidityx2 = expandTo18Decimals(20)
@@ -884,7 +880,7 @@ const uniswapFixture: Fixture<UniswapFixture> =
     liquidity,
     wallet.address,
     timestamp + 3600,
-    {value: liquidity}
+    { value: liquidity }
   )
 
   return {
@@ -894,7 +890,7 @@ const uniswapFixture: Fixture<UniswapFixture> =
     weth,
     uniswapV2Factory,
     uniswapV2Router01,
-    uniswapV2Pair
+    uniswapV2Pair,
   }
 }
 
@@ -903,52 +899,58 @@ interface RelayFixture extends UniswapFixture {
   relay: Relay
 }
 
-export const relayFixture: Fixture<RelayFixture> =
-  async function ([wallet, other, nebula], provider): Promise<RelayFixture> {
-    const {
-      token0,
-      token1,
-      token2,
-      weth,
-      uniswapV2Factory,
-      uniswapV2Router01,
-      uniswapV2Pair
-    } = await uniswapFixture([wallet, other], provider)
+export const relayFixture: Fixture<RelayFixture> = async function (
+  [wallet, other, nebula],
+  provider
+): Promise<RelayFixture> {
+  const {
+    token0,
+    token1,
+    token2,
+    weth,
+    uniswapV2Factory,
+    uniswapV2Router01,
+    uniswapV2Pair,
+  } = await uniswapFixture([wallet, other], provider)
 
-    const relayFactory = await ethers.getContractFactory(
-      "Relay"
-    )
-    const relay = (await relayFactory.deploy(
-      weth.address,
-      uniswapV2Router01.address,
-      token0.address,
-      RELAY_TOPIC,
-      [FTM_CHAIN, BNB_CHAIN, PLG_CHAIN],
-      [[0,0],[0,0],[0,0]],
-      [[0,MAX_UINT],[0,MAX_UINT],[0,MAX_UINT]]
-    )) as Relay
+  const relayFactory = await ethers.getContractFactory("Relay")
+  const relay = (await relayFactory.deploy(
+    weth.address,
+    uniswapV2Router01.address,
+    token0.address,
+    RELAY_TOPIC,
+    [FTM_CHAIN, BNB_CHAIN, PLG_CHAIN],
+    [
+      [0, 0],
+      [0, 0],
+      [0, 0],
+    ],
+    [
+      [0, MAX_UINT],
+      [0, MAX_UINT],
+      [0, MAX_UINT],
+    ]
+  )) as Relay
 
-    const relayParserFactory = await ethers.getContractFactory(
-      "RelayParser"
-    )
-    const relayParser = (await relayParserFactory.deploy(
-      relay.address,
-      nebula.address,
-      [BNB_CHAIN]
-    )) as RelayParser
+  const relayParserFactory = await ethers.getContractFactory("RelayParser")
+  const relayParser = (await relayParserFactory.deploy(
+    relay.address,
+    nebula.address,
+    [BNB_CHAIN]
+  )) as RelayParser
 
-    return {
-      token0,
-      token1,
-      token2,
-      weth,
-      uniswapV2Factory,
-      uniswapV2Router01,
-      uniswapV2Pair,
-      relayParser,
-      relay
-    }
+  return {
+    token0,
+    token1,
+    token2,
+    weth,
+    uniswapV2Factory,
+    uniswapV2Router01,
+    uniswapV2Pair,
+    relayParser,
+    relay,
   }
+}
 
 interface USDCFixture {
   usdc: TestUSDC
@@ -962,7 +964,10 @@ async function usdcFixture(owner: string): Promise<USDCFixture> {
   let decimals = 6
 
   const usdc = (await tokenFactory.deploy(
-    name, symbol, decimals, owner
+    name,
+    symbol,
+    decimals,
+    owner
   )) as TestUSDC
 
   return { usdc }
@@ -975,67 +980,69 @@ interface OTCFixture extends USDCAndTokensFixture {
   otcUSDC: MockOTC
 }
 
-export const otcFixture: Fixture<OTCFixture> =
-  async function ([wallet, other, another], provider): Promise<OTCFixture> {
-    const { token0, token1, token2 } = await tokensFixture()
-    const { usdc } = await usdcFixture(wallet.address)
+export const otcFixture: Fixture<OTCFixture> = async function (
+  [wallet, other, another],
+  provider
+): Promise<OTCFixture> {
+  const { token0, token1, token2 } = await tokensFixture()
+  const { usdc } = await usdcFixture(wallet.address)
 
-    // distribute USDC between counterparties
-    let tokens1 = await token1.balanceOf(wallet.address)
-    await token1.transfer(other.address, tokens1.div(2))
-    await token1.transfer(another.address, tokens1.div(2))
+  // distribute USDC between counterparties
+  let tokens1 = await token1.balanceOf(wallet.address)
+  await token1.transfer(other.address, tokens1.div(2))
+  await token1.transfer(another.address, tokens1.div(2))
 
-    // set GTON/USDC price, with two decimal precision, 5.00
-    let price = 500
-    let lowerLimit = 100
-    let upperLimit = expandTo18Decimals(100)
-    let cliff = 86400
-    let vestingTime = 86400*7*4*12
-    let numberOfTranches = 12
+  // set GTON/USDC price, with two decimal precision, 5.00
+  let price = 500
+  let lowerLimit = 100
+  let upperLimit = expandTo18Decimals(100)
+  let cliff = 86400
+  let vestingTime = 86400 * 7 * 4 * 12
+  let numberOfTranches = 12
 
-    const otcFactory = await ethers.getContractFactory("MockOTC")
-    const otc = (await otcFactory.deploy(
-      token0.address,
-      token1.address,
-      18,
-      price,
-      lowerLimit,
-      upperLimit,
-      cliff,
-      vestingTime,
-      numberOfTranches,
-      "ffffff"
-    )) as MockOTC
+  const otcFactory = await ethers.getContractFactory("MockOTC")
+  const otc = (await otcFactory.deploy(
+    token0.address,
+    token1.address,
+    18,
+    price,
+    lowerLimit,
+    upperLimit,
+    cliff,
+    vestingTime,
+    numberOfTranches,
+    "ffffff"
+  )) as MockOTC
 
-    price = 500
-    lowerLimit = 100
-    upperLimit = expandTo18Decimals(100)
-    cliff = 86400
-    vestingTime = 86400*7*4
-    numberOfTranches = 4
+  price = 500
+  lowerLimit = 100
+  upperLimit = expandTo18Decimals(100)
+  cliff = 86400
+  vestingTime = 86400 * 7 * 4
+  numberOfTranches = 4
 
-    const otcUSDC = (await otcFactory.deploy(
-      token0.address,
-      usdc.address,
-      6,
-      price,
-      lowerLimit,
-      upperLimit,
-      cliff,
-      vestingTime,
-      numberOfTranches,
-      "ffffff"
-    )) as MockOTC
+  const otcUSDC = (await otcFactory.deploy(
+    token0.address,
+    usdc.address,
+    6,
+    price,
+    lowerLimit,
+    upperLimit,
+    cliff,
+    vestingTime,
+    numberOfTranches,
+    "ffffff"
+  )) as MockOTC
 
-    return {
-      token0,
-      token1,
-      token2,
-      usdc,
-      otc,
-      otcUSDC
-    }
+  return {
+    token0,
+    token1,
+    token2,
+    usdc,
+    otc,
+    otcUSDC,
   }
+}
 
 interface BalanceAdderV3Fixture extends TokensAndBalanceKeeperV2Fixture {
   farmStaking: MockTimeFarmLinear
@@ -1120,6 +1127,6 @@ export const balanceAdderV3Fixture: Fixture<BalanceAdderV3Fixture> =
       farmLP1,
       sharesLP2,
       farmLP2,
-      balanceAdder
+      balanceAdder,
     }
   }
