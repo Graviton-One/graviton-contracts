@@ -7,7 +7,7 @@ import "./interfaces/IRelay.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract Relay is IRelay {
-    /// @inheritdoc IOracleRouterV2
+    /// @inheritdoc IRelay
     address public override owner;
 
     modifier isOwner() {
@@ -21,27 +21,17 @@ contract Relay is IRelay {
     IUniswapV2Router01 public override router;
     /// @inheritdoc IRelay
     IERC20 public override gton;
+    /// @inheritdoc IRelay
+    ILogger public override logger;
 
     /// @inheritdoc IRelay
-    mapping(string => uint256) public override feeMin;
-    /// @inheritdoc IRelay
-    /// @dev 30000 = 30%, 200 = 0.2%, 1 = 0.001%
-    mapping(string => uint256) public override feePercent;
-
-    /// @inheritdoc IRelay
-    mapping(string => uint256) public override lowerLimit;
-
-    /// @inheritdoc IRelay
-    mapping(string => uint256) public override upperLimit;
-
-    /// @inheritdoc IRelay
-    bytes32 public override relayTopic;
-
-    /// @inheritdoc IOracleRouterV2
     mapping(address => bool) public override canRoute;
 
-    /// @inheritdoc IRelay
-    mapping(string => bool) public override isAllowedChain;
+    string public _origin;
+
+    uint256 public nonce;
+
+    mapping(string => Chain) public override chains;
 
     receive() external payable {
         // only accept ETH via fallback from the WETH contract
@@ -52,185 +42,19 @@ contract Relay is IRelay {
         IWETH _wnative,
         IUniswapV2Router01 _router,
         IERC20 _gton,
-        bytes32 _relayTopic,
-        string[] memory allowedChains,
-        uint256[2][] memory fees,
+        ILogger _logger,
+        string memory origin,
+        string[] memory _chains,
+        uint256[3][] memory fees,
         uint256[2][] memory limits
     ) {
         owner = msg.sender;
         wnative = _wnative;
         router = _router;
         gton = _gton;
-        relayTopic = _relayTopic;
-        for (uint256 i = 0; i < allowedChains.length; i++) {
-            isAllowedChain[allowedChains[i]] = true;
-            feeMin[allowedChains[i]] = fees[i][0];
-            feePercent[allowedChains[i]] = fees[i][1];
-            lowerLimit[allowedChains[i]] = limits[i][0];
-            upperLimit[allowedChains[i]] = limits[i][1];
-        }
-    }
-
-    /// @inheritdoc IOracleRouterV2
-    function setOwner(address _owner) external override isOwner {
-        address ownerOld = owner;
-        owner = _owner;
-        emit SetOwner(ownerOld, _owner);
-    }
-
-    /// @inheritdoc IRelay
-    function setIsAllowedChain(string calldata chain, bool newBool)
-        external
-        override
-        isOwner
-    {
-        isAllowedChain[chain] = newBool;
-        emit SetIsAllowedChain(chain, newBool);
-    }
-
-    /// @inheritdoc IRelay
-    function setFees(
-        string calldata destination,
-        uint256 _feeMin,
-        uint256 _feePercent
-    ) external override isOwner {
-        feeMin[destination] = _feeMin;
-        feePercent[destination] = _feePercent;
-        emit SetFees(destination, _feeMin, _feePercent);
-    }
-
-    /// @inheritdoc IRelay
-    function setLimits(
-        string calldata destination,
-        uint256 _lowerLimit,
-        uint256 _upperLimit
-    ) external override isOwner {
-        lowerLimit[destination] = _lowerLimit;
-        upperLimit[destination] = _upperLimit;
-        emit SetLimits(destination, _lowerLimit, _upperLimit);
-    }
-
-    function _swap() internal returns (uint256[] memory amounts) {
-        // wrap native tokens
-        wnative.deposit{value: msg.value}();
-        // trade wrapped native tokens for relay tokens
-        wnative.approve(address(router), msg.value);
-        address[] memory path = new address[](2);
-        path[0] = address(wnative);
-        path[1] = address(gton);
-        return
-            router.swapExactTokensForTokens(
-                msg.value,
-                0,
-                path,
-                address(this),
-                block.timestamp + 3600
-            );
-    }
-
-    function _calculateFee(
-        string calldata destination,
-        uint256 amount0,
-        uint256 amount1
-    ) internal returns (uint256 amountWithFee) {
-        uint256 amountMinusFee;
-        uint256 fee = (amount1 * feePercent[destination]) / 100000;
-        if (fee > feeMin[destination]) {
-            amountMinusFee = amount1 - fee;
-        } else {
-            amountMinusFee = amount1 - feeMin[destination];
-        }
-        // check that remainder after subtracting fees is larger than 0
-        require(amountMinusFee > 0, "R4");
-        emit CalculateFee(
-            amount0,
-            amount1,
-            feeMin[destination],
-            feePercent[destination],
-            fee,
-            amountMinusFee
-        );
-    }
-
-    mapping(uint256 => bytes) public logs;
-    uint256 public logsTotal;
-
-    function _log(
-        string calldata destination,
-        bytes calldata receiver,
-        uint256 amountMinusFee
-    ) internal {
-        bytes20 emiter = bytes20(address(this));
-        bytes1 topics = bytes1(abi.encodePacked(uint256(3))[31]);
-        bytes32 topic0 = keccak256("Lock(string,bytes,string,bytes,uint256)");
-        bytes32 topic1 = keccak256(abi.encodePacked(destination));
-        bytes32 topic2 = keccak256(receiver);
-        bytes memory data = abi.encode(destination, receiver, amountMinusFee);
-
-        logs[logsTotal] = abi.encodePacked(
-            emiter,
-            topics,
-            topic0,
-            topic1,
-            topic2,
-            data
-        );
-
-        // emit event to notify oracles and initiate crosschain transfer
-        emit Lock(destination, receiver, destination, receiver, amountMinusFee);
-    }
-
-    /// @inheritdoc IRelay
-    function lock(string calldata destination, bytes calldata receiver)
-        external
-        payable
-        override
-    {
-        require(isAllowedChain[destination], "R1");
-        require(msg.value > lowerLimit[destination], "R2");
-        require(msg.value < upperLimit[destination], "R3");
-
-        uint256[] memory amounts = _swap();
-
-        // subtract fee
-        uint256 amountMinusFee = _calculateFee(
-            destination,
-            amounts[0],
-            amounts[1]
-        );
-
-        _log(destination, receiver, amountMinusFee);
-    }
-
-    /// @inheritdoc IRelay
-    function reclaimERC20(IERC20 token, uint256 amount)
-        external
-        override
-        isOwner
-    {
-        token.transfer(msg.sender, amount);
-    }
-
-    /// @inheritdoc IRelay
-    function reclaimNative(uint256 amount) external override isOwner {
-        payable(msg.sender).transfer(amount);
-    }
-
-    /// @inheritdoc IOracleRouterV2
-    function setCanRoute(address parser, bool _canRoute)
-        external
-        override
-        isOwner
-    {
-        canRoute[parser] = _canRoute;
-        emit SetCanRoute(msg.sender, parser, canRoute[parser]);
-    }
-
-    /// @inheritdoc IRelay
-    function setRelayTopic(bytes32 _relayTopic) external override isOwner {
-        bytes32 topicOld = relayTopic;
-        relayTopic = _relayTopic;
-        emit SetRelayTopic(topicOld, _relayTopic);
+        logger = _logger;
+        _origin = origin;
+        setChains(_chains, fees, limits);
     }
 
     function equal(bytes32 a, bytes32 b) internal pure returns (bool) {
@@ -257,38 +81,379 @@ contract Relay is IRelay {
         return address(uint160(deserializeUint(b, startPos, 20)));
     }
 
-    /// @inheritdoc IOracleRouterV2
-    function routeValue(
-        bytes16 uuid,
-        string memory chain,
-        bytes memory emiter,
-        bytes32 topic0,
-        bytes memory token,
+    /// @inheritdoc IRelay
+    function setOwner(address _owner) external override isOwner {
+        address ownerOld = owner;
+        owner = _owner;
+        emit SetOwner(ownerOld, _owner);
+    }
+
+    /// @inheritdoc IRelay
+    function setIsAllowedChain(string calldata chain, bool newBool)
+        external
+        override
+        isOwner
+    {
+        chains[chain].isAllowedChain = newBool;
+        emit SetIsAllowedChain(chain, newBool);
+    }
+
+    /// @inheritdoc IRelay
+    function setFees(
+        string calldata destination,
+        uint256 _feeMin,
+        uint256 _feeMax,
+        uint256 _feePercent
+    ) external override isOwner {
+        chains[destination].feeMin = _feeMin;
+        chains[destination].feeMax = _feeMax;
+        chains[destination].feePercent = _feePercent;
+        emit SetFees(destination, _feeMin, _feeMax, _feePercent);
+    }
+
+    /// @inheritdoc IRelay
+    function setLimits(
+        string calldata destination,
+        uint256 _lowerLimit,
+        uint256 _upperLimit
+    ) external override isOwner {
+        chains[destination].lowerLimit = _lowerLimit;
+        chains[destination].upperLimit = _upperLimit;
+        emit SetLimits(destination, _lowerLimit, _upperLimit);
+    }
+
+    function setChains(
+        string[] memory _chains,
+        uint256[3][] memory fees,
+        uint256[2][] memory limits
+    ) public override isOwner {
+        for (uint256 i = 0; i < _chains.length; i++) {
+            Chain memory chain = chains[_chains[i]];
+            chain.isAllowedChain = true;
+            chain.feeMin = fees[i][0];
+            chain.feeMax = fees[i][1];
+            chain.feePercent = fees[i][2];
+            chain.lowerLimit = limits[i][0];
+            chain.upperLimit = limits[i][1];
+            chains[_chains[i]] = chain;
+        }
+        emit SetChains(_chains, fees, limits);
+    }
+
+    /// @inheritdoc IRelay
+    function setCanRoute(address parser, bool _canRoute)
+        external
+        override
+        isOwner
+    {
+        canRoute[parser] = _canRoute;
+        emit SetCanRoute(msg.sender, parser, canRoute[parser]);
+    }
+
+    /// @inheritdoc IRelay
+    function reclaimERC20(IERC20 token, uint256 amount)
+        external
+        override
+        isOwner
+    {
+        token.transfer(msg.sender, amount);
+    }
+
+    /// @inheritdoc IRelay
+    function reclaimNative(uint256 amount) external override isOwner {
+        payable(msg.sender).transfer(amount);
+    }
+
+    function _swapLock(uint256 amountLock)
+        internal
+        returns (uint256 amountSwap)
+    {
+        // wrap native tokens
+        wnative.deposit{value: amountLock}();
+        // trade wrapped native tokens for relay tokens
+        wnative.approve(address(router), amountLock);
+        address[] memory path = new address[](2);
+        path[0] = address(wnative);
+        path[1] = address(gton);
+        uint256[] memory amounts = router.swapExactTokensForTokens(
+            amountLock,
+            0,
+            path,
+            address(this),
+            block.timestamp + 3600
+        );
+        return amounts[1];
+    }
+
+    function _swapUnlock(uint256 amountRelay)
+        internal
+        returns (uint256 amountUnlock)
+    {
+        // trade relay tokens for wrapped native tokens
+        gton.approve(address(router), amountRelay);
+        address[] memory path = new address[](2);
+        path[0] = address(gton);
+        path[1] = address(wnative);
+        uint256[] memory amounts = router.swapExactTokensForTokens(
+            amountRelay,
+            0,
+            path,
+            address(this),
+            block.timestamp + 3600
+        );
+        amountUnlock = amounts[1];
+        // unwrap to get native tokens
+        wnative.withdraw(amountUnlock);
+    }
+
+    function _subtractFee(
+        string calldata destination,
+        uint256 amount0,
+        uint256 amount1
+    ) internal returns (uint256 amountMinusFee) {
+        Chain memory chain = chains[destination];
+        uint256 fee = (amount1 * chain.feePercent) / 100000;
+        if (fee < chain.feeMin) {
+            amountMinusFee = amount1 - chain.feeMin;
+        } else if (fee < chain.feeMax) {
+            amountMinusFee = amount1 - fee;
+        } else {
+            amountMinusFee = amount1 - chain.feeMax;
+        }
+        // check that remainder after subtracting fees is larger than 0
+        require(amountMinusFee > 0, "R4");
+
+        emit SubtractFee(
+            amount0,
+            amount1,
+            chain.feeMin,
+            chain.feeMax,
+            chain.feePercent,
+            fee,
+            amountMinusFee
+        );
+    }
+
+    function _logLock(
+        bytes32 lockHash,
+        string memory origin,
+        string calldata destination,
         bytes memory sender,
+        uint256 amountLock,
+        bytes calldata receiver,
+        uint256 amountRelay
+    ) internal {
+        bytes32 topic0 = keccak256(
+            "Lock(string,bytes32,string,string,bytes,uint256,bytes,uint256)"
+        );
+        bytes32 topic1 = keccak256(abi.encodePacked(destination));
+        bytes32 topic2 = lockHash;
+        bytes32 topic3;
+        bytes memory data = abi.encode(
+            origin,
+            destination,
+            sender,
+            amountLock,
+            receiver,
+            amountRelay
+        );
+
+        logger.log(
+            topic0,
+            abi.encodePacked(topic0, topic1, topic2, topic3, data)
+        );
+    }
+
+    function _emitLock(
+        bytes32 lockHash,
+        string memory origin,
+        string calldata destination,
+        bytes memory sender,
+        uint256 amountLock,
+        bytes calldata receiver,
+        uint256 amountRelay
+    ) internal {
+        // emit event to notify oracles and initiate crosschain transfer
+        emit Lock(
+            destination,
+            lockHash,
+            origin,
+            destination,
+            sender,
+            amountLock,
+            receiver,
+            amountRelay
+        );
+
+        // emit event to index transactions by sender and receiver
+        emit Lock_(
+            destination,
+            sender,
+            receiver,
+            lockHash,
+            origin,
+            destination,
+            sender,
+            amountLock,
+            receiver,
+            amountRelay
+        );
+    }
+
+    function _logUnlock(
+        bytes32 lockHash,
+        string memory origin,
+        string memory destination,
+        bytes memory sender,
+        uint256 amountRelay,
         bytes memory receiver,
-        uint256 amount
+        uint256 amountUnlock
+    ) internal {
+        bytes32 topic0 = keccak256(
+            "Unlock(string,bytes32,string,string,bytes,uint256,bytes,uint256)"
+        );
+        bytes32 topic1 = keccak256(abi.encodePacked(origin));
+        bytes32 topic2 = lockHash;
+        bytes32 topic3;
+        bytes memory data = abi.encode(
+            origin,
+            destination,
+            sender,
+            amountRelay,
+            receiver,
+            amountUnlock
+        );
+
+        logger.log(
+            topic0,
+            abi.encodePacked(topic0, topic1, topic2, topic3, data)
+        );
+    }
+
+    function _emitUnlock(
+        bytes32 lockHash,
+        string memory origin,
+        string memory destination,
+        bytes memory sender,
+        uint256 amountRelay,
+        bytes memory receiver,
+        uint256 amountUnlock
+    ) internal {
+        // emit event to notify oracles and complete crosschain transfer
+        emit Unlock(
+            origin,
+            lockHash,
+            origin,
+            destination,
+            sender,
+            amountRelay,
+            receiver,
+            amountUnlock
+        );
+
+        // emit event to index transactions by sender and receiver
+        emit Unlock_(
+            origin,
+            sender,
+            receiver,
+            lockHash,
+            origin,
+            destination,
+            sender,
+            amountRelay,
+            receiver,
+            amountUnlock
+        );
+    }
+
+    /// @inheritdoc IRelay
+    function lock(string calldata destination, bytes calldata receiver)
+        external
+        payable
+        override
+    {
+        Chain memory chain = chains[destination];
+        require(chain.isAllowedChain, "R1");
+        uint256 amountLock = msg.value;
+        require(amountLock > chain.lowerLimit, "R2");
+        require(amountLock < chain.upperLimit, "R3");
+
+        uint256 amountSwap = _swapLock(amountLock);
+
+        // subtract fee
+        uint256 amountRelay = _subtractFee(destination, amountLock, amountSwap);
+
+        bytes memory sender = abi.encodePacked(msg.sender);
+        string memory origin = _origin;
+        bytes32 lockHash = keccak256(
+            abi.encode(
+                origin,
+                destination,
+                sender,
+                amountLock,
+                receiver,
+                amountRelay,
+                block.number,
+                nonce
+            )
+        );
+        nonce++;
+
+        _logLock(
+            lockHash,
+            origin,
+            destination,
+            sender,
+            amountLock,
+            receiver,
+            amountRelay
+        );
+
+        _emitLock(
+            lockHash,
+            origin,
+            destination,
+            sender,
+            amountLock,
+            receiver,
+            amountRelay
+        );
+    }
+
+    function unlock(
+        bytes32 lockHash,
+        string memory origin,
+        string memory destination,
+        bytes memory sender,
+        uint256 amountRelay,
+        bytes memory receiver
     ) external override {
         require(canRoute[msg.sender], "ACR");
-        if (equal(topic0, relayTopic)) {
-            // trade relay tokens for wrapped native tokens
-            gton.approve(address(router), amount);
-            address[] memory path = new address[](2);
-            path[0] = address(gton);
-            path[1] = address(wnative);
-            uint256[] memory amounts = router.swapExactTokensForTokens(
-                amount,
-                0,
-                path,
-                address(this),
-                block.timestamp + 3600
-            );
-            // unwrap to get native tokens
-            wnative.withdraw(amounts[1]);
-            // transfer native tokens to the receiver
-            address payable user = payable(deserializeAddress(receiver, 0));
-            user.transfer(amounts[1]);
-            emit DeliverRelay(user, amounts[0], amounts[1]);
-        }
-        emit RouteValue(uuid, chain, emiter, token, sender, receiver, amount);
+
+        uint256 amountUnlock = _swapUnlock(amountRelay);
+
+        // transfer native tokens to the receiver
+        address payable account = payable(deserializeAddress(receiver, 0));
+        account.transfer(amountUnlock);
+
+        _logUnlock(
+            lockHash,
+            origin,
+            destination,
+            sender,
+            amountRelay,
+            receiver,
+            amountUnlock
+        );
+
+        _emitUnlock(
+            lockHash,
+            origin,
+            destination,
+            sender,
+            amountRelay,
+            receiver,
+            amountUnlock
+        );
     }
 }

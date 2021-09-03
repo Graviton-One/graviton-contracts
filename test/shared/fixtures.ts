@@ -46,6 +46,8 @@ import { TestUSDC } from "../../typechain/TestUSDC"
 
 import { BalanceAdderV3 } from "../../typechain/BalanceAdderV3"
 
+import { ILogger } from "../../typechain/ILogger"
+
 import {
   makeValueImpact,
   EARLY_BIRDS_A,
@@ -895,8 +897,9 @@ export const uniswapFixture: Fixture<UniswapFixture> = async function (
 }
 
 interface RelayFixture extends UniswapFixture {
-  relayParser: RelayParser
+  logger: ILogger
   relay: Relay
+  relayParser: RelayParser
 }
 
 export const relayFixture: Fixture<RelayFixture> = async function (
@@ -913,17 +916,21 @@ export const relayFixture: Fixture<RelayFixture> = async function (
     uniswapV2Pair,
   } = await uniswapFixture([wallet, other], provider)
 
+  const loggerFactory = await ethers.getContractFactory("Logger")
+  const logger = (await loggerFactory.deploy()) as ILogger
+
   const relayFactory = await ethers.getContractFactory("Relay")
   const relay = (await relayFactory.deploy(
     weth.address,
     uniswapV2Router01.address,
     token0.address,
-    RELAY_TOPIC,
+    logger.address,
+    FTM_CHAIN,
     [FTM_CHAIN, BNB_CHAIN, PLG_CHAIN],
     [
-      [0, 0],
-      [0, 0],
-      [0, 0],
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0],
     ],
     [
       [0, MAX_UINT],
@@ -947,8 +954,9 @@ export const relayFixture: Fixture<RelayFixture> = async function (
     uniswapV2Factory,
     uniswapV2Router01,
     uniswapV2Pair,
-    relayParser,
+    logger,
     relay,
+    relayParser,
   }
 }
 
