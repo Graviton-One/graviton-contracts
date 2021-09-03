@@ -35,13 +35,15 @@ contract ClaimGTONAbsolute is IClaimGTONV2 {
     mapping(address => uint256) public override limitMax;
 
     uint256 public limitAbsolute;
+    uint256 public period;
 
     constructor(
         IERC20 _governanceToken,
         address _wallet,
         IBalanceKeeperV2 _balanceKeeper,
         IVoterV2 _voter,
-        uint256 _limitAbsolute
+        uint256 _limitAbsolute,
+        uint256 _period
     ) {
         owner = msg.sender;
         governanceToken = _governanceToken;
@@ -49,6 +51,7 @@ contract ClaimGTONAbsolute is IClaimGTONV2 {
         balanceKeeper = _balanceKeeper;
         voter = _voter;
         limitAbsolute = _limitAbsolute;
+        period = _period;
     }
 
     /// @inheritdoc IClaimGTONV2
@@ -96,7 +99,7 @@ contract ClaimGTONAbsolute is IClaimGTONV2 {
         );
         require(balance >= amount, "C2");
         if (limitActivated) {
-            if ((_blockTimestamp() - lastLimitTimestamp[msg.sender]) > 86400) {
+            if ((_blockTimestamp() - lastLimitTimestamp[msg.sender]) > period) {
                 lastLimitTimestamp[msg.sender] = _blockTimestamp();
                 limitMax[msg.sender] = limitAbsolute;
             }

@@ -1,13 +1,13 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IOracleParserV2.sol";
+import "./interfaces/IRelayParser.sol";
 
 /// @title RelayParser
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
-contract RelayParser is IOracleParserV2 {
-    /// @inheritdoc IOracleParserV2
+contract RelayParser is IRelayParser {
+    /// @inheritdoc IRelayParser
     address public override owner;
 
     modifier isOwner() {
@@ -15,7 +15,7 @@ contract RelayParser is IOracleParserV2 {
         _;
     }
 
-    /// @inheritdoc IOracleParserV2
+    /// @inheritdoc IRelayParser
     address public override nebula;
 
     modifier isNebula() {
@@ -23,17 +23,17 @@ contract RelayParser is IOracleParserV2 {
         _;
     }
 
-    /// @inheritdoc IOracleParserV2
-    IOracleRouterV2 public override router;
+    /// @inheritdoc IRelayParser
+    IRelay public override router;
 
-    /// @inheritdoc IOracleParserV2
+    /// @inheritdoc IRelayParser
     mapping(bytes16 => bool) public override uuidIsProcessed;
 
-    /// @inheritdoc IOracleParserV2
+    /// @inheritdoc IRelayParser
     mapping(string => bool) public override isEVM;
 
     constructor(
-        IOracleRouterV2 _router,
+        IRelay _router,
         address _nebula,
         string[] memory evmChains
     ) {
@@ -45,32 +45,28 @@ contract RelayParser is IOracleParserV2 {
         }
     }
 
-    /// @inheritdoc IOracleParserV2
+    /// @inheritdoc IRelayParser
     function setOwner(address _owner) external override isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
-    /// @inheritdoc IOracleParserV2
+    /// @inheritdoc IRelayParser
     function setNebula(address _nebula) external override isOwner {
         address nebulaOld = nebula;
         nebula = _nebula;
         emit SetNebula(nebulaOld, _nebula);
     }
 
-    /// @inheritdoc IOracleParserV2
-    function setRouter(IOracleRouterV2 _router)
-        external
-        override
-        isOwner
-    {
-        IOracleRouterV2 routerOld = router;
+    /// @inheritdoc IRelayParser
+    function setRouter(IRelay _router) external override isOwner {
+        IRelay routerOld = router;
         router = _router;
         emit SetRouter(routerOld, _router);
     }
 
-    /// @inheritdoc IOracleParserV2
+    /// @inheritdoc IRelayParser
     function setIsEVM(string calldata chain, bool newBool)
         external
         override
@@ -80,7 +76,7 @@ contract RelayParser is IOracleParserV2 {
         emit SetIsEVM(chain, newBool);
     }
 
-    /// @inheritdoc IOracleParserV2
+    /// @inheritdoc IRelayParser
     function deserializeUint(
         bytes memory b,
         uint256 startPos,
@@ -93,7 +89,7 @@ contract RelayParser is IOracleParserV2 {
         return v;
     }
 
-    /// @inheritdoc IOracleParserV2
+    /// @inheritdoc IRelayParser
     function deserializeAddress(bytes memory b, uint256 startPos)
         public
         pure
@@ -103,7 +99,7 @@ contract RelayParser is IOracleParserV2 {
         return address(uint160(deserializeUint(b, startPos, 20)));
     }
 
-    /// @inheritdoc IOracleParserV2
+    /// @inheritdoc IRelayParser
     function bytesToBytes32(bytes memory b, uint256 offset)
         public
         pure
@@ -117,7 +113,7 @@ contract RelayParser is IOracleParserV2 {
         return out;
     }
 
-    /// @inheritdoc IOracleParserV2
+    /// @inheritdoc IRelayParser
     function bytesToBytes16(bytes memory b, uint256 offset)
         public
         pure
@@ -131,7 +127,7 @@ contract RelayParser is IOracleParserV2 {
         return out;
     }
 
-    /// @inheritdoc IOracleParserV2
+    /// @inheritdoc IRelayParser
     function equal(string memory a, string memory b)
         public
         pure
@@ -141,7 +137,7 @@ contract RelayParser is IOracleParserV2 {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
-    /// @inheritdoc IOracleParserV2
+    /// @inheritdoc IRelayParser
     function attachValue(bytes calldata data) external override isNebula {
         bytes16 uuid = bytesToBytes16(data, 0); // [  0: 16]
         // @dev parse data only once
@@ -149,51 +145,34 @@ contract RelayParser is IOracleParserV2 {
             return;
         }
         uuidIsProcessed[uuid] = true;
-        string memory chain = string(abi.encodePacked(data[16:19])); // [ 16: 19]
-        if (isEVM[chain]) {
-            bytes memory emiter = data[19:39]; // [ 19: 39]
-            bytes1 topics = bytes1(data[39]); // [ 39: 40]
-            // @dev ignore data with unexpected number of topics
-            if (
-                keccak256(abi.encodePacked(topics)) !=
-                keccak256(
-                    abi.encodePacked(bytes1(abi.encodePacked(uint256(3))[31]))
-                )
-            ) {
-                return;
-            }
-            bytes32 topic0 = bytesToBytes32(data, 40); // [ 40: 72]
-            // bytes memory destinationHash = data[72:104]; // [ 72:104][12:32]
-            // bytes memory receiverHash = data[104:136]; // [104:136][12:32]
-            uint256 amount = deserializeUint(data, 200, 32); // [200:232]
-            string memory destination = string(abi.encodePacked(data[264:296])); // [264:296]
-            bytes memory receiver = data[328:360]; // [328:360]
+        string memory origin = string(abi.encodePacked(data[16:19])); // [ 16: 19] origin
+        if (isEVM[origin]) {
+            // bytes memory emiter = data[19:39]; // [ 19: 39]
+            // bytes32 topic0 = bytesToBytes32(data, 40); // [ 40: 72] topic0
+            // bytes32 topic1 = bytesToBytes32(data, 72); // [ 72: 104 ] destinationHash
+            bytes32 topic2 = bytesToBytes32(data, 104); // [104: 136 ] lockHash
+            (
+                string memory destination,
+                bytes memory sender,
+                ,
+                // uint256 amountLock
+                bytes memory receiver,
+                uint256 amountRelay
+            ) = abi.decode(
+                    data[136:],
+                    (string, bytes, uint256, bytes, uint256)
+                );
 
-            bytes memory token = new bytes(32);
-            bytes memory sender = receiver;
-
-            router.routeValue(
-                uuid,
+            router.unlock(
+                topic2,
+                origin,
                 destination,
-                emiter,
-                topic0,
-                token,
                 sender,
-                receiver,
-                amount
+                amountRelay,
+                receiver
             );
 
-            emit AttachValue(
-                msg.sender,
-                uuid,
-                chain,
-                emiter,
-                topic0,
-                token,
-                sender,
-                receiver,
-                amount
-            );
+            emit AttachValue(data);
         }
     }
 }

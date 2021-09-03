@@ -17,6 +17,8 @@ export const OTHER_TOPIC =
   "0x0000000000000000000000000000000000000000000000000000000000000005"
 export const RELAY_TOPIC =
   "0x0000000000000000000000000000000000000000000000000000000000000006"
+export const EMPTY_TOPIC =
+  "0x0000000000000000000000000000000000000000000000000000000000000000"
 export const MOCK_UUID = "0x5ae47235f0844e55b26703b7cf385294"
 export const EVM_CHAIN = "EVM"
 export const BNB_CHAIN = "BNB"
@@ -24,7 +26,8 @@ export const FTM_CHAIN = "FTM"
 export const PLG_CHAIN = "PLG"
 export const ETH_CHAIN = "ETH"
 export const SOL_CHAIN = "SOL"
-export const MAX_UINT = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+export const MAX_UINT =
+  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 export const START_TIME = "1601906400"
 
 export function expandTo18Decimals(n: number): BigNumber {
