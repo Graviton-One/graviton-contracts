@@ -925,15 +925,13 @@ export const relayFixture: Fixture<RelayFixture> = async function (
     uniswapV2Router01.address,
     token0.address,
     logger.address,
-    FTM_CHAIN,
-    [FTM_CHAIN, BNB_CHAIN, PLG_CHAIN],
+    BNB_CHAIN,
+    [FTM_CHAIN, PLG_CHAIN],
     [
-      [0, 0, 0],
       [0, 0, 0],
       [0, 0, 0],
     ],
     [
-      [0, MAX_UINT],
       [0, MAX_UINT],
       [0, MAX_UINT],
     ]

@@ -196,6 +196,17 @@ describe("Relay", () => {
     })
 
     it("swaps native tokens for gton", async () => {
+      let block = await wallet.provider.getBlock("latest")
+      hash = lockHash(
+        BNB_CHAIN,
+        FTM_CHAIN,
+        wallet.address,
+        "10000",
+        wallet.address,
+        "19939",
+        block,
+        0
+      )
       await expect(relay.lock(FTM_CHAIN, wallet.address, { value: "10000" }))
         .to.emit(relay, "CalculateFee")
         .withArgs("10000", "19939", "0", "0", "0", "19939")
