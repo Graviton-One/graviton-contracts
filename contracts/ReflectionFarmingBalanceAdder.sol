@@ -120,7 +120,7 @@ contract ReflectionFarmingBalanceAdder is IReflectionFarmingBalanceAdder {
         stakingModifier = cacheStakingModifier;
     }
 
-    function processBalances(uint256 step) external {
+    function processBalances(uint256 step, uint256 port_portions) external {
         if (totalImpact == 0) {
             return;
         }
