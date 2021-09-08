@@ -9,7 +9,7 @@ import "./ILPKeeperV2.sol";
 /// @notice BalanceAdder adds governance balance to users
 /// proportional to their shares of locked lp
 /// @author Anton Davydov - <fetsorn@gmail.com>
-interface IBalanceAdderV3 {
+interface IReflectionFarmingBalanceAdder {
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The account that was the previous owner of the contract
     /// @param ownerNew The account that became the owner of the contract
@@ -28,7 +28,7 @@ interface IBalanceAdderV3 {
         bool indexed newBool
     );
 
-    event SetImpact(address token, uint256 impact, uint256 totalImpact);
+    event SetImpact(bytes token, uint256 impact, uint256 totalImpact);
 
     /// @notice Event emitted when balances are processed for a farm via `#processBalances`
     /// @param farm The contract that calculates funds available for the farming campaign
@@ -44,7 +44,7 @@ interface IBalanceAdderV3 {
     /// @dev
     event ProcessBalance(
         uint256 farmIndex,
-        address indexed shares,
+        bytes indexed shares,
         IFarm indexed farm,
         uint256 indexed userId,
         uint256 amount
