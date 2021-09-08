@@ -7,6 +7,12 @@ import "./interfaces/ISharesEB.sol";
 /// @author Artemij Artamonov - <array.clean@gmail.com>
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract SharesEB is ISharesEB {
+    address public owner;
+
+    modifier isOwner() {
+        require(msg.sender == owner, "ACW");
+        _;
+    }
     /// @inheritdoc ISharesEB
     IBalanceKeeperV2 public override balanceKeeper;
     /// @inheritdoc ISharesEB
@@ -21,6 +27,8 @@ contract SharesEB is ISharesEB {
     /// @inheritdoc IShares
     uint256 public override totalUsers;
     mapping(uint256 => uint256) internal _userIdByIndex;
+
+    event Transfer(uint256 from, uint256 to, uint256 amount);
 
     constructor(IBalanceKeeperV2 _balanceKeeper, IImpactKeeper _impactEB) {
         balanceKeeper = _balanceKeeper;
@@ -51,6 +59,13 @@ contract SharesEB is ISharesEB {
         // @dev moved here from the constructor to test different impactEB states
         totalSupply = impactEB.totalSupply();
         currentUser = toUser;
+    }
+
+    function transfer(uint256 from, uint256 to) external isOwner {
+        uint256 amount = impactById[from];
+        impactById[from] - amount;
+        impactById[to] + amount;
+        emit Transfer(from, to, amount);
     }
 
     /// @inheritdoc IShares
