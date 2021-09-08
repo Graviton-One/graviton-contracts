@@ -27,12 +27,20 @@ contract SharesEB is ISharesEB {
     /// @inheritdoc IShares
     uint256 public override totalUsers;
     mapping(uint256 => uint256) internal _userIdByIndex;
+    mapping(uint256 => bool) internal userIsKnown;
 
     event Transfer(uint256 from, uint256 to, uint256 amount);
+    event SetOwner(address indexed ownerOld, address indexed ownerNew);
 
     constructor(IBalanceKeeperV2 _balanceKeeper, IImpactKeeper _impactEB) {
         balanceKeeper = _balanceKeeper;
         impactEB = _impactEB;
+    }
+    
+    function setOwner(address _owner) external isOwner {
+        address ownerOld = owner;
+        owner = _owner;
+        emit SetOwner(ownerOld, _owner);
     }
 
     /// @inheritdoc ISharesEB
@@ -53,6 +61,7 @@ contract SharesEB is ISharesEB {
             );
             impactById[userId] = impactEB.impact(user);
             _userIdByIndex[totalUsers] = userId;
+            userIsKnown[userId] = true;
             totalUsers++;
             emit Migrate(user, userId, impactById[userId]);
         }
@@ -61,10 +70,18 @@ contract SharesEB is ISharesEB {
         currentUser = toUser;
     }
 
-    function transfer(uint256 from, uint256 to) external isOwner {
-        uint256 amount = impactById[from];
+    function transfer(
+        uint256 from,
+        uint256 to,
+        uint256 amount
+    ) external isOwner {
         impactById[from] - amount;
         impactById[to] + amount;
+        if (!userIsKnown[to]) {
+            _userIdByIndex[totalUsers] = to;
+            userIsKnown[to] = true;
+            totalUsers++;
+        }
         emit Transfer(from, to, amount);
     }
 
