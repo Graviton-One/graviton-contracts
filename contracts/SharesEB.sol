@@ -75,12 +75,13 @@ contract SharesEB is ISharesEB {
         uint256 to,
         uint256 amount
     ) external isOwner {
+        require(balanceKeeper.isKnownUser(to), "S1");
         impactById[from] - amount;
         impactById[to] + amount;
         if (!userIsKnown[to]) {
             _userIdByIndex[totalUsers] = to;
-            userIsKnown[to] = true;
             totalUsers++;
+            userIsKnown[to] = true;
         }
         emit Transfer(from, to, amount);
     }
