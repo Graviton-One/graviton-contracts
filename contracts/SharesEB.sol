@@ -26,7 +26,9 @@ contract SharesEB is ISharesEB {
     uint256 public override currentUser;
     /// @inheritdoc IShares
     uint256 public override totalUsers;
+    // @dev userIndex => userId
     mapping(uint256 => uint256) internal _userIdByIndex;
+    // @dev userId => isKnown
     mapping(uint256 => bool) internal userIsKnown;
 
     event Transfer(uint256 from, uint256 to, uint256 amount);
@@ -36,7 +38,7 @@ contract SharesEB is ISharesEB {
         balanceKeeper = _balanceKeeper;
         impactEB = _impactEB;
     }
-    
+
     function setOwner(address _owner) external isOwner {
         address ownerOld = owner;
         owner = _owner;
