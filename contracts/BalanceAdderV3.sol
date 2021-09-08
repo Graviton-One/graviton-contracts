@@ -3,6 +3,8 @@ pragma solidity >=0.8.0;
 
 import "./interfaces/IBalanceAdderV3.sol";
 
+// import "hardhat/console.sol";
+
 /// @title BalanceAdderV3
 /// @author Anton Davydov - <fetsorn@gmail.com>
 contract BalanceAdderV3 is IBalanceAdderV3 {
@@ -13,44 +15,29 @@ contract BalanceAdderV3 is IBalanceAdderV3 {
         _;
     }
 
-    mapping (IFarm => mapping(IShares => uint256)) public campaignIds;
-    mapping (IFarm => mapping(IShares => bool)) public isKnownCampaign;
-    mapping (uint256 => IFarm) public farms;
-    mapping (uint256 => IShares) public shares;
-    mapping (uint256 => uint256) public lastPortions;
-    uint256 public totalCampaigns;
-
-    uint256[] public activeCampaigns;
-
-    uint256 public currentUser;
-    uint256 public currentCampaign;
-    uint256 public currentPortion;
-    uint256 public totalUnlocked;
-    uint256 public farmAllocation;
-    uint256 public totalShares;
-    uint256 public totalUsers;
-    uint256 public lastPulse;
-
-    // campaignId => modificator
-    mapping (uint256 => uint256) public modificator;
-    // pulse => campaignId => reserve
-    mapping (uint256 => mapping(uint256 => uint256)) public reserve;
-    // pulse => campaignId => weight
-    mapping (uint256 => mapping(uint256 => uint256)) public weight;
-    // pulse => totalWeight
-    mapping (uint256 => uint256) totalWeight;
-
     IBalanceKeeperV2 public balanceKeeper;
+    ILPKeeperV2 public lpKeeper;
+    IFarm public farm;
 
-    mapping(uint256 => bool) public isProcessing;
+    mapping(address => uint256) public impact;
+    uint256 public totalImpact;
 
-    constructor(IBalanceKeeperV2 _balanceKeeper) {
+    uint256 public lastPortion;
+    uint256 public totalUnlocked;
+    uint256 public currentPortion;
+    bool public isProcessing;
+
+    mapping(address => bool) public canRoute;
+
+    constructor(
+        IBalanceKeeperV2 _balanceKeeper,
+        ILPKeeperV2 _lpKeeper,
+        IFarm _farm
+    ) {
         owner = msg.sender;
         balanceKeeper = _balanceKeeper;
-    }
-
-    function totalActiveCampaigns() public view returns (uint256) {
-        return activeCampaigns.length;
+        lpKeeper = _lpKeeper;
+        farm = _farm;
     }
 
     function setOwner(address _owner) external isOwner {
@@ -59,115 +46,126 @@ contract BalanceAdderV3 is IBalanceAdderV3 {
         emit SetOwner(ownerOld, _owner);
     }
 
-    function addCampaign(IShares _shares, IFarm _farm, uint256 _lastPortions) external isOwner {
-        // TODO: handle a case where farm with the same shares and farms is added
-        require(!isKnownCampaign[_farm][_shares],"BA5");
-        uint256 campaignId = totalCampaigns;
-        isKnownCampaign[_farm][_shares] = true;
-        campaignIds[_farm][_shares] = campaignId;
-        shares[campaignId] = _shares;
-        farms[campaignId] = _farm;
-        lastPortions[campaignId] = _lastPortions;
-        modificator[campaignId] = 1;
-        activeCampaigns.push(totalCampaigns);
-        totalCampaigns++;
-        emit AddCampaign(campaignId, _shares, _farm, _lastPortions);
+    function setFarm(IFarm _farm) external isOwner {
+        IFarm farmOld = farm;
+        farm = _farm;
+        emit SetFarm(farmOld, _farm);
     }
 
-    /// @dev remove index from arrays
-    function removeCampaign(uint256 campaignId) external isOwner {
-        require(!isProcessing[currentCampaign], "BA1");
+    function setCanRoute(address parser, bool _canRoute) external isOwner {
+        canRoute[parser] = _canRoute;
+        emit SetCanRoute(msg.sender, parser, _canRoute);
+    }
 
-        uint256[] memory newActiveCampaigns = new uint256[](
-            activeCampaigns.length - 1
-        );
-        uint256 j = 0;
-        for (uint256 i = 0; i < activeCampaigns.length; i++) {
-            if (activeCampaigns[i] == campaignId) {
-                continue;
-            }
-            newActiveCampaigns[j] = activeCampaigns[i];
-            j++;
+    function setImpact(address token, uint256 _impact) public {
+        require(canRoute[msg.sender] || msg.sender == address(this), "ACR");
+        require(!isProcessing, "BA1");
+        totalImpact -= impact[token];
+        impact[token] = _impact;
+        totalImpact += _impact;
+        emit SetImpact(token, _impact, totalImpact);
+    }
+
+    function deserializeUint(
+        bytes memory b,
+        uint256 startPos,
+        uint256 len
+    ) public pure returns (uint256) {
+        uint256 v = 0;
+        for (uint256 p = startPos; p < startPos + len; p++) {
+            v = v * 256 + uint256(uint8(b[p]));
         }
-        activeCampaigns = newActiveCampaigns;
-
-        emit RemoveCampaign(campaignId, shares[campaignId], farms[campaignId], lastPortions[campaignId]);
+        return v;
     }
 
-    // TODO: replace with router
-    function setReserve(uint256 campaignId, uint256 _reserve) external {
-        reserve[lastPulse+1][campaignId] = _reserve;
+    function deserializeAddress(bytes memory b, uint256 startPos)
+        public
+        pure
+        returns (address)
+    {
+        return address(uint160(deserializeUint(b, startPos, 20)));
     }
 
-    // TODO: update weights for each set of farms separately
-    function updateWeights() external {
-        for (uint256 i = 0; i < activeCampaigns.length; i++) {
-            if (reserve[lastPulse+1][activeCampaigns[i]] == 0) { return; }
-        }
-        for (uint256 i = 0; i < activeCampaigns.length; i++) {
-            weight[lastPulse+1][activeCampaigns[i]] = reserve[lastPulse+1][activeCampaigns[i]] * modificator[activeCampaigns[i]];
-            totalWeight[lastPulse+1] += weight[lastPulse+1][activeCampaigns[i]];
-        }
-        lastPulse++;
+    function totalBalance() external view returns (uint256) {
+        return balanceKeeper.totalBalance();
     }
+
+    uint256 MAX_INT = type(uint256).max;
+    uint256 stakingModifier = 1;
 
     function processBalances(uint256 step) external {
-        /// @dev Return if there are no farming campaigns
-        if (activeCampaigns.length == 0) {
+        if (totalImpact == 0) {
             return;
         }
 
-        uint256 fromUser = currentUser;
-        uint256 toUser = currentUser + step;
-
-        if (!isProcessing[currentCampaign] && toUser > 0) {
-            isProcessing[currentCampaign] = true;
-            totalUsers = shares[activeCampaigns[currentCampaign]].totalUsers();
-            totalShares = shares[activeCampaigns[currentCampaign]].totalShares();
-            totalUnlocked = farms[activeCampaigns[currentCampaign]].totalUnlocked();
-            // TODO: handle number truncation
-            farmAllocation = (totalUnlocked * weight[lastPulse][activeCampaigns[currentCampaign]]) / totalWeight[lastPulse];
-            currentPortion = farmAllocation - lastPortions[activeCampaigns[currentCampaign]];
+        // TODO: if at start of loop, get new portion
+        if (true) {
+            totalUnlocked = farm.totalUnlocked();
+            currentPortion = totalUnlocked - lastPortion;
         }
 
-        if (toUser > totalUsers) {
-            toUser = totalUsers;
-        }
-
-        emit ProcessBalances(
-            currentCampaign,
-            shares[activeCampaigns[currentCampaign]],
-            farms[activeCampaigns[currentCampaign]],
-            step
-        );
-
-        if (totalShares > 0) {
-            for (uint256 i = fromUser; i < toUser; i++) {
-                uint256 userId = shares[activeCampaigns[currentCampaign]].userIdByIndex(i);
-                uint256 add = (shares[activeCampaigns[currentCampaign]].shareById(userId) *
-                    currentPortion) / totalShares;
+        // TODO: if at start of loop, distribute staking
+        // gas savings
+        uint256 totalBalance = 1;
+        balanceKeeper.add(0, 1);
+        // console.log("totalBalance", balanceKeeper.totalBalance());
+        if (totalBalance > 0) {
+            uint256 _impact = totalBalance * stakingModifier;
+            setImpact(address(balanceKeeper), _impact);
+            uint256 allocation = (currentPortion * _impact) / totalImpact;
+            // console.log(
+            //     totalBalance,
+            //     _impact,
+            //     allocation,
+            //     balanceKeeper.totalUsers()
+            // );
+            for (
+                uint256 userId = 0;
+                userId < balanceKeeper.totalUsers();
+                userId++
+            ) {
+                uint256 add = (allocation * balanceKeeper.balance(userId)) /
+                    balanceKeeper.totalBalance();
                 balanceKeeper.add(userId, add);
+                // console.log(MAX_INT, address(balanceKeeper), address(farm));
+                // console.log(address(farm), userId, add);
                 emit ProcessBalance(
-                    currentCampaign,
-                    shares[activeCampaigns[currentCampaign]],
-                    farms[activeCampaigns[currentCampaign]],
+                    MAX_INT,
+                    address(balanceKeeper),
+                    farm,
                     userId,
                     add
                 );
             }
         }
 
-        if (toUser == totalUsers) {
-            lastPortions[activeCampaigns[currentCampaign]] = farmAllocation;
-            isProcessing[currentCampaign] = false;
-            if (currentCampaign == (activeCampaigns.length - 1)) {
-                currentCampaign = 0;
-            } else {
-                currentCampaign++;
+        for (uint256 tokenId = 0; tokenId < lpKeeper.totalTokens(); tokenId++) {
+            address tokenAddress = deserializeAddress(
+                lpKeeper.tokenAddressById(tokenId),
+                0
+            );
+            uint256 allocation = (currentPortion * impact[tokenAddress]) /
+                totalImpact;
+            if (allocation == 0) {
+                return;
             }
-            currentUser = 0;
-        } else {
-            currentUser = toUser;
+            for (
+                uint256 userIndex = 0;
+                userIndex < lpKeeper.totalTokenUsers(tokenId);
+                userIndex++
+            ) {
+                uint256 userId = lpKeeper.tokenUser(tokenId, userIndex);
+                uint256 add = (allocation * lpKeeper.balance(tokenId, userId)) /
+                    lpKeeper.totalBalance(tokenId);
+                balanceKeeper.add(userId, add);
+                // console.log(tokenId, tokenAddress, address(farm));
+                // console.log(address(farm), userId, add);
+                emit ProcessBalance(tokenId, tokenAddress, farm, userId, add);
+            }
         }
+
+        // TODO: update lastPortion if finished
+
+        emit ProcessBalances(farm, step);
     }
 }
