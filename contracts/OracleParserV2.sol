@@ -33,12 +33,10 @@ contract OracleParserV2 is IOracleParserV2 {
     mapping(string => bool) public override isEVM;
 
     constructor(
-        IOracleRouterV2 _router,
         address _nebula,
         string[] memory evmChains
     ) {
         owner = msg.sender;
-        router = _router;
         nebula = _nebula;
         for (uint256 i = 0; i < evmChains.length; i++) {
             isEVM[evmChains[i]] = true;
@@ -171,17 +169,6 @@ contract OracleParserV2 is IOracleParserV2 {
             bytes memory sender = impactData[116:136]; // [104:136][12:32]
             bytes memory receiver = impactData[148:168]; // [136:168][12:32]
             uint256 amount = deserializeUint(impactData, 168, 32); // [168:200]
-
-            router.routeValue(
-                uuid,
-                chain,
-                emiter,
-                topic0,
-                token,
-                sender,
-                receiver,
-                amount
-            );
 
             emit AttachValue(
                 msg.sender,
