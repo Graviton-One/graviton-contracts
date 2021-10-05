@@ -64,6 +64,14 @@ contract EarlyBirds {
     function togglePermissionlessShareTransfer() public isOwner {
         permissionlessShareTransferAllowed = !permissionlessShareTransferAllowed;
     }
+    
+    function migrateShare(address user, uint256 claimDebt, uint256 share) public isOwner {
+        EBShares[user] = EBInfo({
+            amount: share,
+            claimedAmount: claimDebt
+        });
+        totalDeposited += share;
+    }
 
     function stopFarming() public isOwner {
         farmingStopped = true;

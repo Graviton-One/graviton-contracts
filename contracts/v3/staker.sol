@@ -2,19 +2,18 @@ pragma solidity 0.8.0;
 
 import "../interfaces/IERC20.sol";
 
-// import "@nomiclabs/buidler/console.sol";
-// MasterChef is the master of Cake. He can make Cake and he is a fair guy.
-// Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once CAKE is sufficiently
-// distributed and the community can show to govern itself.
-// Have fun reading it. Hopefully it's bug-free. God bless.
-contract Staker {
+interface IEventStorage {
+    function addDeposit(uint256 farm_id,address user,uint256 amount) external;
+    function addWithdraw(uint256 farm_id,address user,uint256 amount) external;
+    function addClaim(uint256 farm_id,address user,uint256 amount) external;
+}
 
+contract Staker {
     // Info of each user.
     struct UserInfo {
         uint256 providingAmount;     
         uint256 rewardDebt;
-    }
+    } 
     // Info of each pool.
     struct FarmInfo {
         IERC20 rewardToken;  // gton is used in all cases for now
@@ -24,31 +23,56 @@ contract Staker {
         uint256 totalRewardsLeft; // total token rewards that users haven't claimed yeе
         uint256 accRewardPerShare; // Accumulated reward per share, times 1e12. See below.
     }
+    
+    IEventStorage public eventStorageSubscriber;
 
+    mapping (address => bool) public mutationAllowance;
+    
+    function toggleMutationAllowance(address _mutator) public onlyOwner {
+        mutationAllowance[_mutator] = !mutationAllowance[_mutator];
+    }
     
     mapping (uint256 => mapping (address => UserInfo)) public userInfo; // Info of each user that stakes LP tokens.
-    mapping (uint256 => FarmInfo) farmInfo; // Info of each farm.
-    mapping (address => uint256) farmId; // farm id of this token address (0 if farm not used)
-    uint256 farmCount;
+    mapping (uint256 => FarmInfo) public farmInfo; // Info of each farm.
+    mapping (address => uint256) public farmId; // farm id of this token address (0 if farm not used)
+    uint256 public farmCount;
     
-    address owner;
+    address public owner;
     
+    event Claim(
+        address indexed user, 
+        uint256 indexed farm_id,
+        uint256 amount
+    );
     event Deposit(
         address indexed user, 
         uint256 indexed farm_id,
         address indexed initiator, 
-        address provider, 
         uint256 amount
-        );
-    event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
+    );
+    event Withdraw(
+        address indexed user, 
+        uint256 indexed farm_id,
+        address indexed initiator, 
+        uint256 amount
+    );
     
     constructor(address _owner) {
         owner = _owner;
     }
     
+    modifier onlyMutator() {
+        require(mutationAllowance[msg.sender],'not mutator');
+        _;
+    }
+    
     modifier onlyOwner() {
         require(msg.sender==owner,'not owner');
         _;
+    }
+    
+    function setEventStorage(IEventStorage _subscriber) public onlyOwner {
+        eventStorageSubscriber = _subscriber;
     }
     
     function transferOwnership(address _to) public onlyOwner {
@@ -78,68 +102,52 @@ contract Staker {
         return user.providingAmount * accCakePerShare * 1e12 / user.rewardDebt;
     }
 
-    function innerClaim(FarmInfo storage farm, UserInfo storage user) private {
+    function innerClaim(FarmInfo storage farm, UserInfo storage user, address _userAddress, uint256 _farmId) private {
         if (user.providingAmount > 0) {
             uint256 currentReward = user.providingAmount * farm.accRewardPerShare / 1e12 - user.rewardDebt;
-            farm.rewardToken.transfer(msg.sender,currentReward);
+            farm.rewardToken.transfer(_userAddress,currentReward);
             farm.totalRewardsLeft -= currentReward;
+            if (eventStorageSubscriber != IEventStorage(address(0))) {
+                eventStorageSubscriber.addClaim(_farmId,_userAddress,currentReward);
+            }
+            emit Claim(_userAddress, _farmId, currentReward);
         }
     }
 
-    function claimReward(uint256 _farmId) public {
+    function claimFor(uint256 _farmId, address _user) public {
         FarmInfo storage farm = farmInfo[_farmId];
-        UserInfo storage user = userInfo[_farmId][msg.sender];
-        innerClaim(farm,user);
+        UserInfo storage user = userInfo[_farmId][_user];
+        innerClaim(farm,user,_user,_farmId);
         user.rewardDebt = user.providingAmount * farm.accRewardPerShare * 1e12;
     }
 
-    function depositFor(uint256 _farmId, uint256 _amount, address _userAddress, address _userProvider) public {
+    function depositFor(uint256 _farmId, uint256 _amount, address _userAddress) public onlyMutator {
         require ( _farmId != 0, 'no farm index 1');
         FarmInfo storage farm = farmInfo[_farmId];
         UserInfo storage user = userInfo[_farmId][_userAddress];
-        innerClaim(farm,user);
-        require(farm.providingToken.transferFrom(_userProvider,address(this),_amount),"cant transfer for deposit");
+        innerClaim(farm,user,_userAddress,_farmId);
         user.providingAmount += _amount;
         farm.totalProvidnigToken += _amount;
         user.rewardDebt = user.providingAmount * farm.accRewardPerShare * 1e12;
-        emit Deposit(_userAddress, _farmId, msg.sender, _userProvider, _amount);
+        if (eventStorageSubscriber != IEventStorage(address(0))) {
+                eventStorageSubscriber.addDeposit(_farmId,_userAddress,_amount);
+        }
+        emit Deposit(_userAddress, _farmId, msg.sender, _amount);
     }
 
-    function deposit(uint256 _farmId, uint256 _amount) public {
-        depositFor(_farmId,_amount,msg.sender,msg.sender);
-    }
-
-    function withdraw(uint256 _farmId, uint256 _amount) public {
+    function withdrawFor(uint256 _farmId, uint256 _amount, address _userAddress) public onlyMutator {
         require ( _farmId != 0, 'no farm index 1');
         FarmInfo storage farm = farmInfo[_farmId];
-        UserInfo storage user = userInfo[_farmId][msg.sender];
+        UserInfo storage user = userInfo[_farmId][_userAddress];
         require(_amount <= user.providingAmount, "too much");
-        innerClaim(farm,user);
-        require(farm.providingToken.transferFrom(msg.sender,address(this),_amount),"cant transfer for deposit");
+        innerClaim(farm,user,_userAddress,_farmId);
         user.providingAmount -= _amount;
         farm.totalProvidnigToken -= _amount;
         user.rewardDebt = user.providingAmount * farm.accRewardPerShare * 1e12;
-        emit Withdraw(msg.sender, _farmId, _amount);
-    }
-    
-    // only used for reward and providing token same
-    function DepositClaimedForUser(uint256 _farmId, address _userAddress) public {
-        require ( _farmId != 0, 'no farm index 1');
-        FarmInfo storage farm = farmInfo[_farmId];
-        require ( farm.providingToken == farm.rewardToken, 'not allowed');
-        UserInfo storage user = userInfo[_farmId][_userAddress];
-        
-        uint256 pastReward = user.providingAmount * farm.accRewardPerShare / 1e12 - user.rewardDebt;
-        farm.totalRewardsLeft -= pastReward;
-        
-        user.providingAmount += pastReward;
-        farm.totalProvidnigToken += pastReward;
-        
-        user.rewardDebt = user.providingAmount * farm.accRewardPerShare * 1e12;
-    }
-    
-    function DepositClaimed(uint256 _farmId) public {
-        DepositClaimedForUser(_farmId,msg.sender);
+        if (eventStorageSubscriber != IEventStorage(address(0))) {
+                eventStorageSubscriber.addClaim(_farmId,_userAddress,_amount);
+        }
+        emit Withdraw(_userAddress, _farmId, msg.sender, _amount);
     }
     
 }
