@@ -44,5 +44,4 @@ contract LpFarming {
     function claim(uint _farmId) public {
         staker.claimFor(_farmId,msg.sender);
     }
-    
 }
