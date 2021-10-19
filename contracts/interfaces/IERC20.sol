@@ -26,4 +26,5 @@ interface IERC20 {
     ) external returns (bool success);
 
     function balanceOf(address _owner) external view returns (uint256 balance);
+    function totalSupply() external view returns (uint256 supply);
 }
