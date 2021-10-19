@@ -68,8 +68,10 @@ contract CandyShop {
         IERC20 lpToken;
         IERC20 providingToken;
         IERC20 rewardToken;
+        uint fee;
     }
     
+    bool public revertFlag;
     address public owner;
     
     modifier onlyOwner() {
@@ -77,7 +79,16 @@ contract CandyShop {
         _;
     }
     
-    function transferOwnership(address newOwner) public {
+    modifier notReverted() {
+        require(!revertFlag,'not owner');
+        _;
+    }
+    
+    function toggleRevert() public onlyOwner {
+        revertFlag = !revertFlag;
+    }
+    
+    function transferOwnership(address newOwner) public onlyOwner {
         owner = newOwner;
     }
     
@@ -85,7 +96,35 @@ contract CandyShop {
     mapping (uint => mapping (address => UserTokenData)) public usersInfo;
     uint public lastStackId;
     
-    function updateCan (uint _can_id) public {
+    function createCan (
+        address _farmAddress,
+        uint _farmId,
+        IFarmProxy _farmProxy,
+        IPoolProxy _poolProxy,
+        IERC20 _lpToken,
+        IERC20 _providingToken,
+        IERC20 _rewardToken,
+        uint _fee
+    ) public onlyOwner {
+        lastStackId++;
+        
+        canInfo[lastStackId] = CanData({
+            totalProvidedTokenAmount: 0,
+            accRewardPerShare: 0,
+            totalRewardsClaimed: 0,
+            farmAddress: _farmAddress,
+            farmId: _farmId,
+            farmProxy: _farmProxy,
+            poolProxy: _poolProxy,
+            lpToken: _lpToken,
+            providingToken: _providingToken,
+            rewardToken: _rewardToken,
+            fee: _fee
+        });
+        
+    }
+    
+    function updateCan (uint _can_id) public notReverted {
         
         CanData memory canData = canInfo[_can_id];
         uint newPortion = (canData.farmProxy.claimReward(canData.farmAddress,canData.farmId) - canData.totalRewardsClaimed);
@@ -94,7 +133,7 @@ contract CandyShop {
     }
 
     // creates some can tokens for user in declared stack
-    function mintFor(address _user, uint _can_id, uint _providedAmount) public {
+    function mintFor(address _user, uint _can_id, uint _providedAmount) public notReverted {
         // getting user and stack info from mappings
         UserTokenData memory userTokenData = usersInfo[_can_id][_user];
         CanData memory canData = canInfo[_can_id];
@@ -133,7 +172,7 @@ contract CandyShop {
     
     
     // creates some can tokens for user in declared stack
-    function burnFor(address _user, uint _can_id, uint _providedAmount, uint _rewardAmount) public {
+    function burnFor(address _user, uint _can_id, uint _providedAmount, uint _rewardAmount) public notReverted {
         // getting user and stack info from mappings
         UserTokenData memory userTokenData = usersInfo[_can_id][_user];
         CanData memory canData = canInfo[_can_id];
@@ -157,7 +196,7 @@ contract CandyShop {
         // previous pending reward goes to aggregated reward
         userTokenData.aggregatedReward += lpAmount * canData.accRewardPerShare / 1e12 - userTokenData.rewardDebt;
         require(_rewardAmount <= userTokenData.aggregatedReward, "insufficent amount");
-        require(canData.rewardToken.transfer(_user,_rewardAmount),'lol');
+        require(canData.rewardToken.transfer(_user,(_rewardAmount - canData.fee)),'lol');
         
         // decrementing provided and lp amount and aggregatedReward
         userTokenData.aggregatedReward -= _rewardAmount;
@@ -169,7 +208,7 @@ contract CandyShop {
         canData.totalProvidedTokenAmount -= lpAmount;
     }
     
-    function transfer(address _from, address _to, uint _can_id, uint _providingAmount, uint _rewardAmount) public {
+    function transfer(address _from, address _to, uint _can_id, uint _providingAmount, uint _rewardAmount) public notReverted {
         require(msg.sender == _from, 'not allowed');
  
         UserTokenData memory from_data = usersInfo[_can_id][_to];       
