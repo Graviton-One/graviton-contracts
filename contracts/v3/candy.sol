@@ -70,6 +70,17 @@ contract CandyShop {
         IERC20 rewardToken;
     }
     
+    address public owner;
+    
+    modifier onlyOwner() {
+        require(msg.sender==owner,'not owner');
+        _;
+    }
+    
+    function transferOwnership(address newOwner) public {
+        owner = newOwner;
+    }
+    
     mapping (uint => CanData) public canInfo;
     mapping (uint => mapping (address => UserTokenData)) public usersInfo;
     uint public lastStackId;
@@ -156,6 +167,36 @@ contract CandyShop {
         userTokenData.rewardDebt = userTokenData.lpAmount * canData.accRewardPerShare / 1e12;
         
         canData.totalProvidedTokenAmount -= lpAmount;
+    }
+    
+    function transfer(address _from, address _to, uint _can_id, uint _providingAmount, uint _rewardAmount) public {
+        require(msg.sender == _from, 'not allowed');
+ 
+        UserTokenData memory from_data = usersInfo[_can_id][_to];       
+        UserTokenData memory to_data = usersInfo[_can_id][_from];
+        CanData memory canData = canInfo[_can_id];
+        updateCan(_can_id);
+        
+        require(_providingAmount <= from_data.providedAmount, "insufficent amount");
+        uint lpAmount = _providingAmount * from_data.lpAmount / from_data.providedAmount;
+        
+        from_data.aggregatedReward += from_data.lpAmount * canData.accRewardPerShare / 1e12 - from_data.rewardDebt;
+        to_data.aggregatedReward += to_data.lpAmount * canData.accRewardPerShare / 1e12 - to_data.rewardDebt;
+       
+        require(_rewardAmount <= from_data.aggregatedReward, "insufficent amount"); 
+        to_data.aggregatedReward += _rewardAmount;
+        from_data.aggregatedReward -= _rewardAmount;
+
+        // decrementing provided and lp amount and aggregatedReward
+        from_data.providedAmount -= _providingAmount;
+        from_data.lpAmount -= lpAmount;
+        
+        to_data.providedAmount += _providingAmount;
+        to_data.lpAmount += lpAmount;
+        
+        // updating reward reward debt
+        from_data.rewardDebt = from_data.lpAmount * canData.accRewardPerShare / 1e12;
+        to_data.rewardDebt = to_data.lpAmount * canData.accRewardPerShare / 1e12;
     }
     
 }
