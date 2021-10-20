@@ -32,12 +32,13 @@ interface IERC20 {
 
 interface IPoolProxy {
     function addLiquidity(address pool,uint gtonAmount,uint secondTokenAmount) external returns (uint liquidity);
-    function removeLiquidity(uint lpTokenAmount,address pool) external returns (uint amountFirst, uint amountSecond);
+    function removeLiquidity(uint lpTokenAmount,address pool,uint requestedAmount) external returns (uint amountFirst, uint amountSecond);
     function getGtonAmountForAddLiquidity(address _pool,uint secondTokenAmount) external view returns (uint gtonAmount);
-    function getPoolTokens(address pool) external returns (address firstToken, address secondToken, address lp);
+    function getPoolTokens(address pool) external returns (address firstToken, address secondToken);
     function getAddLiquidityApprove(address pool) external returns (address addr);
-    function getPoolResserves(address pool) external returns (uint reserveFirst, uint reserveSecond);
+    function getPoolReserves(address pool) external returns (uint reserveFirst, uint reserveSecond);
     function takeLiquidityFee(address pool) external returns (uint fee);
+    function sendLiquidity(address _user, address pool, uint _providedAmount) external returns (uint lpAmount);
 }
 
 interface IFarmProxy {
@@ -125,11 +126,9 @@ contract CandyShop {
     }
     
     function updateCan (uint _can_id) public notReverted {
-        
         CanData memory canData = canInfo[_can_id];
         uint newPortion = (canData.farmProxy.claimReward(canData.farmAddress,canData.farmId) - canData.totalRewardsClaimed);
         canData.accRewardPerShare += newPortion * 1e12 / canData.totalProvidedTokenAmount;
-        
     }
 
     // creates some can tokens for user in declared stack
@@ -139,24 +138,10 @@ contract CandyShop {
         CanData memory canData = canInfo[_can_id];
         updateCan(_can_id);
         
+        (uint lpAmount) = canData.poolProxy.sendLiquidity(_user, address(canData.lpToken), _providedAmount);
         // get pool infor and gton amount 
-        (address firstTokenAddress, address secondTokenAddress, address lp) = canData.poolProxy.getPoolTokens(address(canData.lpToken));
-        uint secondTokenAmount = canData.poolProxy.getGtonAmountForAddLiquidity(address(canData.lpToken),_providedAmount);
-        // approve tokens for liquidity
-        require(IERC20(firstTokenAddress).transferFrom(_user,address(this),_providedAmount),"not enough");
-        
-        address approveAddress = canData.poolProxy.getAddLiquidityApprove(address(canData.lpToken));
-        require(IERC20(firstTokenAddress).approve(approveAddress,_providedAmount),"not enough");
-        require(IERC20(secondTokenAddress).approve(approveAddress,secondTokenAmount),"not enough");
-        // send liquidity and get lp amount
-        uint lpAmount = canData.poolProxy.addLiquidity(
-            address(canData.lpToken),
-            _providedAmount,
-            secondTokenAmount
-        );
-        
         // send lp tokens to farming
-        require(IERC20(lp).approve(canData.farmProxy.getFarmingApprove(canData.farmAddress),lpAmount),"not enough"); 
+        require(canData.lpToken.approve(canData.farmProxy.getFarmingApprove(canData.farmAddress),lpAmount),"not enough"); 
         canData.farmProxy.sendToFarming(address(canData.lpToken), lpAmount);
     
         // previous pending reward goes to aggregated reward
@@ -182,16 +167,18 @@ contract CandyShop {
         require(_providedAmount <= userTokenData.providedAmount, "insufficent amount");
         uint lpAmount = _providedAmount * userTokenData.lpAmount / userTokenData.providedAmount;
         
-        (uint reserveFirst,) = canData.poolProxy.getPoolResserves(address(canData.lpToken));
+        (uint reserveFirst,) = canData.poolProxy.getPoolReserves(address(canData.lpToken));
         
         uint lpAmountToTake = (_providedAmount * canData.lpToken.totalSupply() / reserveFirst) 
             + canData.poolProxy.takeLiquidityFee(address(canData.lpToken));
-        (address firstTokenAddress,,) = canData.poolProxy.getPoolTokens(address(canData.lpToken));
+        (address firstTokenAddress,) = canData.poolProxy.getPoolTokens(address(canData.lpToken));
 
         canData.farmProxy.takeFromFarming(address(canData.lpToken),lpAmountToTake);
-        (uint amountFirst,) = canData.poolProxy.removeLiquidity(lpAmountToTake,address(canData.lpToken));
+        // we need to transfer the token to proxy to delegate remove operation
+        require(canData.lpToken.approve(address(canData.poolProxy), lpAmountToTake),'Error approving to proxy');
+        (uint amountFirst,) = canData.poolProxy.removeLiquidity(lpAmountToTake,address(canData.lpToken), _providedAmount);
+        
         require(IERC20(firstTokenAddress).transfer(_user,amountFirst),'lol');
-
 
         // previous pending reward goes to aggregated reward
         userTokenData.aggregatedReward += lpAmount * canData.accRewardPerShare / 1e12 - userTokenData.rewardDebt;

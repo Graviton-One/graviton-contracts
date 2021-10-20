@@ -3,12 +3,48 @@ pragma solidity >=0.8.0;
 
 interface IPoolProxy {
     function addLiquidity(address pool,uint gtonAmount,uint secondTokenAmount) external returns (uint liquidity);
-    function removeLiquidity(uint lpTokenAmount,address pool) external returns (uint amountFirst, uint amountSecond);
+    function removeLiquidity(uint lpTokenAmount,address pool,uint requestedAmount) external returns (uint amountFirst, uint amountSecond);
     function getGtonAmountForAddLiquidity(address _pool,uint secondTokenAmount) external view returns (uint gtonAmount);
-    function getPoolTokens(address pool) external returns (address firstToken, address secondToken, address lp);
-    function getAddLiquidityApprove(address pool) external returns (address addr);
-    function getPoolResserves(address pool) external returns (uint reserveFirst, uint reserveSecond);
+    function getPoolTokens(address pool) external returns (address firstToken, address secondToken);
+    function getPoolReserves(address pool) external returns (uint reserveFirst, uint reserveSecond);
     function takeLiquidityFee(address pool) external returns (uint fee);
+    function sendLiquidity(address _user, address pool, uint _providedAmount) external returns (uint lpAmount);
+}
+
+interface IERC20 {
+    function mint(address _to, uint256 _value) external;
+
+    function allowance(address owner, address spender)
+        external
+        view
+        returns (uint256);
+
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    function increaseAllowance(address spender, uint256 addedValue)
+        external
+        returns (bool);
+
+    function transfer(address _to, uint256 _value)
+        external
+        returns (bool success);
+
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value
+    ) external returns (bool success);
+
+    function balanceOf(address _owner) external view returns (uint256 balance);
+    function totalSupply() external view returns (uint256 supply);
+}
+
+interface IFarmProxy {
+    function sendToFarming(address farm, uint amount) external;
+    function claimReward(address farm, uint farmId) external returns(uint);
+    function pendingReward(address farm) external view returns(uint);
+    function takeFromFarming(address farm, uint amount) external;
+    function getFarmingApprove(address farm) external returns (address addr);
 }
 
 interface IUniswapV2Pair {
@@ -162,29 +198,29 @@ interface IUniswapV2Router {
 
 contract UniswapProxy is IPoolProxy {
     address public owner;
-    address public mutator;
+    address public candy;
     address public gtonAddress;
 
     IUniswapV2Router public router;
 
-    constructor(IUniswapV2Router _router, address _mutator, address _gtonAddress) {
+    constructor(IUniswapV2Router _router, address _candy, address _gtonAddress) {
         owner = msg.sender;
         router = _router;
-        mutator = _mutator;
+        candy = _candy;
         gtonAddress = _gtonAddress;
     }
     
     modifier onlyOwner() {
-        require(msg.sender==owner,'not owner');
+        require(msg.sender==owner,'Not a owner.');
         _;
     }
     modifier onlyMutator() {
-        require(msg.sender==owner,'not owner'); // to set candy contract
+        require(msg.sender==candy, 'Not a candy.'); // to set candy contract
         _;
     }
 
-    function setMutator(address _mutator) public onlyOwner {
-        mutator = _mutator;
+    function setMutator(address _candy) public onlyOwner {
+        candy = _candy;
     }
 
     function getSecondAddress(address pool) internal virtual returns (address token) {
@@ -192,17 +228,57 @@ contract UniswapProxy is IPoolProxy {
         return pair.token1();
     }
 
+    function getPoolReserves(address pool) public view returns (uint, uint) {
+        IUniswapV2Pair pair = IUniswapV2Pair(pool);
+        (uint112 reserve0, uint112 reserve1,) = pair.getReserves();
+        return (reserve0, reserve1);
+    }
+
     function addLiquidity(address pool, uint gtonAmount, uint secondTokenAmount) public onlyMutator returns (uint) {
         uint deadline = block.timestamp + (1 * 1 hours);
         address tokenB = getSecondAddress(pool);
-        (uint amountA, uint amountB, uint liquidity) = router.addLiquidity(gtonAddress, tokenB, gtonAmount, secondTokenAmount, gtonAmount, secondTokenAmount, pool, deadline);
+        (,, uint liquidity) = router.addLiquidity(gtonAddress, tokenB, gtonAmount, secondTokenAmount, gtonAmount, secondTokenAmount, candy, deadline);
         return liquidity;
     }
-    function removeLiquidity(uint lpTokenAmount, address pool) public onlyMutator returns (uint, uint) {
+    function removeLiquidity(uint lpTokenAmount, address pool, uint provided) public onlyMutator returns (uint, uint) {
         uint deadline = block.timestamp + (1 * 1 hours);
         address tokenB = getSecondAddress(pool);
-        return router.addLiquidity(gtonAddress, tokenB, lpTokenAmount, gtonAmount, secondTokenAmount, pool, deadline);
-        
+        require(IERC20(pool).transferFrom(candy, address(this), lpTokenAmount));
+        // need to check if provided liauidity goes to the second token
+        return router.removeLiquidity(gtonAddress, tokenB, lpTokenAmount, 0, provided, candy, deadline);
+    }
+    function getGtonAmountForAddLiquidity(address _pool,uint secondTokenAmount) public view returns (uint) {
+        (uint reserve0, uint reserve1) = getPoolReserves(_pool);
+        // quote(uint amountA, uint reserveA, uint reserveB) 
+        return router.quote(secondTokenAmount, reserve1, reserve0);
+    }
+    function getPoolTokens(address pool) public view returns (address, address) {
+        IUniswapV2Pair pair = IUniswapV2Pair(pool);
+        address token0 = pair.token0();
+        address token1 = pair.token1();
+        return (token0, token1);
     }
 
+    function takeLiquidityFee(address pool) public view returns (uint) {
+
+    }
+    
+    function sendLiquidity(address _user, address pool, uint _providedAmount) public onlyMutator returns (uint) {
+        // get pool infor and gton amount 
+        (address firstTokenAddress, address secondTokenAddress) = getPoolTokens(pool);
+        uint secondTokenAmount = getGtonAmountForAddLiquidity(pool, _providedAmount);
+        // approve tokens for liquidity
+        require(IERC20(firstTokenAddress).transferFrom(_user, address(this),_providedAmount),"Not enought of approved amount");
+        
+        address approveAddress = address(router);
+        require(IERC20(firstTokenAddress).approve(approveAddress,_providedAmount),"not enough");
+        require(IERC20(secondTokenAddress).approve(approveAddress,secondTokenAmount),"not enough");
+        // send liquidity and get lp amount
+        uint lpAmount = addLiquidity(
+            pool,
+            _providedAmount,
+            secondTokenAmount
+        );
+        return lpAmount;
+    }
 }
