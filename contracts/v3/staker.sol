@@ -48,7 +48,6 @@ contract eventStorage {
     function addDeposit(uint256 farm_id,address user,uint256 amount) public onlyMutator onlyMutator {
         lastEvent++;
         events[lastEvent]=string(abi.encodePacked("deposit",farm_id,user,amount));
-        
     }
     function addWithdraw(uint256 farm_id,address user,uint256 amount) public onlyMutator {
         lastEvent++;
@@ -72,14 +71,14 @@ contract Staker {
         IERC20 providingToken;  // token that users provide to farm 
         uint256 totalProvidingToken; // total current amount of user provided token
         uint256 totalRewards; // total rewards that were assigned to this farm
-        uint256 totalRewardsLeft; // total token rewards that users haven't claimed yeе
+        uint256 totalRewardsLeft; // total token rewards that users haven't claimed yet
         uint256 accRewardPerShare; // Accumulated reward per share, times 1e12. See below.
         address farmOwner; // owner of pool allowed to update pool rewarder sc
         IFarmRewarder farmRewarder; // contract that automaticly gives rewards to pool
     }
     
     IEventStorage public eventStorageSubscriber;
-    
+    // Мне кажется это ппц мапы толстые
     mapping (uint256 => mapping (address => UserInfo)) public userInfo; // Info of each user that stakes LP tokens.
     mapping (uint256 => FarmInfo) public farmInfo; // Info of each farm.
     mapping (address => uint256) public farmId; // farm id of this token address (0 if farm not used)
@@ -139,6 +138,7 @@ contract Staker {
     function addRewardFrom(uint256 _farmId, uint256 amount, address rewardFrom) public {
         FarmInfo storage farm = farmInfo[_farmId];
         require(msg.sender==owner || (msg.sender==farm.farmOwner && permissionlessManagement),'not allowed');
+        // норм практика запихивать в require вызываемый код?
         require(farm.rewardToken.transferFrom(rewardFrom,address(this),amount), 'cant transfer amount');
         farm.accRewardPerShare += amount * 1e12 / farm.totalProvidingToken;
         farm.totalRewards += amount;
@@ -149,7 +149,7 @@ contract Staker {
         
         // if farm rewarder not set
         if (address(farm.farmRewarder) == address(0)) {
-            return;
+            return; // мб стоит переписать на require во избежание выполнения транзы
         }
         require(msg.sender==owner || (msg.sender==farm.farmOwner && permissionlessManagement),'not allowed');
         uint amount = farm.farmRewarder.unlockReward(_farmId);
@@ -157,7 +157,6 @@ contract Staker {
         farm.accRewardPerShare += amount * 1e12 / farm.totalProvidingToken;
         farm.totalRewards += amount;
     }
-    
     function addPool(IERC20 _providingToken, IERC20 _rewardToken, address _farmOwner) public {
         require(farmId[address(_providingToken)] == 0, "farm with this token already exisis");
         require(msg.sender==owner || permissionlessManagement,'not allowed');
