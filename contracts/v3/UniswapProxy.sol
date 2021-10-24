@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
+import "./interfaces/ERC20.sol";
+
 interface IPoolProxy {
     function addLiquidity(address pool,uint gtonAmount,uint secondTokenAmount) external returns (uint liquidity);
     function removeLiquidity(uint lpTokenAmount,address pool,uint requestedAmount) external returns (uint amountFirst, uint amountSecond);
@@ -11,33 +13,7 @@ interface IPoolProxy {
     function sendLiquidity(address _user, address pool, uint _providedAmount) external returns (uint lpAmount);
 }
 
-interface IERC20 {
-    function mint(address _to, uint256 _value) external;
 
-    function allowance(address owner, address spender)
-        external
-        view
-        returns (uint256);
-
-    function approve(address spender, uint256 amount) external returns (bool);
-
-    function increaseAllowance(address spender, uint256 addedValue)
-        external
-        returns (bool);
-
-    function transfer(address _to, uint256 _value)
-        external
-        returns (bool success);
-
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) external returns (bool success);
-
-    function balanceOf(address _owner) external view returns (uint256 balance);
-    function totalSupply() external view returns (uint256 supply);
-}
 
 interface IFarmProxy {
     function sendToFarming(address farm, uint amount) external;
