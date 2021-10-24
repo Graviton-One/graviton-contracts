@@ -13,7 +13,7 @@ interface IERC20 {
 
     function increaseAllowance(address spender, uint256 addedValue)
         external
-        returns (bool);
+        returns (bool); // '
 
     function transfer(address _to, uint256 _value)
         external
