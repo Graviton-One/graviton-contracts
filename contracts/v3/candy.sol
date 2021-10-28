@@ -13,7 +13,7 @@ interface IERC20 {
 
     function increaseAllowance(address spender, uint256 addedValue)
         external
-        returns (bool); // '
+        returns (bool);
 
     function transfer(address _to, uint256 _value)
         external
@@ -29,44 +29,177 @@ interface IERC20 {
     function totalSupply() external view returns (uint256 supply);
 }
 
+interface IPoolPair {
+    event Approval(address indexed owner, address indexed spender, uint value);
+    event Transfer(address indexed from, address indexed to, uint value);
 
-interface IPoolProxy {
-    function addLiquidity(address pool,uint gtonAmount,uint secondTokenAmount) external returns (uint liquidity);
-    function removeLiquidity(uint lpTokenAmount,address pool,uint requestedAmount) external returns (uint amountFirst, uint amountSecond);
-    function getGtonAmountForAddLiquidity(address _pool,uint secondTokenAmount) external view returns (uint gtonAmount);
-    function getPoolTokens(address pool) external returns (address firstToken, address secondToken);
-    function getAddLiquidityApprove(address pool) external returns (address addr);
-    function getPoolReserves(address pool) external returns (uint reserveFirst, uint reserveSecond);
-    function takeLiquidityFee(address pool) external returns (uint fee);
-    function sendLiquidity(address _user, address pool, uint _providedAmount) external returns (uint lpAmount);
+    function name() external pure returns (string memory);
+    function symbol() external pure returns (string memory);
+    function decimals() external pure returns (uint8);
+    function totalSupply() external view returns (uint);
+    function balanceOf(address owner) external view returns (uint);
+    function allowance(address owner, address spender) external view returns (uint);
+
+    function approve(address spender, uint value) external returns (bool);
+    function transfer(address to, uint value) external returns (bool);
+    function transferFrom(address from, address to, uint value) external returns (bool);
+
+    function DOMAIN_SEPARATOR() external view returns (bytes32);
+    function PERMIT_TYPEHASH() external pure returns (bytes32);
+    function nonces(address owner) external view returns (uint);
+
+    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
+
+    event Mint(address indexed sender, uint amount0, uint amount1);
+    event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
+    event Swap(
+        address indexed sender,
+        uint amount0In,
+        uint amount1In,
+        uint amount0Out,
+        uint amount1Out,
+        address indexed to
+    );
+    event Sync(uint112 reserve0, uint112 reserve1);
+
+    function MINIMUM_LIQUIDITY() external pure returns (uint);
+    function factory() external view returns (address);
+    function token0() external view returns (address);
+    function token1() external view returns (address);
+    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
+    function price0CumulativeLast() external view returns (uint);
+    function price1CumulativeLast() external view returns (uint);
+    function kLast() external view returns (uint);
+
+    function mint(address to) external returns (uint liquidity);
+    function burn(address to) external returns (uint amount0, uint amount1);
+    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
+    function skim(address to) external;
+    function sync() external;
+
+    function initialize(address, address) external;
 }
 
+
+interface IPoolProxy {
+    function factory() external pure returns (address);
+    function WETH() external pure returns (address);
+    function addLiquidity(
+        address tokenA,
+        address tokenB,
+        uint amountADesired,
+        uint amountBDesired,
+        uint amountAMin,
+        uint amountBMin,
+        address to,
+        uint deadline
+    ) external returns (uint amountA, uint amountB, uint liquidity);
+    function addLiquidityETH(
+        address token,
+        uint amountTokenDesired,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline
+    ) external payable returns (uint amountToken, uint amountETH, uint liquidity);
+    function removeLiquidity(
+        address tokenA,
+        address tokenB,
+        uint liquidity,
+        uint amountAMin,
+        uint amountBMin,
+        address to,
+        uint deadline
+    ) external returns (uint amountA, uint amountB);
+    function removeLiquidityETH(
+        address token,
+        uint liquidity,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline
+    ) external returns (uint amountToken, uint amountETH);
+    function removeLiquidityWithPermit(
+        address tokenA,
+        address tokenB,
+        uint liquidity,
+        uint amountAMin,
+        uint amountBMin,
+        address to,
+        uint deadline,
+        bool approveMax, uint8 v, bytes32 r, bytes32 s
+    ) external returns (uint amountA, uint amountB);
+    function removeLiquidityETHWithPermit(
+        address token,
+        uint liquidity,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline,
+        bool approveMax, uint8 v, bytes32 r, bytes32 s
+    ) external returns (uint amountToken, uint amountETH);
+    function swapExactTokensForTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external returns (uint[] memory amounts);
+    function swapTokensForExactTokens(
+        uint amountOut,
+        uint amountInMax,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external returns (uint[] memory amounts);
+    function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline)
+        external
+        payable
+        returns (uint[] memory amounts);
+    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
+        external
+        returns (uint[] memory amounts);
+    function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
+        external
+        returns (uint[] memory amounts);
+    function swapETHForExactTokens(uint amountOut, address[] calldata path, address to, uint deadline)
+        external
+        payable
+        returns (uint[] memory amounts);
+
+    function quote(uint amountA, uint reserveA, uint reserveB) external pure returns (uint amountB);
+    function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) external pure returns (uint amountOut);
+    function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) external pure returns (uint amountIn);
+    function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts);
+    function getAmountsIn(uint amountOut, address[] calldata path) external view returns (uint[] memory amounts);
+}
+
+
 interface IFarmProxy {
-    function sendToFarming(address farm, uint amount) external;
-    function claimReward(address farm, uint farmId) external returns(uint);
-    function pendingReward(address farm) external view returns(uint);
-    function takeFromFarming(address farm, uint amount) external;
-    function getFarmingApprove(address farm) external returns (address addr);
+    function deposit(uint256 _pid, uint256 _amount) external;
+    function withdraw(uint256 _pid, uint256 _amount) external;
+    function pendingRelict(uint256 _pid, address _user) external view returns (uint256);
 }
 
 contract CandyShop {
     
     struct UserTokenData {
         uint providedAmount;
-        uint lpAmount;
+        uint farmingAmount;
         uint rewardDebt;
         uint aggregatedReward;
     }
     
     struct CanData {
         uint totalProvidedTokenAmount;
+        uint totalFarmingTokenAmount;
         uint accRewardPerShare;
         uint totalRewardsClaimed;
         address farmAddress;
         uint farmId;
         IFarmProxy farmProxy;
         IPoolProxy poolProxy;
-        IERC20 lpToken;
+        IPoolPair lpToken;
         IERC20 providingToken;
         IERC20 rewardToken;
         uint fee;
@@ -93,6 +226,10 @@ contract CandyShop {
         owner = newOwner;
     }
     
+    function emergencyTakeout(IERC20 _token, address _to) public onlyOwner {
+        require(_token.transfer(_to,_token.balanceOf(address(this))),"error");
+    }
+    
     mapping (uint => CanData) public canInfo;
     mapping (uint => mapping (address => UserTokenData)) public usersInfo;
     uint public lastStackId;
@@ -102,15 +239,15 @@ contract CandyShop {
         uint _farmId,
         IFarmProxy _farmProxy,
         IPoolProxy _poolProxy,
-        IERC20 _lpToken,
+        IPoolPair _lpToken,
         IERC20 _providingToken,
         IERC20 _rewardToken,
         uint _fee
     ) public onlyOwner {
         lastStackId++;
-        
         canInfo[lastStackId] = CanData({
             totalProvidedTokenAmount: 0,
+            totalFarmingTokenAmount: 0,
             accRewardPerShare: 0,
             totalRewardsClaimed: 0,
             farmAddress: _farmAddress,
@@ -122,107 +259,133 @@ contract CandyShop {
             rewardToken: _rewardToken,
             fee: _fee
         });
-        
+    }
+    
+    function changeCanFee(uint _can_id,uint _fee) public onlyOwner {
+        canInfo[_can_id].fee = _fee;
     }
     
     function updateCan (uint _can_id) public notReverted {
-        CanData memory canData = canInfo[_can_id];
-        uint newPortion = (canData.farmProxy.claimReward(canData.farmAddress,canData.farmId) - canData.totalRewardsClaimed);
-        canData.accRewardPerShare += newPortion * 1e12 / canData.totalProvidedTokenAmount;
+        CanData storage canData = canInfo[_can_id];
+        uint pendingAmount = canData.farmProxy.pendingRelict(canData.farmId,address(this));
+        canData.farmProxy.withdraw(canData.farmId,pendingAmount);
+        canData.accRewardPerShare += pendingAmount * 1e12 / canData.totalProvidedTokenAmount;
     }
 
     // creates some can tokens for user in declared stack
     function mintFor(address _user, uint _can_id, uint _providedAmount) public notReverted {
         // getting user and stack info from mappings
-        UserTokenData memory userTokenData = usersInfo[_can_id][_user];
-        CanData memory canData = canInfo[_can_id];
+        UserTokenData storage userTokenData = usersInfo[_can_id][_user];
+        CanData storage canData = canInfo[_can_id];
         updateCan(_can_id);
         
-        (uint lpAmount) = canData.poolProxy.sendLiquidity(_user, address(canData.lpToken), _providedAmount);
-        // get pool infor and gton amount 
+        // get second token amount for liquidity
+        address firstToken = canData.lpToken.token0();
+        address secondToken = canData.lpToken.token1();
+        (uint reserve0, uint reserve1,) = canData.lpToken.getReserves();
+        uint reserveFirst;
+        uint reserveSecond;
+        if (secondToken == address(canData.providingToken)) {
+            secondToken = firstToken;
+            firstToken = address(canData.providingToken);
+            reserveFirst = reserve1;
+            reserveSecond = reserve0;
+        } else {
+            reserveFirst = reserve0;
+            reserveSecond = reserve1;  
+        }
+        uint secondTokenAmount = canData.poolProxy.quote(_providedAmount,reserveFirst,reserveSecond);
+        // approve tokens for liquidity
+        require(IERC20(firstToken).transferFrom(_user,address(this),_providedAmount),"not enough");
+        
+        require(IERC20(firstToken).approve(address(canData.poolProxy),_providedAmount),"not enough");
+        require(IERC20(secondToken).approve(address(canData.poolProxy),secondTokenAmount),"not enough");
+        
+        uint providingAmount = _providedAmount;
+        // send liquidity and get lp amount
+        (,,uint lpAmount) = canData.poolProxy.addLiquidity(
+            firstToken,
+            secondToken,
+            providingAmount,
+            secondTokenAmount,
+            providingAmount,
+            secondTokenAmount,
+            address(this),
+            block.number + 10
+        );
         // send lp tokens to farming
-        require(canData.lpToken.approve(canData.farmProxy.getFarmingApprove(canData.farmAddress),lpAmount),"not enough"); 
-        canData.farmProxy.sendToFarming(address(canData.lpToken), lpAmount);
+        require(IERC20(address(canData.lpToken)).approve(canData.farmAddress,lpAmount),"not enough"); 
+        canData.farmProxy.deposit(canData.farmId,lpAmount);
     
         // previous pending reward goes to aggregated reward
         userTokenData.aggregatedReward = lpAmount * canData.accRewardPerShare / 1e12 - userTokenData.rewardDebt;
         // incrementing provided and lp amount
         userTokenData.providedAmount += _providedAmount;
-        userTokenData.lpAmount += lpAmount;
+        userTokenData.farmingAmount += lpAmount;
         // updating reward reward debt
-        userTokenData.rewardDebt = userTokenData.lpAmount * canData.accRewardPerShare / 1e12;
-        
-        canData.totalProvidedTokenAmount += lpAmount;
+        userTokenData.rewardDebt = userTokenData.providedAmount * canData.accRewardPerShare / 1e12;
+        canData.totalProvidedTokenAmount += _providedAmount;
+        canData.totalFarmingTokenAmount += lpAmount;
     }
     
     
     // creates some can tokens for user in declared stack
     function burnFor(address _user, uint _can_id, uint _providedAmount, uint _rewardAmount) public notReverted {
         // getting user and stack info from mappings
-        UserTokenData memory userTokenData = usersInfo[_can_id][_user];
-        CanData memory canData = canInfo[_can_id];
+        UserTokenData storage userTokenData = usersInfo[_can_id][_user];
+        CanData storage canData = canInfo[_can_id];
         updateCan(_can_id);
+        
+        // get token adresses from pair
+        address firstToken = canData.lpToken.token0();
+        address secondToken = canData.lpToken.token1();
+        (uint reserve0, uint reserve1,) = canData.lpToken.getReserves();
+        uint reserveFirst;
+        uint reserveSecond;
+        if (secondToken == address(canData.providingToken)) {
+            secondToken = firstToken;
+            firstToken = address(canData.providingToken);
+            reserveFirst = reserve1;
+            reserveSecond = reserve0;
+        } else {
+            reserveFirst = reserve0;
+            reserveSecond = reserve1;  
+        }
         
         // calculate lp amount
         require(_providedAmount <= userTokenData.providedAmount, "insufficent amount");
-        uint lpAmount = _providedAmount * userTokenData.lpAmount / userTokenData.providedAmount;
-        
-        (uint reserveFirst,) = canData.poolProxy.getPoolReserves(address(canData.lpToken));
-        
-        uint lpAmountToTake = (_providedAmount * canData.lpToken.totalSupply() / reserveFirst) 
-            + canData.poolProxy.takeLiquidityFee(address(canData.lpToken));
-        (address firstTokenAddress,) = canData.poolProxy.getPoolTokens(address(canData.lpToken));
-
-        canData.farmProxy.takeFromFarming(address(canData.lpToken),lpAmountToTake);
-        // we need to transfer the token to proxy to delegate remove operation
-        require(canData.lpToken.approve(address(canData.poolProxy), lpAmountToTake),'Error approving to proxy');
-        (uint amountFirst,) = canData.poolProxy.removeLiquidity(lpAmountToTake,address(canData.lpToken), _providedAmount);
-        
-        require(IERC20(firstTokenAddress).transfer(_user,amountFirst),'lol');
-
-        // previous pending reward goes to aggregated reward
-        userTokenData.aggregatedReward += lpAmount * canData.accRewardPerShare / 1e12 - userTokenData.rewardDebt;
+        // aggregate rewards  and transfer
+        userTokenData.aggregatedReward += userTokenData.farmingAmount * canData.accRewardPerShare / 1e12 - userTokenData.rewardDebt;
         require(_rewardAmount <= userTokenData.aggregatedReward, "insufficent amount");
         require(canData.rewardToken.transfer(_user,(_rewardAmount - canData.fee)),'lol');
-        
-        // decrementing provided and lp amount and aggregatedReward
         userTokenData.aggregatedReward -= _rewardAmount;
-        userTokenData.providedAmount -= _providedAmount;
-        userTokenData.lpAmount -= lpAmount;
-        // updating reward reward debt
-        userTokenData.rewardDebt = userTokenData.lpAmount * canData.accRewardPerShare / 1e12;
+        canData.totalRewardsClaimed += _rewardAmount;
         
-        canData.totalProvidedTokenAmount -= lpAmount;
-    }
-    
-    function transfer(address _from, address _to, uint _can_id, uint _providingAmount, uint _rewardAmount) public notReverted {
-        require(msg.sender == _from, 'not allowed');
- 
-        UserTokenData memory from_data = usersInfo[_can_id][_to];       
-        UserTokenData memory to_data = usersInfo[_can_id][_from];
-        CanData memory canData = canInfo[_can_id];
-        updateCan(_can_id);
-        
-        require(_providingAmount <= from_data.providedAmount, "insufficent amount");
-        uint lpAmount = _providingAmount * from_data.lpAmount / from_data.providedAmount;
-        
-        from_data.aggregatedReward += from_data.lpAmount * canData.accRewardPerShare / 1e12 - from_data.rewardDebt;
-        to_data.aggregatedReward += to_data.lpAmount * canData.accRewardPerShare / 1e12 - to_data.rewardDebt;
-       
-        require(_rewardAmount <= from_data.aggregatedReward, "insufficent amount"); 
-        to_data.aggregatedReward += _rewardAmount;
-        from_data.aggregatedReward -= _rewardAmount;
+        uint lpAmountToTakeFromPool = canData.lpToken.balanceOf(address(this)) * reserveFirst / canData.lpToken.totalSupply();
 
-        // decrementing provided and lp amount and aggregatedReward
-        from_data.providedAmount -= _providingAmount;
-        from_data.lpAmount -= lpAmount;
+        // prevent stack too deep
+        uint providingAmount = _providedAmount;
+        address user = _user;
         
-        to_data.providedAmount += _providingAmount;
-        to_data.lpAmount += lpAmount;
+        (uint amountFirst,) = canData.poolProxy.removeLiquidity(
+        address(canData.providingToken),
+        secondToken,
+        lpAmountToTakeFromPool,
+        providingAmount,
+        0,
+        address(this),
+        block.number + 10
+        );
+
+        require(IERC20(address(canData.providingToken)).transfer(user,amountFirst),'transfer provided amount error');
+
+        userTokenData.providedAmount -= _providedAmount;
+        userTokenData.farmingAmount = userTokenData.providedAmount * canData.lpToken.totalSupply() / reserveFirst - _providedAmount;
+
+        userTokenData.rewardDebt = userTokenData.farmingAmount * canData.accRewardPerShare / 1e12;
         
-        // updating reward reward debt
-        from_data.rewardDebt = from_data.lpAmount * canData.accRewardPerShare / 1e12;
-        to_data.rewardDebt = to_data.lpAmount * canData.accRewardPerShare / 1e12;
+        canData.totalProvidedTokenAmount -= _providedAmount;
+        canData.totalFarmingTokenAmount -= lpAmountToTakeFromPool;
     }
     
 }
