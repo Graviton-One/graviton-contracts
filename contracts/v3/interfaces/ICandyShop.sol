@@ -11,7 +11,6 @@ interface ICandyShop {
     function transferOwnership(address newOwner) external;
     function emergencyTakeout(IERC20 _token, address _to, uint _amount) external;
     function createCan (
-        address _farmAddress,
         uint _farmId,
         IFarmProxy _farmProxy,
         IPoolProxy _poolProxy,

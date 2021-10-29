@@ -195,10 +195,9 @@ contract CandyShop is ICandyShop {
         uint totalFarmingTokenAmount;
         uint accRewardPerShare;
         uint totalRewardsClaimed;
-        address farmAddress;
         uint farmId;
-        IFarmProxy farmProxy;
-        IPoolProxy poolProxy;
+        IFarmProxy farm;
+        IPoolProxy router;
         IPoolPair lpToken;
         IERC20 providingToken;
         IERC20 rewardToken;
@@ -207,12 +206,15 @@ contract CandyShop is ICandyShop {
     
     bool public revertFlag;
     address public owner;
-    
+    address public feeReceiver;    
+
     constructor(
-        address _owner
+        address _owner,
+        address _feeReceiver
     ) {
         owner = _owner;
         revertFlag = false;
+        feeReceiver = _feeReceiver;
     }
     
     modifier onlyOwner() {
@@ -242,7 +244,6 @@ contract CandyShop is ICandyShop {
     uint public lastStackId;
     
     function createCan (
-        address _farmAddress,
         uint _farmId,
         IFarmProxy _farmProxy,
         IPoolProxy _poolProxy,
@@ -257,10 +258,9 @@ contract CandyShop is ICandyShop {
             totalFarmingTokenAmount: 0,
             accRewardPerShare: 0,
             totalRewardsClaimed: 0,
-            farmAddress: _farmAddress,
             farmId: _farmId,
-            farmProxy: _farmProxy,
-            poolProxy: _poolProxy,
+            farm: _farmProxy,
+            router: _poolProxy,
             lpToken: _lpToken,
             providingToken: _providingToken,
             rewardToken: _rewardToken,
@@ -274,8 +274,8 @@ contract CandyShop is ICandyShop {
     
     function updateCan (uint _can_id) public override notReverted {
         CanData storage canData = canInfo[_can_id];
-        uint pendingAmount = canData.farmProxy.pendingRelict(canData.farmId,address(this));
-        canData.farmProxy.withdraw(canData.farmId,pendingAmount);
+        uint pendingAmount = canData.farm.pendingRelict(canData.farmId,address(this));
+        canData.farm.withdraw(canData.farmId,pendingAmount);
         canData.accRewardPerShare += pendingAmount * 1e12 / canData.totalProvidedTokenAmount;
     }
 
@@ -301,16 +301,16 @@ contract CandyShop is ICandyShop {
             reserveFirst = reserve0;
             reserveSecond = reserve1;  
         }
-        uint secondTokenAmount = canData.poolProxy.quote(_providedAmount,reserveFirst,reserveSecond);
+        uint secondTokenAmount = canData.router.quote(_providedAmount,reserveFirst,reserveSecond);
         // approve tokens for liquidity
         require(IERC20(firstToken).transferFrom(_user,address(this),_providedAmount),"not enough");
         
-        require(IERC20(firstToken).approve(address(canData.poolProxy),_providedAmount),"not enough");
-        require(IERC20(secondToken).approve(address(canData.poolProxy),secondTokenAmount),"not enough");
+        require(IERC20(firstToken).approve(address(canData.router),_providedAmount),"not enough");
+        require(IERC20(secondToken).approve(address(canData.router),secondTokenAmount),"not enough");
         
         uint providingAmount = _providedAmount;
         // send liquidity and get lp amount
-        (,,uint lpAmount) = canData.poolProxy.addLiquidity(
+        (,,uint lpAmount) = canData.router.addLiquidity(
             firstToken,
             secondToken,
             providingAmount,
@@ -321,8 +321,8 @@ contract CandyShop is ICandyShop {
             block.number + 10
         );
         // send lp tokens to farming
-        require(IERC20(address(canData.lpToken)).approve(canData.farmAddress,lpAmount),"not enough"); 
-        canData.farmProxy.deposit(canData.farmId,lpAmount);
+        require(IERC20(address(canData.lpToken)).approve(address(canData.farm),lpAmount),"not enough"); 
+        canData.farm.deposit(canData.farmId,lpAmount);
     
         // previous pending reward goes to aggregated reward
         userTokenData.aggregatedReward = lpAmount * canData.accRewardPerShare / 1e12 - userTokenData.rewardDebt;
@@ -365,6 +365,8 @@ contract CandyShop is ICandyShop {
         userTokenData.aggregatedReward += userTokenData.farmingAmount * canData.accRewardPerShare / 1e12 - userTokenData.rewardDebt;
         require(_rewardAmount <= userTokenData.aggregatedReward, "insufficent amount");
         require(canData.rewardToken.transfer(_user,(_rewardAmount - canData.fee)),'lol');
+        // transfer fee 
+        require(canData.rewardToken.transfer(feeReceiver,canData.fee),'unable to transfer fee');
         userTokenData.aggregatedReward -= _rewardAmount;
         canData.totalRewardsClaimed += _rewardAmount;
         
@@ -374,7 +376,7 @@ contract CandyShop is ICandyShop {
         uint providingAmount = _providedAmount;
         address user = _user;
         
-        (uint amountFirst,) = canData.poolProxy.removeLiquidity(
+        (uint amountFirst,) = canData.router.removeLiquidity(
         address(canData.providingToken),
         secondToken,
         lpAmountToTakeFromPool,
