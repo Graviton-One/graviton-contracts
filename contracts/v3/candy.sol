@@ -208,6 +208,13 @@ contract CandyShop is ICandyShop {
     bool public revertFlag;
     address public owner;
     
+    constructor(
+        address _owner
+    ) {
+        owner = _owner;
+        revertFlag = false;
+    }
+    
     modifier onlyOwner() {
         require(msg.sender==owner,'not owner');
         _;
@@ -218,16 +225,16 @@ contract CandyShop is ICandyShop {
         _;
     }
     
-    function toggleRevert() public onlyOwner {
+    function toggleRevert() public override onlyOwner {
         revertFlag = !revertFlag;
     }
     
-    function transferOwnership(address newOwner) public onlyOwner {
+    function transferOwnership(address newOwner) public override onlyOwner {
         owner = newOwner;
     }
     
-    function emergencyTakeout(IERC20 _token, address _to) public onlyOwner {
-        require(_token.transfer(_to,_token.balanceOf(address(this))),"error");
+    function emergencyTakeout(IERC20 _token, address _to, uint _amount) public override onlyOwner {
+        require(_token.transfer(_to,_amount),"error");
     }
     
     mapping (uint => CanData) public canInfo;
@@ -243,7 +250,7 @@ contract CandyShop is ICandyShop {
         IERC20 _providingToken,
         IERC20 _rewardToken,
         uint _fee
-    ) public onlyOwner {
+    ) public override onlyOwner {
         lastStackId++;
         canInfo[lastStackId] = CanData({
             totalProvidedTokenAmount: 0,
@@ -261,11 +268,11 @@ contract CandyShop is ICandyShop {
         });
     }
     
-    function changeCanFee(uint _can_id,uint _fee) public onlyOwner {
+    function changeCanFee(uint _can_id,uint _fee) public override onlyOwner {
         canInfo[_can_id].fee = _fee;
     }
     
-    function updateCan (uint _can_id) public notReverted {
+    function updateCan (uint _can_id) public override notReverted {
         CanData storage canData = canInfo[_can_id];
         uint pendingAmount = canData.farmProxy.pendingRelict(canData.farmId,address(this));
         canData.farmProxy.withdraw(canData.farmId,pendingAmount);
@@ -273,7 +280,7 @@ contract CandyShop is ICandyShop {
     }
 
     // creates some can tokens for user in declared stack
-    function mintFor(address _user, uint _can_id, uint _providedAmount) public notReverted {
+    function mintFor(address _user, uint _can_id, uint _providedAmount) public override notReverted {
         // getting user and stack info from mappings
         UserTokenData storage userTokenData = usersInfo[_can_id][_user];
         CanData storage canData = canInfo[_can_id];
@@ -330,7 +337,7 @@ contract CandyShop is ICandyShop {
     
     
     // creates some can tokens for user in declared stack
-    function burnFor(address _user, uint _can_id, uint _providedAmount, uint _rewardAmount) public notReverted {
+    function burnFor(address _user, uint _can_id, uint _providedAmount, uint _rewardAmount) public override notReverted {
         // getting user and stack info from mappings
         UserTokenData storage userTokenData = usersInfo[_can_id][_user];
         CanData storage canData = canInfo[_can_id];
@@ -388,4 +395,35 @@ contract CandyShop is ICandyShop {
         canData.totalFarmingTokenAmount -= lpAmountToTakeFromPool;
     }
     
+    function transfer(address _from, address _to, uint _can_id, uint _providingAmount, uint _rewardAmount) public notReverted {
+        require(msg.sender == _from, 'not allowed');
+ 
+        UserTokenData memory from_data = usersInfo[_can_id][_to];       
+        UserTokenData memory to_data = usersInfo[_can_id][_from];
+        CanData memory canData = canInfo[_can_id];
+        updateCan(_can_id);
+        
+        require(_providingAmount <= from_data.providedAmount, "insufficent amount");
+        uint farmingDelta = _providingAmount * from_data.farmingAmount / from_data.providedAmount;
+        
+        from_data.aggregatedReward += from_data.farmingAmount * canData.accRewardPerShare / 1e12 - from_data.rewardDebt;
+        to_data.aggregatedReward += to_data.farmingAmount * canData.accRewardPerShare / 1e12 - to_data.rewardDebt;
+       
+        require(_rewardAmount <= from_data.aggregatedReward, "insufficent amount"); 
+        to_data.aggregatedReward += _rewardAmount;
+        from_data.aggregatedReward -= _rewardAmount;
+
+        // decrementing provided and lp amount and aggregatedReward
+        from_data.providedAmount -= _providingAmount;
+        from_data.farmingAmount -= farmingDelta;
+        
+        to_data.providedAmount += _providingAmount;
+        to_data.farmingAmount += farmingDelta;
+        
+        // updating reward reward debt
+        from_data.rewardDebt = from_data.farmingAmount * canData.accRewardPerShare / 1e12;
+        to_data.rewardDebt = to_data.farmingAmount * canData.accRewardPerShare / 1e12;
+    }
+    
 }
+

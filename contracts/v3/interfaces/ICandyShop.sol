@@ -9,7 +9,7 @@ import "./IPoolPair.sol";
 interface ICandyShop {
     function toggleRevert() external;
     function transferOwnership(address newOwner) external;
-    function emergencyTakeout(IERC20 _token, address _to) external;
+    function emergencyTakeout(IERC20 _token, address _to, uint _amount) external;
     function createCan (
         address _farmAddress,
         uint _farmId,
