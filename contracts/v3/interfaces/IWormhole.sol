@@ -3,7 +3,7 @@ pragma solidity >=0.8.0;
 
 interface IWormhole {
     function gtonAddress() external view returns (address);
-    function swap(uint amount) external returns ();
+    function swap(uint amount) external;
     
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The previous owner
