@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/ICandyShop.sol";
+import "./interfaces/ICan.sol";
 
 // interface IERC20 {
 //     function mint(address _to, uint256 _value) external;
@@ -181,7 +181,7 @@ import "./interfaces/ICandyShop.sol";
 //     function pendingRelict(uint256 _pid, address _user) external view returns (uint256);
 // }
 
-contract CandyShop is ICandyShop {
+contract Can is ICan {
     
     struct UserTokenData {
         uint providedAmount;
@@ -206,15 +206,29 @@ contract CandyShop is ICandyShop {
     
     bool public revertFlag;
     address public owner;
-    address public feeReceiver;    
+    address public feeReceiver;  
 
     constructor(
         address _owner,
-        address _feeReceiver
+        address _feeReceiver,
+        uint _farmId,
+        address _farm,
+        address _router,
+        address _lpToken,
+        address _providingToken,
+        address _rewardToken,
+        uint _fee
     ) {
         owner = _owner;
         revertFlag = false;
         feeReceiver = _feeReceiver;
+        canInfo.farmId = _farmId;
+        canInfo.farm = IFarmProxy(_farm);
+        canInfo.router = IPoolProxy(_router);
+        canInfo.lpToken = IPoolPair(_lpToken);
+        canInfo.providingToken = IERC20(_providingToken);
+        canInfo.rewardToken = IERC20(_rewardToken);
+        canInfo.fee = _fee;
     }
     
     modifier onlyOwner() {
@@ -239,52 +253,26 @@ contract CandyShop is ICandyShop {
         require(_token.transfer(_to,_amount),"error");
     }
     
-    mapping (uint => CanData) public canInfo;
-    mapping (uint => mapping (address => UserTokenData)) public usersInfo;
-    uint public lastStackId;
+    CanData public canInfo;
+    mapping (address => UserTokenData) public usersInfo;
     
-    function createCan (
-        uint _farmId,
-        IFarmProxy _farmProxy,
-        IPoolProxy _poolProxy,
-        IPoolPair _lpToken,
-        IERC20 _providingToken,
-        IERC20 _rewardToken,
-        uint _fee
-    ) public override onlyOwner {
-        lastStackId++;
-        canInfo[lastStackId] = CanData({
-            totalProvidedTokenAmount: 0,
-            totalFarmingTokenAmount: 0,
-            accRewardPerShare: 0,
-            totalRewardsClaimed: 0,
-            farmId: _farmId,
-            farm: _farmProxy,
-            router: _poolProxy,
-            lpToken: _lpToken,
-            providingToken: _providingToken,
-            rewardToken: _rewardToken,
-            fee: _fee
-        });
+    function changeCanFee(uint _fee) public override onlyOwner {
+        canInfo.fee = _fee;
     }
     
-    function changeCanFee(uint _can_id,uint _fee) public override onlyOwner {
-        canInfo[_can_id].fee = _fee;
-    }
-    
-    function updateCan (uint _can_id) public override notReverted {
-        CanData storage canData = canInfo[_can_id];
+    function updateCan () public override notReverted {
+        CanData storage canData = canInfo;
         uint pendingAmount = canData.farm.pendingRelict(canData.farmId,address(this));
         canData.farm.withdraw(canData.farmId,pendingAmount);
         canData.accRewardPerShare += pendingAmount * 1e12 / canData.totalProvidedTokenAmount;
     }
 
     // creates some can tokens for user in declared stack
-    function mintFor(address _user, uint _can_id, uint _providedAmount) public override notReverted {
+    function mintFor(address _user, uint _providedAmount) public override notReverted {
         // getting user and stack info from mappings
-        UserTokenData storage userTokenData = usersInfo[_can_id][_user];
-        CanData storage canData = canInfo[_can_id];
-        updateCan(_can_id);
+        UserTokenData storage userTokenData = usersInfo[_user];
+        CanData storage canData = canInfo;
+        updateCan();
         
         // get second token amount for liquidity
         address firstToken = canData.lpToken.token0();
@@ -337,11 +325,11 @@ contract CandyShop is ICandyShop {
     
     
     // creates some can tokens for user in declared stack
-    function burnFor(address _user, uint _can_id, uint _providedAmount, uint _rewardAmount) public override notReverted {
+    function burnFor(address _user, uint _providedAmount, uint _rewardAmount) public override notReverted {
         // getting user and stack info from mappings
-        UserTokenData storage userTokenData = usersInfo[_can_id][_user];
-        CanData storage canData = canInfo[_can_id];
-        updateCan(_can_id);
+        UserTokenData storage userTokenData = usersInfo[_user];
+        CanData storage canData = canInfo;
+        updateCan();
         
         // get token adresses from pair
         address firstToken = canData.lpToken.token0();
@@ -397,13 +385,13 @@ contract CandyShop is ICandyShop {
         canData.totalFarmingTokenAmount -= lpAmountToTakeFromPool;
     }
     
-    function transfer(address _from, address _to, uint _can_id, uint _providingAmount, uint _rewardAmount) public notReverted {
+    function transfer(address _from, address _to, uint _providingAmount, uint _rewardAmount) public override notReverted {
         require(msg.sender == _from, 'not allowed');
  
-        UserTokenData memory from_data = usersInfo[_can_id][_to];       
-        UserTokenData memory to_data = usersInfo[_can_id][_from];
-        CanData memory canData = canInfo[_can_id];
-        updateCan(_can_id);
+        UserTokenData memory from_data = usersInfo[_to];       
+        UserTokenData memory to_data = usersInfo[_from];
+        CanData memory canData = canInfo;
+        updateCan();
         
         require(_providingAmount <= from_data.providedAmount, "insufficent amount");
         uint farmingDelta = _providingAmount * from_data.farmingAmount / from_data.providedAmount;
