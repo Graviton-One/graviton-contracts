@@ -9,7 +9,6 @@ interface IPoolProxy {
     function getGtonAmountForAddLiquidity(address _pool,uint secondTokenAmount) external view returns (uint gtonAmount);
     function getPoolTokens(address pool) external returns (address firstToken, address secondToken);
     function getPoolReserves(address pool) external returns (uint reserveFirst, uint reserveSecond);
-    function takeLiquidityFee(address pool) external returns (uint fee);
     function sendLiquidity(address _user, address pool, uint _providedAmount) external returns (uint lpAmount);
 }
 
@@ -204,42 +203,38 @@ contract UniswapProxy is IPoolProxy {
         return pair.token1();
     }
 
-    function getPoolReserves(address pool) public view returns (uint, uint) {
+    function getPoolReserves(address pool) public override view returns (uint, uint) {
         IUniswapV2Pair pair = IUniswapV2Pair(pool);
         (uint112 reserve0, uint112 reserve1,) = pair.getReserves();
         return (reserve0, reserve1);
     }
 
-    function addLiquidity(address pool, uint gtonAmount, uint secondTokenAmount) public onlyMutator returns (uint) {
+    function addLiquidity(address pool, uint gtonAmount, uint secondTokenAmount) public override onlyMutator returns (uint) {
         uint deadline = block.timestamp + (1 * 1 hours);
         address tokenB = getSecondAddress(pool);
         (,, uint liquidity) = router.addLiquidity(gtonAddress, tokenB, gtonAmount, secondTokenAmount, gtonAmount, secondTokenAmount, candy, deadline);
         return liquidity;
     }
-    function removeLiquidity(uint lpTokenAmount, address pool, uint provided) public onlyMutator returns (uint, uint) {
+    function removeLiquidity(uint lpTokenAmount, address pool, uint provided) public override onlyMutator returns (uint, uint) {
         uint deadline = block.timestamp + (1 * 1 hours);
         address tokenB = getSecondAddress(pool);
         require(IERC20(pool).transferFrom(candy, address(this), lpTokenAmount));
         // need to check if provided liauidity goes to the second token
         return router.removeLiquidity(gtonAddress, tokenB, lpTokenAmount, 0, provided, candy, deadline);
     }
-    function getGtonAmountForAddLiquidity(address _pool,uint secondTokenAmount) public view returns (uint) {
+    function getGtonAmountForAddLiquidity(address _pool,uint secondTokenAmount) public override view returns (uint) {
         (uint reserve0, uint reserve1) = getPoolReserves(_pool);
         // quote(uint amountA, uint reserveA, uint reserveB) 
         return router.quote(secondTokenAmount, reserve1, reserve0);
     }
-    function getPoolTokens(address pool) public view returns (address, address) {
+    function getPoolTokens(address pool) public override view returns (address, address) {
         IUniswapV2Pair pair = IUniswapV2Pair(pool);
         address token0 = pair.token0();
         address token1 = pair.token1();
         return (token0, token1);
     }
-
-    function takeLiquidityFee(address pool) public view returns (uint) {
-
-    }
     
-    function sendLiquidity(address _user, address pool, uint _providedAmount) public onlyMutator returns (uint) {
+    function sendLiquidity(address _user, address pool, uint _providedAmount) public override onlyMutator returns (uint) {
         // get pool infor and gton amount 
         (address firstTokenAddress, address secondTokenAddress) = getPoolTokens(pool);
         uint secondTokenAmount = getGtonAmountForAddLiquidity(pool, _providedAmount);

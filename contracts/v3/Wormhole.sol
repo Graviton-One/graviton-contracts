@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0;
 
 import "./interfaces/IWormhole.sol";
-import "./interfaces/ERC20.sol";
+import "./interfaces/IERC20.sol";
 
 
 contract Wormhole is IWormhole {    
@@ -12,8 +12,8 @@ contract Wormhole is IWormhole {
     bool public override swapActivated;
     bool public override limitActivated;
 
-    ERC20 public wallet;
-    ERC20 public gton;
+    IERC20 public wallet;
+    IERC20 public gton;
 
     modifier isOwner() {
         require(msg.sender == owner, "Only owner allowed.");
