@@ -50,9 +50,9 @@ contract CandyShop {
         address _providingToken,
         address _rewardToken,
         uint _fee
-    ) public onlyOwner {
+    ) public notReverted {
         bytes memory key = abi.encodePacked(_farmId,_farm,_lpToken,_providingToken,_rewardToken);
-        require(canContracts[key]==address(0),"exist");
+        require(canContracts[key]==address(0),"can exist");
         Can canAddr = new Can(
             owner,
             owner,
@@ -65,6 +65,8 @@ contract CandyShop {
              _fee
         );
         canContracts[key] = address(canAddr);
+        allCans[canLength] = address(canAddr);
+        canLength++;
     }
 }
 
