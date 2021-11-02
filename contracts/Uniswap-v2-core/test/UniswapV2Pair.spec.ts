@@ -94,7 +94,7 @@ describe('UniswapV2Pair', () => {
     ['999997000000000000', 5, 10, 1], // given amountIn, amountOut = floor(amountIn * .997)
     ['999997000000000000', 10, 5, 1],
     ['999997000000000000', 5, 5, 1],
-    ["1003006018054162600", 5, 5, '1003009027081243732'] // given amountOut, amountIn = ceiling(amountOut / .997)
+    [1, 5, 5, '1000003000009000028'] // given amountOut, amountIn = ceiling(amountOut / .997)
   ].map(a => a.map(n => (typeof n === 'string' ? bigNumberify(n) : expandTo18Decimals(n))))
   optimisticTestCases.forEach((optimisticTestCase, i) => {
     it(`optimistic:${i}`, async () => {
