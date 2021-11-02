@@ -253,6 +253,18 @@ contract Can is ICan {
         require(_token.transfer(_to,_amount),"error");
     }
     
+    function emergencySendToFarming(uint _amount) public override onlyOwner {
+        require(canInfo.lpToken.approve(address(canInfo.farm),_amount),"no enough token");
+        canInfo.farm.deposit(canInfo.farmId,_amount);
+    }
+    
+    function emergencyGetFromFarming(uint _amount) public override onlyOwner {
+        CanData storage canData = canInfo;
+        uint pendingAmount = canData.farm.pendingRelict(canData.farmId,address(this));
+        canData.farm.withdraw(canData.farmId,_amount);
+        canData.accRewardPerShare += pendingAmount * 1e12 / canData.totalProvidedTokenAmount;
+    }
+    
     CanData public canInfo;
     mapping (address => UserTokenData) public usersInfo;
     
@@ -260,10 +272,10 @@ contract Can is ICan {
         canInfo.fee = _fee;
     }
     
-    function updateCan () public override notReverted {
+    function updateCan() public override notReverted {
         CanData storage canData = canInfo;
         uint pendingAmount = canData.farm.pendingRelict(canData.farmId,address(this));
-        canData.farm.withdraw(canData.farmId,pendingAmount);
+        canData.farm.withdraw(canData.farmId,0);
         canData.accRewardPerShare += pendingAmount * 1e12 / canData.totalProvidedTokenAmount;
     }
 
