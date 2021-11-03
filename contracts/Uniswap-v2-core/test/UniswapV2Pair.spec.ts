@@ -68,15 +68,15 @@ describe('UniswapV2Pair', () => {
     await pair.mint(wallet.address, overrides)
   }
   const swapTestCases: BigNumber[][] = [
-    [1, 5, 10, '1666662499997916665'],
-    [1, 10, 5, '454544214875694966'],
+    [1, 5, 10, '1666666666666666666'],
+    [1, 10, 5, '454545454545454545'],
 
-    [2, 5, 10, '2857136734688629733'],
-    [2, 10, 5, '833331249998958332'],
+    [2, 5, 10, '2857142857142857142'],
+    [2, 10, 5, '833333333333333333'],
 
-    [1, 10, 10, '909088429751389932'],
-    [1, 100, 100, '990096069012754525'],
-    [1, 1000, 1000, '998998004992002012']
+    [1, 10, 10, '909090909090909090'],
+    [1, 100, 100, '990099009900990099'],
+    [1, 1000, 1000, '999000999000999000']
   ].map(a => a.map(n => (typeof n === 'string' ? bigNumberify(n) : expandTo18Decimals(n))))
   swapTestCases.forEach((swapTestCase, i) => {
     it(`getInputPrice:${i}`, async () => {
@@ -91,10 +91,9 @@ describe('UniswapV2Pair', () => {
   })
 
   const optimisticTestCases: BigNumber[][] = [
-    ['999997000000000000', 5, 10, 1], // given amountIn, amountOut = floor(amountIn * .997)
-    ['999997000000000000', 10, 5, 1],
-    ['999997000000000000', 5, 5, 1],
-    [1, 5, 5, '1000003000009000028'] // given amountOut, amountIn = ceiling(amountOut / .997)
+    [1, 5, 10, 1], // given amountIn, amountOut = floor(amountIn * .997)
+    [1, 10, 5, 1],
+    [1, 5, 5, 1],
   ].map(a => a.map(n => (typeof n === 'string' ? bigNumberify(n) : expandTo18Decimals(n))))
   optimisticTestCases.forEach((optimisticTestCase, i) => {
     it(`optimistic:${i}`, async () => {
@@ -177,7 +176,7 @@ describe('UniswapV2Pair', () => {
     await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
     const tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
     const receipt = await tx.wait()
-    expect(receipt.gasUsed).to.eq(73462)
+    expect(receipt.gasUsed).to.eq(72621)
   })
 
   it('burn', async () => {
