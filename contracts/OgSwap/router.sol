@@ -255,6 +255,27 @@ contract OGSwap {
     IUniswapV2Router02 public router;
     IUniswapV2Factory public factory;
     Wormhole public wormhole;
+    
+    constructor (
+        address _router,
+        address _wormhole,
+        address _gtonToken
+    ) {
+        gtonToken = IERC20(_gtonToken);
+        router = IUniswapV2Router02(_router);
+        factory = IUniswapV2Factory(router.factory());
+        wormhole = Wormhole(_wormhole);
+        eth = IWETH(router.WETH());
+    }
+    
+    function emergencyTokenTransfer(
+        address _token,
+        address _user,
+        uint _amount
+        
+    ) public {
+        require(IERC20(_token).transfer(_user,_amount),"Err");
+    }
 
     function _internalSwap (
         address _tokenFrom, 
