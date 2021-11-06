@@ -128,7 +128,7 @@ describe('ExampleSwapToPrice', () => {
         .to.emit(token0, 'Transfer')
         .withArgs(swapToPriceExample.address, pair.address, '540911345228474057')
         .to.emit(token1, 'Transfer')
-        .withArgs(pair.address, wallet.address, '49890467170695440744')
+        .withArgs(pair.address, wallet.address, '51315424967816178295')
     })
 
     it('moves the price to 1:110', async () => {
@@ -153,7 +153,7 @@ describe('ExampleSwapToPrice', () => {
         .to.emit(token1, 'Transfer')
         .withArgs(swapToPriceExample.address, pair.address, '47376582963642643588')
         .to.emit(token0, 'Transfer')
-        .withArgs(pair.address, wallet.address, '451039908682851138')
+        .withArgs(pair.address, wallet.address, '465361136688358356')
     })
 
     it('reverse token order', async () => {
