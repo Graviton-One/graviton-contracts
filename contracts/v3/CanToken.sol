@@ -318,7 +318,7 @@ contract Can is ICan {
             providingAmount,
             secondTokenAmount,
             address(this),
-            block.number + 10
+            block.timestamp + 10000
         );
         // send lp tokens to farming
         require(IERC20(address(canData.lpToken)).approve(address(canData.farm),lpAmount),"not enough"); 
@@ -383,7 +383,7 @@ contract Can is ICan {
         providingAmount,
         0,
         address(this),
-        block.number + 10
+        block.timestamp + 10000
         );
 
         require(IERC20(address(canData.providingToken)).transfer(user,amountFirst),'transfer provided amount error');

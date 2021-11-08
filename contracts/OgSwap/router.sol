@@ -1,253 +1,10 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-interface Wormhole {
-    function lock(
-        uint8 chainType,
-        uint8 chainId,
-        bytes calldata customPayload
-    ) external; 
-}
-
-interface IWETH {
-    function deposit() external payable;
-    function withdraw(uint) external;
-    
-    event Approval(address indexed owner, address indexed spender, uint value);
-    event Transfer(address indexed from, address indexed to, uint value);
-    
-
-    function name() external view returns (string memory);
-    function symbol() external view returns (string memory);
-    function decimals() external view returns (uint8);
-    function totalSupply() external view returns (uint);
-    function balanceOf(address owner) external view returns (uint);
-    function allowance(address owner, address spender) external view returns (uint);
-
-    function approve(address spender, uint value) external returns (bool);
-    function transfer(address to, uint value) external returns (bool);
-    function transferFrom(address from, address to, uint value) external returns (bool);
-}
-
-interface IUniswapV2Router01 {
-    function factory() external pure returns (address);
-    function WETH() external pure returns (address);
-
-    function addLiquidity(
-        address tokenA,
-        address tokenB,
-        uint amountADesired,
-        uint amountBDesired,
-        uint amountAMin,
-        uint amountBMin,
-        address to,
-        uint deadline
-    ) external returns (uint amountA, uint amountB, uint liquidity);
-    function addLiquidityETH(
-        address token,
-        uint amountTokenDesired,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline
-    ) external payable returns (uint amountToken, uint amountETH, uint liquidity);
-    function removeLiquidity(
-        address tokenA,
-        address tokenB,
-        uint liquidity,
-        uint amountAMin,
-        uint amountBMin,
-        address to,
-        uint deadline
-    ) external returns (uint amountA, uint amountB);
-    function removeLiquidityETH(
-        address token,
-        uint liquidity,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline
-    ) external returns (uint amountToken, uint amountETH);
-    function removeLiquidityWithPermit(
-        address tokenA,
-        address tokenB,
-        uint liquidity,
-        uint amountAMin,
-        uint amountBMin,
-        address to,
-        uint deadline,
-        bool approveMax, uint8 v, bytes32 r, bytes32 s
-    ) external returns (uint amountA, uint amountB);
-    function removeLiquidityETHWithPermit(
-        address token,
-        uint liquidity,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline,
-        bool approveMax, uint8 v, bytes32 r, bytes32 s
-    ) external returns (uint amountToken, uint amountETH);
-    function swapExactTokensForTokens(
-        uint amountIn,
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external returns (uint[] memory amounts);
-    function swapTokensForExactTokens(
-        uint amountOut,
-        uint amountInMax,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external returns (uint[] memory amounts);
-    function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline)
-        external
-        payable
-        returns (uint[] memory amounts);
-    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
-        external
-        returns (uint[] memory amounts);
-    function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
-        external
-        returns (uint[] memory amounts);
-    function swapETHForExactTokens(uint amountOut, address[] calldata path, address to, uint deadline)
-        external
-        payable
-        returns (uint[] memory amounts);
-
-    function quote(uint amountA, uint reserveA, uint reserveB) external pure returns (uint amountB);
-    function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) external pure returns (uint amountOut);
-    function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) external pure returns (uint amountIn);
-    function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts);
-    function getAmountsIn(uint amountOut, address[] calldata path) external view returns (uint[] memory amounts);
-}
-
-interface IUniswapV2Factory {
-    event PairCreated(address indexed token0, address indexed token1, address pair, uint);
-
-    function feeTo() external view returns (address);
-    function feeToSetter() external view returns (address);
-
-    function getPair(address tokenA, address tokenB) external view returns (address pair);
-    function allPairs(uint) external view returns (address pair);
-    function allPairsLength() external view returns (uint);
-
-    function createPair(address tokenA, address tokenB) external returns (address pair);
-
-    function setFeeTo(address) external;
-    function setFeeToSetter(address) external;
-}
-
-interface IUniswapV2Router02 is IUniswapV2Router01 {
-    function removeLiquidityETHSupportingFeeOnTransferTokens(
-        address token,
-        uint liquidity,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline
-    ) external returns (uint amountETH);
-    function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-        address token,
-        uint liquidity,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline,
-        bool approveMax, uint8 v, bytes32 r, bytes32 s
-    ) external returns (uint amountETH);
-
-    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
-        uint amountIn,
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external;
-    function swapExactETHForTokensSupportingFeeOnTransferTokens(
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external payable;
-    function swapExactTokensForETHSupportingFeeOnTransferTokens(
-        uint amountIn,
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external;
-}
-
-interface IERC20 {
-    event Approval(address indexed owner, address indexed spender, uint value);
-    event Transfer(address indexed from, address indexed to, uint value);
-
-    function name() external view returns (string memory);
-    function symbol() external view returns (string memory);
-    function decimals() external view returns (uint8);
-    function totalSupply() external view returns (uint);
-    function balanceOf(address owner) external view returns (uint);
-    function allowance(address owner, address spender) external view returns (uint);
-
-    function approve(address spender, uint value) external returns (bool);
-    function transfer(address to, uint value) external returns (bool);
-    function transferFrom(address from, address to, uint value) external returns (bool);
-}
-
-interface IUniswapV2Pair {
-    event Approval(address indexed owner, address indexed spender, uint value);
-    event Transfer(address indexed from, address indexed to, uint value);
-
-    function name() external pure returns (string memory);
-    function symbol() external pure returns (string memory);
-    function decimals() external pure returns (uint8);
-    function totalSupply() external view returns (uint);
-    function balanceOf(address owner) external view returns (uint);
-    function allowance(address owner, address spender) external view returns (uint);
-
-    function approve(address spender, uint value) external returns (bool);
-    function transfer(address to, uint value) external returns (bool);
-    function transferFrom(address from, address to, uint value) external returns (bool);
-
-    function DOMAIN_SEPARATOR() external view returns (bytes32);
-    function PERMIT_TYPEHASH() external pure returns (bytes32);
-    function nonces(address owner) external view returns (uint);
-
-    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
-
-    event Mint(address indexed sender, uint amount0, uint amount1);
-    event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
-    event Swap(
-        address indexed sender,
-        uint amount0In,
-        uint amount1In,
-        uint amount0Out,
-        uint amount1Out,
-        address indexed to
-    );
-    event Sync(uint112 reserve0, uint112 reserve1);
-
-    function MINIMUM_LIQUIDITY() external pure returns (uint);
-    function factory() external view returns (address);
-    function token0() external view returns (address);
-    function token1() external view returns (address);
-    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
-    function price0CumulativeLast() external view returns (uint);
-    function price1CumulativeLast() external view returns (uint);
-    function kLast() external view returns (uint);
-
-    function mint(address to) external returns (uint liquidity);
-    function burn(address to) external returns (uint amount0, uint amount1);
-    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
-    function skim(address to) external;
-    function sync() external;
-
-    function initialize(address, address) external;
-}
-
-
+import "./interfaces/ierc20.sol";
+import "./interfaces/uniswapRouter.sol";
+import "./interfaces/weth.sol";
+import "./interfaces/wormhole.sol";
 
 contract OGSwap {
     IWETH public eth;
@@ -255,7 +12,23 @@ contract OGSwap {
     IUniswapV2Router02 public router;
     IUniswapV2Factory public factory;
     Wormhole public wormhole;
+    address public owner;
+    bool public revertFlag;
     
+    modifier onlyOwner() {
+        require(msg.sender==owner,'not permitted');
+        _;
+    }
+    
+    modifier notReverted() {
+        require(!revertFlag,'not permitted');
+        _;
+    }
+    
+    event Swap(address indexed from, address indexed to, address indexed tokenFrom, address tokenTo ,uint amountIn, uint amountGton, uint amountOut);
+    event CrossChainInput(address indexed from, address indexed tokenFrom, uint amountIn, uint gtonAmount, uint chainId, uint chainType);
+    event CrossChainOutput(address indexed to, address indexed tokenTo, uint amountOut, uint gtonAmount);
+
     constructor (
         address _router,
         address _wormhole,
@@ -266,6 +39,15 @@ contract OGSwap {
         factory = IUniswapV2Factory(router.factory());
         wormhole = Wormhole(_wormhole);
         eth = IWETH(router.WETH());
+        revertFlag = false;
+    }
+    
+    function setOwner(address _owner) public onlyOwner {
+        owner = _owner;
+    }
+    
+    function toggleRevert() public onlyOwner {
+        revertFlag = !revertFlag;
     }
     
     function emergencyTokenTransfer(
@@ -282,7 +64,7 @@ contract OGSwap {
         address _tokenTo, 
         uint _amountTokenIn, 
         uint _minimalAmountOut
-    ) internal returns (uint outToken) {
+    ) internal returns (uint outToken, uint relayGton) {
         IUniswapV2Pair pair0 = IUniswapV2Pair(factory.getPair(_tokenFrom,address(gtonToken)));
         IUniswapV2Pair pair1 = IUniswapV2Pair(factory.getPair(_tokenTo,address(gtonToken)));
         
@@ -292,14 +74,14 @@ contract OGSwap {
         address[] memory path = new address[](2);
         path[0] = _tokenFrom;
         path[1] = address(gtonToken);
-        uint relayGton = router.getAmountOut(_amountTokenIn,reserveA,reserveB);
+        relayGton = router.getAmountOut(_amountTokenIn,reserveA,reserveB);
         require(IERC20(_tokenFrom).approve(address(router),_amountTokenIn),"not enough money");
         router.swapExactTokensForTokens(
             _amountTokenIn,
             relayGton,
             path,
             address(this),
-            block.number + 10
+            block.timestamp + 10000
         );
         
         (reserveA,reserveB,) = pair1.getReserves();
@@ -314,7 +96,7 @@ contract OGSwap {
             outToken,
             path,
             address(this),
-            block.number + 10
+            block.timestamp + 10000
         );
         require(outToken >= _minimalAmountOut,"minimal amount out is highter");
     }
@@ -328,13 +110,14 @@ contract OGSwap {
         address _provider
     ) public {
         require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
-        uint amountOut = _internalSwap(
+        (uint amountOut, uint relayGton) = _internalSwap(
             _tokenFrom,
             _tokenTo,
             _amountTokenIn,
             _minimalAmountOut
         );
         require(IERC20(_tokenTo).transfer(_user,amountOut),"not enough money");
+        emit Swap(_provider, _user, _tokenFrom, _tokenTo, _amountTokenIn, relayGton, amountOut);
     }
     
     function onchainSwapFromEth (
@@ -345,13 +128,14 @@ contract OGSwap {
     ) public payable {
         require(_amountTokenIn <= msg.value, 'EXCESSIVE_INPUT_AMOUNT');
         eth.deposit{value: _amountTokenIn}();
-        uint amountOut = _internalSwap(
+        (uint amountOut, uint relayGton) = _internalSwap(
             address(eth),
             _tokenTo,
             _amountTokenIn,
             _minimalAmountOut
         );
         require(IERC20(_tokenTo).transfer(_user,amountOut),"not enough money");
+        emit Swap(msg.sender, _user, address(eth), _tokenTo, _amountTokenIn, relayGton, amountOut);
     }
     
     function onchainSwapToEth (
@@ -363,7 +147,7 @@ contract OGSwap {
         address _provider
     ) public payable {
         require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
-        uint amountOut = _internalSwap(
+        (uint amountOut, uint relayGton) = _internalSwap(
             _tokenFrom,
             _tokenTo,
             _amountTokenIn,
@@ -371,6 +155,7 @@ contract OGSwap {
         );
         eth.withdraw(amountOut);
         _user.transfer(amountOut);
+        emit Swap(_provider, _user, address(eth), _tokenTo, _amountTokenIn, relayGton, amountOut);
     }
     
     function crossChainFromEth (
@@ -400,13 +185,14 @@ contract OGSwap {
             address(this),
             block.number + 10
         );
-        
-        bytes memory payload = abi.encodePacked(chainType,chainId,relayGton,customPayload);
+        bytes memory payload = abi.encodePacked(chainType,chainId,uint8(1),relayGton,customPayload);
         wormhole.lock(
             chainType,
             chainId,
             payload
         );
+        uint8 _chainType = chainType;
+        emit CrossChainInput(msg.sender, address(eth), _amountTokenIn, relayGton, chainId, _chainType);
     }
     
     function crossChain (
@@ -415,8 +201,8 @@ contract OGSwap {
         uint _amountTokenIn,
         address _tokenFrom,
         address _provider,
-        bytes8[] calldata customPayload
-    ) public payable {
+        bytes memory customPayload
+    ) public returns (bytes memory payload) {
         require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
         
         IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(_tokenFrom,address(gtonToken)));
@@ -433,32 +219,35 @@ contract OGSwap {
             relayGton,
             path,
             address(this),
-            block.number + 10
+            block.timestamp + 10000
         );
         
-        bytes memory payload = abi.encodePacked(chainType,chainId,relayGton,customPayload);
+        payload = abi.encodePacked(chainType,chainId,uint8(1),relayGton,customPayload);
         wormhole.lock(
             chainType,
             chainId,
             payload
         );
+        uint8 _chainType = chainType;
+        uint8 _chainId = chainId;
+        emit CrossChainInput(_provider, _tokenFrom, _amountTokenIn, relayGton, _chainId, _chainType);
     }
     
     function crossChainFromGton (
         uint8 chainType,
         uint8 chainId,
         uint _amountTokenIn,
-        address _tokenFrom,
         address _provider,
         bytes8[] calldata customPayload
     ) public payable {
-        require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
-        bytes memory payload = abi.encodePacked(chainType,chainId,_amountTokenIn,customPayload);
+        require(IERC20(gtonToken).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
+        bytes memory payload = abi.encodePacked(chainType,chainId,uint8(1),_amountTokenIn,customPayload);
         wormhole.lock(
             chainType,
             chainId,
             payload
         );
+        emit CrossChainInput(_provider, address(gtonToken), _amountTokenIn, _amountTokenIn, chainId, chainType);
     }
     
     function deserializeUint(
@@ -486,10 +275,10 @@ contract OGSwap {
     ) public payable {
         require(msg.sender== address(wormhole),"not enough money");
         
-        uint gtonAmount = deserializeUint(payload,16,16+32);
-        address payable receiver = payable(deserializeAddress(payload,16+32));
-        if (payload.length > 16+32+20) {
-            address tokenTo = deserializeAddress(payload,16+32+20);
+        uint gtonAmount = deserializeUint(payload,3,3+32);
+        address payable receiver = payable(deserializeAddress(payload,3+32));
+        if (payload.length > 3+32+20) {
+            address tokenTo = deserializeAddress(payload,3+32+20);
             
             IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(tokenTo,address(gtonToken)));
             (uint reserveA, uint reserveB,) = pair.getReserves();
@@ -498,15 +287,16 @@ contract OGSwap {
             address[] memory path = new address[](2);
             path[1] = tokenTo;
             path[0] = address(gtonToken);
-            uint releaseAmount = router.getAmountOut(gtonAmount,reserveA,reserveB);
+            uint releaseAmount = router.getAmountOut(gtonAmount,reserveB,reserveA);
             require(gtonToken.approve(address(router),gtonAmount),"not enough money");
             router.swapExactTokensForTokens(
                 gtonAmount,
                 releaseAmount,
                 path,
                 address(this),
-                block.number + 10
+                block.timestamp + 10000
             );
+            emit CrossChainOutput(receiver, tokenTo, releaseAmount, gtonAmount);
             if ( tokenTo == address(eth)) {
                 eth.withdraw(releaseAmount);
                 receiver.transfer(releaseAmount);
@@ -515,6 +305,7 @@ contract OGSwap {
             }
             return;
         }
+        emit CrossChainOutput(receiver, address(gtonToken), gtonAmount, gtonAmount);
         require(gtonToken.transfer(receiver,gtonAmount),"not enough money");  
         
     }
