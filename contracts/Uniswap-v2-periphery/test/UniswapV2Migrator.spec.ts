@@ -53,7 +53,7 @@ describe('UniswapV2Migrator', () => {
       .to.emit(WETHPair, 'Transfer')
       .withArgs(AddressZero, AddressZero, MINIMUM_LIQUIDITY)
       .to.emit(WETHPair, 'Transfer')
-      .withArgs(AddressZero, wallet.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY))
+      .withArgs(AddressZero, wallet.address, expectedLiquidity)
       .to.emit(WETHPair, 'Sync')
       .withArgs(
         WETHPairToken0 === WETHPartner.address ? WETHPartnerAmount : ETHAmount,
@@ -65,6 +65,6 @@ describe('UniswapV2Migrator', () => {
         WETHPairToken0 === WETHPartner.address ? WETHPartnerAmount : ETHAmount,
         WETHPairToken0 === WETHPartner.address ? ETHAmount : WETHPartnerAmount
       )
-    expect(await WETHPair.balanceOf(wallet.address)).to.eq(expectedLiquidity.sub(MINIMUM_LIQUIDITY))
+    expect(await WETHPair.balanceOf(wallet.address)).to.eq(expectedLiquidity)
   })
 })
