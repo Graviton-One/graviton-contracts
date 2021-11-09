@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IClaimGTONV2.sol";
+import "../interfaces/IClaimGTONV2.sol";
 
 /// @title ClaimGTONAbsolute
 /// @author Artemij Artamonov - <array.clean@gmail.com>

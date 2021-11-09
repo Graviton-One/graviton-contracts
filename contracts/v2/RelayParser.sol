@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IOracleParserV2.sol";
+import "../interfaces/IOracleParserV2.sol";
 
 /// @title RelayParser
 /// @author Artemij Artamonov - <array.clean@gmail.com>

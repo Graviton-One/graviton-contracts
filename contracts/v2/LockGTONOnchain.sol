@@ -1,8 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/ILockGTON.sol";
-import "./interfaces/IBalanceKeeperV2.sol";
+import "../interfaces/ILockGTON.sol";
+import "../interfaces/IBalanceKeeperV2.sol";
 
 /// @title LockGTONOnchain
 /// @author Artemij Artamonov - <array.clean@gmail.com>

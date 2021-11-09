@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IVoterV2.sol";
+import "../interfaces/IVoterV2.sol";
 
 /// @title VoterV2
 /// @author Artemij Artamonov - <array.clean@gmail.com>

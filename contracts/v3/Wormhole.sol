@@ -32,7 +32,7 @@ contract Wormhole is IWormhole {
         emit SetWallet(walletOld, _wallet);
     }
 
-    function setPrice(uint _price) public onlyOwner {
+    function setPrice(uint _price) public isOwner {
         uint priceOld = price;
         price = _price;
         emit SetPrice(priceOld, _price);

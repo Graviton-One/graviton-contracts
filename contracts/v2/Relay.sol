@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IRelay.sol";
+import "../interfaces/IRelay.sol";
 
 /// @title Relay
 /// @author Artemij Artamonov - <array.clean@gmail.com>

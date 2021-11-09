@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/ILockRouter.sol";
+import "../interfaces/ILockRouter.sol";
 
 /// @title LockRouter
 /// @author Artemij Artamonov - <array.clean@gmail.com>

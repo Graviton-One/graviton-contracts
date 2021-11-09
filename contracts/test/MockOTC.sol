@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.0;
 
-import "../OTC.sol";
+import "../v2/OTC.sol";
 
 // used for testing time dependent behavior
 contract MockOTC is OTC {

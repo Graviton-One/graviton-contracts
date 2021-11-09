@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/ISharesEB.sol";
+import "../interfaces/ISharesEB.sol";
 
 /// @title SharesEB
 /// @author Artemij Artamonov - <array.clean@gmail.com>

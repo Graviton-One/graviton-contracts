@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/ILockGTON.sol";
+import "../interfaces/ILockGTON.sol";
 
 /// @title LockGTON
 /// @author Artemij Artamonov - <array.clean@gmail.com>

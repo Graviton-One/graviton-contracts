@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IOTC.sol";
+import "../interfaces/IOTC.sol";
 
 /// @title OTC
 /// @author Anton Davydov - <fetsorn@gmail.com>

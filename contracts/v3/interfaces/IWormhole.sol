@@ -8,7 +8,7 @@ interface IWormhole {
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The previous owner
     /// @param ownerNew The new owner
-    event SetVoter(address indexed ownerOld, address indexed ownerNew);
+    event SetOwner(address indexed ownerOld, address indexed ownerNew);
 
     /// @notice Event emitted when the wallet changes via `#setWallet`.
     /// @param walletOld The previous wallet

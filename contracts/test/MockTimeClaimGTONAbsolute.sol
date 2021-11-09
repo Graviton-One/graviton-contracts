@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.0;
 
-import "../ClaimGTONAbsolute.sol";
+import "../v2/ClaimGTONAbsolute.sol";
 import "../interfaces/IERC20.sol";
 import "../interfaces/IBalanceKeeperV2.sol";
 import "../interfaces/IVoterV2.sol";
