@@ -1,11 +1,12 @@
 *.DS_Store
-node_modules
+*node_modules
 
 #Hardhat files
-cache
-artifacts
+*cache
+*artifacts
 /.env
 *coverage*
 typechain/
 /abi/
 /.nuxt/
+*test-ledger/
