@@ -1,4 +1,4 @@
-https://github.com/BadConfig/my_vim_setup//SPDX-License-Identifier: MIT
+//SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
 import "./interfaces/IFarm.sol";
