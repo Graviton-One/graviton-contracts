@@ -62,6 +62,8 @@ describe('ExampleComputeLiquidityValue', () => {
         token1.address,
         expandTo18Decimals(5)
       )
+      console.log(token0Amount, '500000000000000000')
+      console.log(token1Amount, '50000000000000000000')
       expect(token0Amount).to.eq('500000000000000000')
       expect(token1Amount).to.eq('50000000000000000000')
     })
