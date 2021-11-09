@@ -2,7 +2,6 @@
 pragma solidity >=0.8.0;
 
 interface IWormhole {
-    function gtonAddress() external view returns (address);
     function swap(uint amount) external;
     
     /// @notice Event emitted when the owner changes via `#setOwner`.
@@ -18,7 +17,7 @@ interface IWormhole {
     /// @notice Event emitted when the wallet changes via `#setPrice`.
     /// @param priceOld The previous price
     /// @param priceNew The new price
-    event SetPrice(address indexed priceOld, address indexed priceNew);
+    event SetPrice(uint256 indexed priceOld, uint256 indexed priceNew);
 
     /// @notice Event emitted when the `sender` claims `amount` of governance tokens
     /// @param sender The account from whose governance balance tokens were claimed

@@ -29,7 +29,17 @@ export default {
       {
         version: "0.5.16"
       }
-    ]
+    ],
+    overrides: {
+      "contracts/Uniswap-v2-core/contracts": {
+        version: "0.5.16",
+        settings: { }
+      },
+      "contracts/Uniswap-v2-periphery/contracts": {
+        version: "0.6.6",
+        settings: { }
+      },
+    }
   },
   networks: {
     hardhat: {

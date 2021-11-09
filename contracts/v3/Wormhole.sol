@@ -7,12 +7,12 @@ import "./interfaces/IERC20.sol";
 
 contract Wormhole is IWormhole {    
     address public owner;
-    address public price;
+    uint256 public price;
 
-    bool public override swapActivated;
-    bool public override limitActivated;
+    bool public swapActivated;
+    bool public limitActivated;
 
-    IERC20 public wallet;
+    address public wallet;
     IERC20 public gton;
 
     modifier isOwner() {
@@ -20,13 +20,13 @@ contract Wormhole is IWormhole {
         _;
     }
 
-    function setOwner(address _owner) public override isOwner {
+    function setOwner(address _owner) public isOwner {
         address ownerOld = owner;
         owner = _owner;
         emit SetOwner(ownerOld, _owner);
     }
 
-    function setWallet(address _wallet) public override isOwner {
+    function setWallet(address _wallet) public isOwner {
         address walletOld = wallet;
         wallet = _wallet;
         emit SetWallet(walletOld, _wallet);
@@ -42,7 +42,7 @@ contract Wormhole is IWormhole {
 
     }
 
-    function swap(uint amount) public returns (uint) {
+    function swap(uint amount) public override {
         require(gton.transferFrom(msg.sender, address(this), amount), "Not enought of allowed gton.");
         uint amountOut = calcAmountOut(amount);
         gton.transferFrom(wallet, msg.sender, amountOut);
