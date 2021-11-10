@@ -31,14 +31,13 @@ export default {
       }
     ],
     overrides: {
-      "contracts/Uniswap-v2-core/contracts": {
-        version: "0.5.16",
+      "contracts/Uniswap-v2-periphery/contracts/libraries/UniswapV2OracleLibrary.sol": {
+        version: "0.5.0",
         settings: { }
       },
-      "contracts/Uniswap-v2-periphery/contracts": {
-        version: "0.6.6",
-        settings: { }
-      },
+      "node_modules/@uniswap/lib/contracts/libraries/FixedPoint.sol": {
+        version: "0.4.0",
+      }
     }
   },
   networks: {
