@@ -372,6 +372,7 @@ contract Can is ICan {
         
         uint lpAmountToTakeFromPool = canData.lpToken.balanceOf(address(this)) * reserveFirst / canData.lpToken.totalSupply();
 
+
         // prevent stack too deep
         uint providingAmount = _providedAmount;
         address user = _user;

@@ -26,7 +26,7 @@ contract OGSwap {
     }
     
     event Swap(address indexed from, address indexed to, address indexed tokenFrom, address tokenTo ,uint amountIn, uint amountGton, uint amountOut);
-    event CrossChainInput(address indexed from, address indexed tokenFrom, uint amountIn, uint gtonAmount, uint chainId, uint chainType);
+    event CrossChainInput(address indexed from, address indexed tokenFrom, uint amountIn, uint gtonAmount, uint16 chainId, uint16 chainType);
     event CrossChainOutput(address indexed to, address indexed tokenTo, uint amountOut, uint gtonAmount);
 
     constructor (
@@ -159,8 +159,8 @@ contract OGSwap {
     }
     
     function crossChainFromEth (
-        uint8 chainType,
-        uint8 chainId,
+        uint16 chainType,
+        uint16 chainId,
         uint _amountTokenIn,
         uint32 nonce,
         bytes memory customPayload
@@ -186,20 +186,20 @@ contract OGSwap {
             address(this),
             block.number + 10
         );
-        bytes memory payload = abi.encodePacked(chainType,chainId,uint8(1),relayGton,customPayload);
+        bytes memory payload = abi.encodePacked(chainType,chainId,uint16(1),relayGton,customPayload);
         wormhole.lock(
             chainType,
             chainId,
             nonce,
             payload
         );
-        uint8 _chainType = chainType;
+        uint16 _chainType = chainType;
         emit CrossChainInput(msg.sender, address(eth), _amountTokenIn, relayGton, chainId, _chainType);
     }
     
     function crossChain (
-        uint8 chainType,
-        uint8 chainId,
+        uint16 chainType,
+        uint16 chainId,
         uint _amountTokenIn,
         address _tokenFrom,
         address _provider,
@@ -225,28 +225,28 @@ contract OGSwap {
             block.timestamp + 10000
         );
         
-        payload = abi.encodePacked(chainType,chainId,uint8(1),relayGton,customPayload);
+        payload = abi.encodePacked(chainType,chainId,uint16(1),relayGton,customPayload);
         wormhole.lock(
             chainType,
             chainId,
             nonce,
             payload
         );
-        uint8 _chainType = chainType;
-        uint8 _chainId = chainId;
+        uint16 _chainType = chainType;
+        uint16 _chainId = chainId;
         emit CrossChainInput(_provider, _tokenFrom, _amountTokenIn, relayGton, _chainId, _chainType);
     }
     
     function crossChainFromGton (
-        uint8 chainType,
-        uint8 chainId,
+        uint16 chainType,
+        uint16 chainId,
         uint _amountTokenIn,
         address _provider,
         uint32 nonce,
         bytes memory customPayload
     ) public payable {
         require(IERC20(gtonToken).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
-        bytes memory payload = abi.encodePacked(chainType,chainId,uint8(1),_amountTokenIn,customPayload);
+        bytes memory payload = abi.encodePacked(chainType,chainId,uint16(1),_amountTokenIn,customPayload);
         wormhole.lock(
             chainType,
             chainId,
@@ -282,10 +282,10 @@ contract OGSwap {
     ) public payable {
         require(msg.sender == address(wormhole),"not enough money");
         
-        uint gtonAmount = deserializeUint(payload,3,3+32);
-        address payable receiver = payable(deserializeAddress(payload,3+32));
-        if (payload.length > 3+32+20) {
-            address tokenTo = deserializeAddress(payload,3+32+20);
+        uint gtonAmount = deserializeUint(payload,6,6+32);
+        address payable receiver = payable(deserializeAddress(payload,6+32));
+        if (payload.length > 6+32+20) {
+            address tokenTo = deserializeAddress(payload,6+32+20);
             
             IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(tokenTo,address(gtonToken)));
             (uint reserveA, uint reserveB,) = pair.getReserves();
