@@ -1,14 +1,16 @@
 import { ethers } from "hardhat"
 import { BigNumber } from "ethers"
 import { Fixture } from "ethereum-waffle"
+import { getFactory } from "./utils"
 
 /**
  * Factories
  */
-import { UniswapV2Factory__factory as factoryFactory } from "../../../uniswap-v2-core/typechain/factories/UniswapV2Factory__factory"
-import { UniswapV2Pair__factory as pairFactory } from "../../../uniswap-v2-core/typechain/factories/UniswapV2Pair__factory"
-import { UniswapV2Router02__factory as routerFactory } from "../../../uniswap-v2-periphery/typechain/factories/UniswapV2Router02__factory"
-import { ERC20__factory as erc20Factory } from "../../../uniswap-v2-core/typechain/factories/ERC20__factory"
+import { UniswapV2Factory__factory as factoryMeta } from "../../../uniswap-v2-core/typechain/factories/UniswapV2Factory__factory"
+import { UniswapV2Pair__factory as pairMeta } from "../../../uniswap-v2-core/typechain/factories/UniswapV2Pair__factory"
+import { UniswapV2Router02__factory as routerMeta } from "../../../uniswap-v2-periphery/typechain/factories/UniswapV2Router02__factory"
+import { ERC20__factory as erc20Meta } from "../../../uniswap-v2-core/typechain/factories/ERC20__factory"
+import { WETH9__factory as wethMeta } from "../../../uniswap-v2-periphery/typechain/factories/WETH9__factory"
 
 /**
  * Contracts
@@ -16,8 +18,12 @@ import { ERC20__factory as erc20Factory } from "../../../uniswap-v2-core/typecha
 import { UniswapV2Factory } from "../../../uniswap-v2-core/typechain/UniswapV2Factory"
 import { UniswapV2Pair } from "../../../uniswap-v2-core/typechain/UniswapV2Pair"
 import { ERC20 } from "../../../uniswap-v2-core/typechain/ERC20"
+
 import { UniswapV2Router02 } from "../../../uniswap-v2-periphery/typechain/UniswapV2Router02"
 import { WETH9 } from "../../../uniswap-v2-periphery/typechain/WETH9"
+
+import { BigBanger } from "../../../farms/typechain/BigBanger"
+
 import { CandyShop } from "../../typechain/CandyShop"
 import { Can } from "../../typechain/Can"
 
@@ -28,12 +34,10 @@ interface TokensFixture {
   token2: ERC20
 }
 
-async function tokensFixture(wallet: any): Promise<TokensFixture> {
-  // const factory = await ethers.getContractFactory("ERC20")
-  console.log(erc20Factory.abi[0]);
+async function tokensFixture(): Promise<TokensFixture> {
   // @ts-ignore
-  const factory = new erc20Factory([wallet.address])
-  const factoryWeth = await ethers.getContractFactory("WETH9")
+  const factory = await getFactory(erc20Meta);
+  const factoryWeth = await getFactory(wethMeta);
   const tokenA = (await factory.deploy(BigNumber.from(2).pow(255))) as ERC20
   const tokenB = (await factory.deploy(BigNumber.from(2).pow(255))) as ERC20
   const tokenC = (await factory.deploy(BigNumber.from(2).pow(255))) as ERC20
@@ -56,17 +60,16 @@ interface PoolFixture extends TokensFixture {
 export const poolFixture: Fixture<PoolFixture> = async function ([
   wallet,
 ]): Promise<PoolFixture> {
-  const { weth, token0, token1, token2 } = await tokensFixture(wallet)
-
-  const factoryFactory = await ethers.getContractFactory("UniswapV2Factory")
-  const pairFactory = await ethers.getContractFactory("UniswapV2Pair")
+  const { weth, token0, token1, token2 } = await tokensFixture()
+  const factoryFactory = await getFactory(factoryMeta);
+  const pairFactory = await getFactory(pairMeta);
   const factory = (await factoryFactory.deploy(
     wallet.address
   )) as UniswapV2Factory
   await factory.createPair(token0.address, token1.address)
   const lpTokenAddress = await factory.allPairs(0)
   const lpToken = pairFactory.attach(lpTokenAddress) as UniswapV2Pair
-  const routerFactory = await ethers.getContractFactory("UniswapV2Router02")
+  const routerFactory = await getFactory(routerMeta);
   const router = (await routerFactory.deploy(
     factory.address,
     weth.address
@@ -84,25 +87,25 @@ export const poolFixture: Fixture<PoolFixture> = async function ([
 }
 
 interface CandyShopFixture extends PoolFixture {
-  // farm: BigBanger;
+  farm: BigBanger;
   candy: CandyShop
   canToken: Can
 }
 
-// export const candyShopFixture: Fixture<CandyShopFixture> = async function (
-//   [wallet, other, nebula],
-//   provider
-// ): Promise<CandyShopFixture> {
-//   const { weth, token0, token1, token2, factory, router, lpToken } =
-//     await poolFixture([wallet], provider)
+export const candyShopFixture: Fixture<CandyShopFixture> = async function (
+  [wallet],
+  provider
+): Promise<CandyShopFixture> {
+  const { weth, token0, token1, token2, factory, router, lpToken } =
+    await poolFixture([wallet], provider)
 
-//   return {
-//     weth,
-//     token0,
-//     token1,
-//     token2,
-//     factory,
-//     router,
-//     lpToken,
-//   }
-// }
+  return {
+    weth,
+    token0,
+    token1,
+    token2,
+    factory,
+    router,
+    lpToken,
+  }
+}
