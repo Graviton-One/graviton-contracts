@@ -162,7 +162,8 @@ contract OGSwap {
         uint8 chainType,
         uint8 chainId,
         uint _amountTokenIn,
-        bytes8[] calldata customPayload
+        uint32 nonce,
+        bytes memory customPayload
     ) public payable {
         
         require(_amountTokenIn <= msg.value, 'EXCESSIVE_INPUT_AMOUNT');
@@ -189,6 +190,7 @@ contract OGSwap {
         wormhole.lock(
             chainType,
             chainId,
+            nonce,
             payload
         );
         uint8 _chainType = chainType;
@@ -201,6 +203,7 @@ contract OGSwap {
         uint _amountTokenIn,
         address _tokenFrom,
         address _provider,
+        uint32 nonce,
         bytes memory customPayload
     ) public returns (bytes memory payload) {
         require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
@@ -226,6 +229,7 @@ contract OGSwap {
         wormhole.lock(
             chainType,
             chainId,
+            nonce,
             payload
         );
         uint8 _chainType = chainType;
@@ -238,15 +242,18 @@ contract OGSwap {
         uint8 chainId,
         uint _amountTokenIn,
         address _provider,
-        bytes8[] calldata customPayload
+        uint32 nonce,
+        bytes memory customPayload
     ) public payable {
         require(IERC20(gtonToken).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
         bytes memory payload = abi.encodePacked(chainType,chainId,uint8(1),_amountTokenIn,customPayload);
         wormhole.lock(
             chainType,
             chainId,
+            nonce,
             payload
         );
+        
         emit CrossChainInput(_provider, address(gtonToken), _amountTokenIn, _amountTokenIn, chainId, chainType);
     }
     
@@ -273,7 +280,7 @@ contract OGSwap {
     function recv (
         bytes calldata payload
     ) public payable {
-        require(msg.sender== address(wormhole),"not enough money");
+        require(msg.sender == address(wormhole),"not enough money");
         
         uint gtonAmount = deserializeUint(payload,3,3+32);
         address payable receiver = payable(deserializeAddress(payload,3+32));

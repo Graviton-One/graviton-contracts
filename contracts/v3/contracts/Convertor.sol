@@ -1,11 +1,11 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./interfaces/IWormhole.sol";
+import "./interfaces/IConvertor.sol";
 import "./interfaces/IERC20.sol";
 
 
-contract Wormhole is IWormhole {    
+contract Convertor is IConvertor {    
     address public owner;
     uint256 public price;
 
@@ -38,14 +38,14 @@ contract Wormhole is IWormhole {
         emit SetPrice(priceOld, _price);
     }
 
-    function calcAmountOut(uint amount) internal returns (uint) {
+    function calcAmountOut(uint amount) internal pure returns (uint) {
 
     }
 
-    function swap(uint amount) public override {
+    function convert(uint amount) public override {
         require(gton.transferFrom(msg.sender, address(this), amount), "Not enought of allowed gton.");
-        uint amountOut = calcAmountOut(amount);
-        gton.transferFrom(wallet, msg.sender, amountOut);
-        emit Swap(msg.sender, msg.sender, amount, amountOut);
+        // uint amountOut = calcAmountOut(amount);
+        // gton.transferFrom(wallet, msg.sender, amountOut);
+        // emit Swap(msg.sender, msg.sender, amount, amountOut);
     }
 }

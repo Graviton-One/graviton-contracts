@@ -1,9 +1,24 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
+
 pragma solidity >=0.8.0;
 
+import "./IERC20.sol";
+
 interface IWormhole {
-    function swap(uint amount) external;
-    
+    function gton() external view returns (IERC20);
+
+    function gtonRelic() external view returns (IERC20);
+
+    function wallet() external view returns (IERC20);
+
+    function swap(uint256 amount) external;
+
+    function setOwner(address _owner) external;
+
+    function setWallet(IERC20 _wallet) external;
+
+    function setPrice(uint _priceGton, uint _priceRelic) external;
+
     /// @notice Event emitted when the owner changes via `#setOwner`.
     /// @param ownerOld The previous owner
     /// @param ownerNew The new owner
@@ -15,9 +30,14 @@ interface IWormhole {
     event SetWallet(address indexed walletOld, address indexed walletNew);
 
     /// @notice Event emitted when the wallet changes via `#setPrice`.
-    /// @param priceOld The previous price
-    /// @param priceNew The new price
-    event SetPrice(uint256 indexed priceOld, uint256 indexed priceNew);
+    /// @param priceGtonNew The new price
+    /// @param priceRelicOld The new price
+    /// @param priceRelicNew The new price
+    event SetPrice(
+        uint256 indexed priceGtonNew,
+        uint256 indexed priceRelicOld,
+        uint256 indexed priceRelicNew
+    );
 
     /// @notice Event emitted when the `sender` claims `amount` of governance tokens
     /// @param sender The account from whose governance balance tokens were claimed
@@ -32,5 +52,5 @@ interface IWormhole {
         uint256 amountReceived
     );
 }
-// so we are assuming that we are issuing exact same amount of gton 1each block 
+// so we are assuming that we are issuing exact same amount of gton 1each block
 // so it means that

@@ -5,6 +5,7 @@ interface Wormhole {
     function lock(
         uint8 chainType,
         uint8 chainId,
+        uint32 nonce,
         bytes calldata customPayload
     ) external; 
 }
