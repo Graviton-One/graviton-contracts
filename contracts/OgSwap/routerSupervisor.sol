@@ -4,13 +4,14 @@ pragma solidity >=0.8.0;
 import "./interfaces/ierc20.sol";
 import "./interfaces/uniswapRouter.sol";
 import "./interfaces/weth.sol";
+import "./interfaces/wormhole.sol";
 
 contract OGSwap {
     IWETH public eth;
     IERC20 public gtonToken;
     IUniswapV2Router02 public router;
     IUniswapV2Factory public factory;
-    address public provisor;
+    Wormhole public wormhole;
     address public owner;
     bool public revertFlag;
     
@@ -24,47 +25,19 @@ contract OGSwap {
         _;
     }
     
-    event Swap(
-        address indexed from, 
-        address to, 
-        address indexed tokenFrom, 
-        address indexed tokenTo,
-        uint amountIn, 
-        uint amountGton, 
-        uint amountOut
-    );
-    event CrossChainInput(
-        address indexed from, 
-        address indexed tokenFrom,
-        uint chainId, 
-        uint chainType, 
-        uint gton,
-        uint amount
-    );
-    event Payload(
-        uint indexed amount, 
-        uint indexed chainType, 
-        uint indexed chainId, 
-        bytes payload
-    );
-    event CrossChainOutput(
-        address indexed to, 
-        address indexed tokenTo, 
-        uint chainFromType, 
-        uint chainFromId, 
-        uint amountOut, 
-        uint gtonAmount
-    );
+    event Swap(address indexed from, address indexed to, address indexed tokenFrom, address tokenTo ,uint amountIn, uint amountGton, uint amountOut);
+    event CrossChainInput(address indexed from, address indexed tokenFrom, uint amountIn, uint gtonAmount, uint16 chainId, uint16 chainType);
+    event CrossChainOutput(address indexed to, address indexed tokenTo, uint amountOut, uint gtonAmount);
 
     constructor (
         address _router,
-        address _provisor,
+        address _wormhole,
         address _gtonToken
     ) {
         gtonToken = IERC20(_gtonToken);
         router = IUniswapV2Router02(_router);
         factory = IUniswapV2Factory(router.factory());
-        provisor = _provisor;
+        wormhole = Wormhole(_wormhole);
         eth = IWETH(router.WETH());
         revertFlag = false;
     }
@@ -186,9 +159,10 @@ contract OGSwap {
     }
     
     function crossChainFromEth (
-        uint chainType,
-        uint chainId,
+        uint16 chainType,
+        uint16 chainId,
         uint _amountTokenIn,
+        uint32 nonce,
         bytes memory customPayload
     ) public payable {
         
@@ -212,18 +186,24 @@ contract OGSwap {
             address(this),
             block.number + 10
         );
-        bytes memory payload = abi.encodePacked(chainType,chainId,relayGton,customPayload);
-        
-        emit CrossChainInput(msg.sender, address(eth), chainType, chainId, relayGton, _amountTokenIn);
-        emit Payload(relayGton,chainType,chainId,payload);
+        bytes memory payload = abi.encodePacked(chainType,chainId,uint16(1),relayGton,customPayload);
+        wormhole.lock(
+            chainType,
+            chainId,
+            nonce,
+            payload
+        );
+        uint16 _chainType = chainType;
+        emit CrossChainInput(msg.sender, address(eth), _amountTokenIn, relayGton, chainId, _chainType);
     }
     
     function crossChain (
-        uint chainType,
-        uint chainId,
+        uint16 chainType,
+        uint16 chainId,
         uint _amountTokenIn,
         address _tokenFrom,
         address _provider,
+        uint32 nonce,
         bytes memory customPayload
     ) public returns (bytes memory payload) {
         require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
@@ -245,23 +225,36 @@ contract OGSwap {
             block.timestamp + 10000
         );
         
-        payload = abi.encodePacked(chainType,chainId,relayGton,customPayload);
-        emit CrossChainInput(_provider, _tokenFrom, chainType, chainId, relayGton, _amountTokenIn);
-        emit Payload(relayGton,chainType,chainId,payload);
+        payload = abi.encodePacked(chainType,chainId,uint16(1),relayGton,customPayload);
+        wormhole.lock(
+            chainType,
+            chainId,
+            nonce,
+            payload
+        );
+        uint16 _chainType = chainType;
+        uint16 _chainId = chainId;
+        emit CrossChainInput(_provider, _tokenFrom, _amountTokenIn, relayGton, _chainId, _chainType);
     }
     
     function crossChainFromGton (
-        uint chainType,
-        uint chainId,
+        uint16 chainType,
+        uint16 chainId,
         uint _amountTokenIn,
         address _provider,
+        uint32 nonce,
         bytes memory customPayload
     ) public payable {
         require(IERC20(gtonToken).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
-        bytes memory payload = abi.encodePacked(chainType,chainId,_amountTokenIn,customPayload);
+        bytes memory payload = abi.encodePacked(chainType,chainId,uint16(1),_amountTokenIn,customPayload);
+        wormhole.lock(
+            chainType,
+            chainId,
+            nonce,
+            payload
+        );
         
-        emit CrossChainInput(_provider, address(gtonToken), chainType, chainId, _amountTokenIn, _amountTokenIn);
-        emit Payload(_amountTokenIn,chainType,chainId,payload);
+        emit CrossChainInput(_provider, address(gtonToken), _amountTokenIn, _amountTokenIn, chainId, chainType);
     }
     
     function deserializeUint(
@@ -284,31 +277,15 @@ contract OGSwap {
         return address(uint160(deserializeUint(b, startPos, 20)));
     }
     
-    function setFee(uint _fee) public onlyOwner {
-        fee = _fee;
-    }
-    
-    function tokenWithdraw(uint _amount, address _token, address _user) public onlyOwner {
-        require(IERC20(_token).transfer(_user,_amount));
-    }
-    
-    mapping (bytes => bool) public processedData;
-    uint public fee;
-    
     function recv (
         bytes calldata payload
     ) public payable {
-        require(msg.sender == address(provisor),"not provisor");
-        require(!processedData[payload],"data already processed");
-        processedData[payload] = true;
+        require(msg.sender == address(wormhole),"not enough money");
         
-        uint chainFromType = deserializeUint(payload,0,32);
-        uint chainFromId = deserializeUint(payload,32,32*2);
-
-        uint gtonAmount = deserializeUint(payload,32*2,32*2+32) - fee;
-        address payable receiver = payable(deserializeAddress(payload,32*2+32));
-        if (payload.length > 32*2+32+20) {
-            address tokenTo = deserializeAddress(payload,32*2+32+20);
+        uint gtonAmount = deserializeUint(payload,6,6+32);
+        address payable receiver = payable(deserializeAddress(payload,6+32));
+        if (payload.length > 6+32+20) {
+            address tokenTo = deserializeAddress(payload,6+32+20);
             
             IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(tokenTo,address(gtonToken)));
             (uint reserveA, uint reserveB,) = pair.getReserves();
@@ -326,7 +303,7 @@ contract OGSwap {
                 address(this),
                 block.timestamp + 10000
             );
-            emit CrossChainOutput(receiver, tokenTo, chainFromType, chainFromId, releaseAmount, gtonAmount);
+            emit CrossChainOutput(receiver, tokenTo, releaseAmount, gtonAmount);
             if ( tokenTo == address(eth)) {
                 eth.withdraw(releaseAmount);
                 receiver.transfer(releaseAmount);
@@ -335,8 +312,8 @@ contract OGSwap {
             }
             return;
         }
-        emit CrossChainOutput(receiver, address(gtonToken), chainFromType, chainFromId, gtonAmount, gtonAmount);
+        emit CrossChainOutput(receiver, address(gtonToken), gtonAmount, gtonAmount);
         require(gtonToken.transfer(receiver,gtonAmount),"not enough money");  
-    
+        
     }
 }
