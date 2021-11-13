@@ -12,6 +12,17 @@ contract CandyShop {
     mapping(bytes => address) public canContracts;
     mapping(uint => address) public allCans;
     uint public canLength;
+    
+    function getCan(
+        uint _farmId,
+        address _farm,
+        address _lpToken,
+        address _providingToken,
+        address _rewardToken
+    ) public view returns(address) {
+        bytes memory key = abi.encodePacked(_farmId,_farm,_lpToken,_providingToken,_rewardToken);
+        return canContracts[key];
+    }
 
     constructor(
         address _owner
