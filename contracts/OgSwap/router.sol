@@ -41,10 +41,12 @@ contract OGSwap {
         uint gton,
         uint amount
     );
-    event Payload(
+    event PayloadMeta(
         uint indexed amount, 
         uint indexed chainType, 
-        uint indexed chainId, 
+        uint indexed chainId
+    );
+    event Payload(
         bytes payload
     );
     event CrossChainOutput(
@@ -65,6 +67,7 @@ contract OGSwap {
         router = IUniswapV2Router02(_router);
         factory = IUniswapV2Factory(router.factory());
         provisor = _provisor;
+        owner = _provisor;
         eth = IWETH(router.WETH());
         revertFlag = false;
     }
@@ -192,7 +195,7 @@ contract OGSwap {
         bytes memory customPayload
     ) public payable {
         
-        require(_amountTokenIn <= msg.value, 'EXCESSIVE_INPUT_AMOUNT');
+        require(_amountTokenIn <= msg.value, 'INSUFFICIENT_INPUT_AMOUNT');
         eth.deposit{value: _amountTokenIn}();
         
         IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(address(eth),address(gtonToken)));
@@ -210,12 +213,13 @@ contract OGSwap {
             relayGton,
             path,
             address(this),
-            block.number + 10
+            block.timestamp + 10000
         );
-        bytes memory payload = abi.encodePacked(chainType,chainId,relayGton,customPayload);
+        bytes memory payload = abi.encodePacked(block.number,chainType,chainId,relayGton,customPayload);
         
         emit CrossChainInput(msg.sender, address(eth), chainType, chainId, relayGton, _amountTokenIn);
-        emit Payload(relayGton,chainType,chainId,payload);
+        emit PayloadMeta(relayGton,chainType,chainId);
+        emit Payload(payload);
     }
     
     function crossChain (
@@ -245,9 +249,10 @@ contract OGSwap {
             block.timestamp + 10000
         );
         
-        payload = abi.encodePacked(chainType,chainId,relayGton,customPayload);
+        payload = abi.encodePacked(block.number,chainType,chainId,relayGton,customPayload);
         emit CrossChainInput(_provider, _tokenFrom, chainType, chainId, relayGton, _amountTokenIn);
-        emit Payload(relayGton,chainType,chainId,payload);
+        emit PayloadMeta(relayGton,chainType,chainId);
+        emit Payload(payload);
     }
     
     function crossChainFromGton (
@@ -256,12 +261,13 @@ contract OGSwap {
         uint _amountTokenIn,
         address _provider,
         bytes memory customPayload
-    ) public payable {
+    ) public {
         require(IERC20(gtonToken).transferFrom(_provider,address(this),_amountTokenIn),"");
-        bytes memory payload = abi.encodePacked(chainType,chainId,_amountTokenIn,customPayload);
+        bytes memory payload = abi.encodePacked(block.number,chainType,chainId,_amountTokenIn,customPayload);
         
         emit CrossChainInput(_provider, address(gtonToken), chainType, chainId, _amountTokenIn, _amountTokenIn);
-        emit Payload(_amountTokenIn,chainType,chainId,payload);
+        emit PayloadMeta(_amountTokenIn,chainType,chainId);
+        emit Payload(payload);
     }
     
     function deserializeUint(
@@ -288,8 +294,12 @@ contract OGSwap {
         fee = _fee;
     }
     
+    function setProvisor(address _provisor) public onlyOwner {
+        provisor = _provisor;
+    }
+    
     function tokenWithdraw(uint _amount, address _token, address _user) public onlyOwner {
-        require(IERC20(_token).transfer(_user,_amount));
+        require(IERC20(_token).transfer(_user,_amount),'INSUFFICIENT_CONTRACT_BALANCE');
     }
     
     mapping (bytes => bool) public processedData;
@@ -302,13 +312,13 @@ contract OGSwap {
         require(!processedData[payload],"DATA_ALREADY_PROCESSED");
         processedData[payload] = true;
         
-        uint chainFromType = deserializeUint(payload,0,32);
-        uint chainFromId = deserializeUint(payload,32,32*2);
+        uint chainFromType = deserializeUint(payload,32,32);
+        uint chainFromId = deserializeUint(payload,32*2,32);
 
-        uint gtonAmount = deserializeUint(payload,32*2,32*2+32) - fee;
-        address payable receiver = payable(deserializeAddress(payload,32*2+32));
-        if (payload.length > 32*2+32+20) {
-            address tokenTo = deserializeAddress(payload,32*2+32+20);
+        uint gtonAmount = deserializeUint(payload,32*3,32) - fee;
+        address payable receiver = payable(deserializeAddress(payload,32*4));
+        if (payload.length > 32*5) {
+            address tokenTo = deserializeAddress(payload,32*4+20);
             
             IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(tokenTo,address(gtonToken)));
             (uint reserveA, uint reserveB,) = pair.getReserves();

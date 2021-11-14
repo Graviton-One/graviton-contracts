@@ -35,7 +35,7 @@ contract OGSwap {
          chainFromId = deserializeUint(payload,32,32);
          gtonAmount = deserializeUint(payload,32*2,32);
          receiver = payable(deserializeAddress(payload,32*3));
-         tokenTo = deserializeAddress(payload,32*3+20);
+         //tokenTo = deserializeAddress(payload,32*3+20);
     
     }
 }
