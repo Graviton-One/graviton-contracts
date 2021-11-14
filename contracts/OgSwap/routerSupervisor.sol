@@ -75,7 +75,7 @@ contract OGSwap {
         path[0] = _tokenFrom;
         path[1] = address(gtonToken);
         relayGton = router.getAmountOut(_amountTokenIn,reserveA,reserveB);
-        require(IERC20(_tokenFrom).approve(address(router),_amountTokenIn),"not enough money");
+        require(IERC20(_tokenFrom).approve(address(router),_amountTokenIn),"INSUFFICIENT_CONTRACT_BALANCE");
         router.swapExactTokensForTokens(
             _amountTokenIn,
             relayGton,
@@ -90,7 +90,7 @@ contract OGSwap {
         outToken = router.getAmountOut(relayGton,reserveB,reserveA);
         path[1] = _tokenTo;
         path[0] = address(gtonToken);
-        require(gtonToken.approve(address(router),relayGton),"not enough money");
+        require(gtonToken.approve(address(router),relayGton),"INSUFFICIENT_CONTRACT_BALANCE");
         router.swapExactTokensForTokens(
             relayGton,
             outToken,
@@ -98,7 +98,7 @@ contract OGSwap {
             address(this),
             block.timestamp + 10000
         );
-        require(outToken >= _minimalAmountOut,"minimal amount out is highter");
+        require(outToken >= _minimalAmountOut,"EXCESSIVE_MINIMAL_AMOUNT_OUT");
     }
     
     function onchainSwap (
@@ -109,14 +109,14 @@ contract OGSwap {
         address _user,
         address _provider
     ) public {
-        require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
+        require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"INSUFFICIENT_ALLOWANCE_AMOUNT");
         (uint amountOut, uint relayGton) = _internalSwap(
             _tokenFrom,
             _tokenTo,
             _amountTokenIn,
             _minimalAmountOut
         );
-        require(IERC20(_tokenTo).transfer(_user,amountOut),"not enough money");
+        require(IERC20(_tokenTo).transfer(_user,amountOut),"INSUFFICIENT_CONTRACT_BALANCE");
         emit Swap(_provider, _user, _tokenFrom, _tokenTo, _amountTokenIn, relayGton, amountOut);
     }
     
@@ -134,7 +134,7 @@ contract OGSwap {
             _amountTokenIn,
             _minimalAmountOut
         );
-        require(IERC20(_tokenTo).transfer(_user,amountOut),"not enough money");
+        require(IERC20(_tokenTo).transfer(_user,amountOut),"INSUFFICIENT_CONTRACT_BALANCE");
         emit Swap(msg.sender, _user, address(eth), _tokenTo, _amountTokenIn, relayGton, amountOut);
     }
     
@@ -146,7 +146,7 @@ contract OGSwap {
         address payable _user,
         address _provider
     ) public payable {
-        require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
+        require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"INSUFFICIENT_ALLOWANCE_AMOUNT");
         (uint amountOut, uint relayGton) = _internalSwap(
             _tokenFrom,
             _tokenTo,
@@ -178,7 +178,7 @@ contract OGSwap {
         path[0] = address(eth);
         path[1] = address(gtonToken);
         uint relayGton = router.getAmountOut(_amountTokenIn,reserveA,reserveB);
-        require(eth.approve(address(router),_amountTokenIn),"not enough money");
+        require(eth.approve(address(router),_amountTokenIn),"INSUFFICIENT_CONTRACT_BALANCE");
         router.swapExactTokensForTokens(
             _amountTokenIn,
             relayGton,
@@ -206,7 +206,7 @@ contract OGSwap {
         uint32 nonce,
         bytes memory customPayload
     ) public returns (bytes memory payload) {
-        require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
+        require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"INSUFFICIENT_ALLOWANCE_AMOUNT");
         
         IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(_tokenFrom,address(gtonToken)));
         (uint reserveA, uint reserveB,) = pair.getReserves();
@@ -216,7 +216,7 @@ contract OGSwap {
         path[0] = _tokenFrom;
         path[1] = address(gtonToken);
         uint relayGton = router.getAmountOut(_amountTokenIn,reserveA,reserveB);
-        require(IERC20(_tokenFrom).approve(address(router),_amountTokenIn),"not enough money");
+        require(IERC20(_tokenFrom).approve(address(router),_amountTokenIn),"INSUFFICIENT_CONTRACT_BALANCE");
         router.swapExactTokensForTokens(
             _amountTokenIn,
             relayGton,
@@ -245,7 +245,7 @@ contract OGSwap {
         uint32 nonce,
         bytes memory customPayload
     ) public payable {
-        require(IERC20(gtonToken).transferFrom(_provider,address(this),_amountTokenIn),"not enough money");
+        require(IERC20(gtonToken).transferFrom(_provider,address(this),_amountTokenIn),"INSUFFICIENT_ALLOWANCE_AMOUNT");
         bytes memory payload = abi.encodePacked(chainType,chainId,uint16(1),_amountTokenIn,customPayload);
         wormhole.lock(
             chainType,
@@ -280,7 +280,7 @@ contract OGSwap {
     function recv (
         bytes calldata payload
     ) public payable {
-        require(msg.sender == address(wormhole),"not enough money");
+        require(msg.sender == address(wormhole),"INSUFFICIENT_CONTRACT_BALANCE");
         
         uint gtonAmount = deserializeUint(payload,6,6+32);
         address payable receiver = payable(deserializeAddress(payload,6+32));
