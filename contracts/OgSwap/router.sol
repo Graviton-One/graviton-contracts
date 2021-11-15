@@ -319,11 +319,10 @@ contract OGSwap {
         address payable receiver = payable(deserializeAddress(payload,32*4));
         if (payload.length > 32*5) {
             address tokenTo = deserializeAddress(payload,32*4+20);
-            
-            IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(tokenTo,address(gtonToken)));
+            (address t0, address t1) = tokenTo < address(gtonToken) ? (tokenTo,address(gtonToken)) : (address(gtonToken),tokenTo);
+            IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(t0,t1));
             (uint reserveA, uint reserveB,) = pair.getReserves();
             (reserveA, reserveB) = pair.token0() == address(gtonToken) ? (reserveB,reserveA) : (reserveA,reserveB);
-    
             address[] memory path = new address[](2);
             path[1] = tokenTo;
             path[0] = address(gtonToken);
