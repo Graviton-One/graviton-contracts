@@ -27,6 +27,10 @@ contract OGSwap {
         _;
     }
     
+    receive() external payable {
+        require(msg.sender == address(eth)); // only accept ETH via fallback from the WETH contract
+    }
+    
     event Swap(
         address indexed from, 
         address to, 
@@ -224,19 +228,14 @@ contract OGSwap {
             
             emit CrossChainOutput(receiver, tokenTo, chainFromType, chainFromId, amounts[1], gtonAmount);
             if (tokenTo == address(eth)) {
-                safeWithdrawEth(receiver,amounts[amounts.length-1]);
+                eth.withdraw(amounts[amounts.length-1]);
+                require(receiver.send(amounts[amounts.length-1]),'INSUFFICIENT_CONTRACT_ETH_BALANCE');
             } else {
-                require(IERC20(tokenTo).transfer(receiver,amounts[1]),"INSUFFICIENT_CONTRACT_BALANCE");
+                require(IERC20(tokenTo).transfer(receiver,amounts[amounts.length-1]),"INSUFFICIENT_CONTRACT_BALANCE");
             }
             return;
         }
         emit CrossChainOutput(receiver, address(gtonToken), chainFromType, chainFromId, gtonAmount, gtonAmount);
         require(gtonToken.transfer(receiver,gtonAmount),"INSUFFICIENT_CONTRACT_BALANCE");  
-    }
-    
-    function safeWithdrawEth (address payable receiver, uint amount) public payable {
-        require(eth.balanceOf(address(this))==amount,'insuf bal');
-        IWETH(address(eth)).withdraw(amount);
-        require(receiver.send(amount),'cant send eth');
     }
 }
