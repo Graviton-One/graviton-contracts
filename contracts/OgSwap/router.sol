@@ -4,15 +4,20 @@ pragma solidity >=0.8.0;
 import "./interfaces/ierc20.sol";
 import "./interfaces/uniswapRouter.sol";
 import "./interfaces/weth.sol";
+import './libraries/UniswapV2Library.sol';
+import '@uniswap/lib/contracts/libraries/TransferHelper.sol';
+
 
 contract OGSwap {
     IWETH public eth;
     IERC20 public gtonToken;
-    IUniswapV2Router02 public router;
-    IUniswapV2Factory public factory;
+    address public factory;
     address public provisor;
     address public owner;
     bool public revertFlag;
+        
+    mapping (bytes => bool) public processedData;
+    uint public fee;
     
     modifier onlyOwner() {
         require(msg.sender==owner,'NOT_PERMITED');
@@ -59,16 +64,17 @@ contract OGSwap {
     );
 
     constructor (
-        address _router,
+        address _factory,
+        address _owner,
         address _provisor,
-        address _gtonToken
+        address _gtonToken,
+        address _weth
     ) {
         gtonToken = IERC20(_gtonToken);
-        router = IUniswapV2Router02(_router);
-        factory = IUniswapV2Factory(router.factory());
+        factory = _factory;
         provisor = _provisor;
-        owner = _provisor;
-        eth = IWETH(router.WETH());
+        owner = _owner;
+        eth = IWETH(_weth);
         revertFlag = false;
     }
     
@@ -88,189 +94,8 @@ contract OGSwap {
     ) public {
         require(IERC20(_token).transfer(_user,_amount),"Err");
     }
-
-    function _internalSwap (
-        address _tokenFrom, 
-        address _tokenTo, 
-        uint _amountTokenIn, 
-        uint _minimalAmountOut
-    ) internal returns (uint outToken, uint relayGton) {
-        IUniswapV2Pair pair0 = IUniswapV2Pair(factory.getPair(_tokenFrom,address(gtonToken)));
-        IUniswapV2Pair pair1 = IUniswapV2Pair(factory.getPair(_tokenTo,address(gtonToken)));
-        
-        (uint reserveA, uint reserveB,) = pair0.getReserves();
-        (reserveA, reserveB) = pair0.token0() == address(gtonToken) ? (reserveB,reserveA) : (reserveA,reserveB);
-
-        address[] memory path = new address[](2);
-        path[0] = _tokenFrom;
-        path[1] = address(gtonToken);
-        relayGton = router.getAmountOut(_amountTokenIn,reserveA,reserveB);
-        require(IERC20(_tokenFrom).approve(address(router),_amountTokenIn),"INSUFFICIENT_CONTRACT_BALANCE");
-        router.swapExactTokensForTokens(
-            _amountTokenIn,
-            relayGton,
-            path,
-            address(this),
-            block.timestamp + 10000
-        );
-        
-        (reserveA,reserveB,) = pair1.getReserves();
-        (reserveA, reserveB) = pair1.token0() == address(gtonToken) ? (reserveB,reserveA) : (reserveA,reserveB);
-        
-        outToken = router.getAmountOut(relayGton,reserveB,reserveA);
-        path[1] = _tokenTo;
-        path[0] = address(gtonToken);
-        require(gtonToken.approve(address(router),relayGton),"INSUFFICIENT_CONTRACT_BALANCE");
-        router.swapExactTokensForTokens(
-            relayGton,
-            outToken,
-            path,
-            address(this),
-            block.timestamp + 10000
-        );
-        require(outToken >= _minimalAmountOut,"EXCESSIVE_MINIMAL_AMOUNT_OUT");
-    }
     
-    function onchainSwap (
-        address _tokenFrom, 
-        address _tokenTo, 
-        uint _amountTokenIn, 
-        uint _minimalAmountOut,
-        address _user,
-        address _provider
-    ) public {
-        require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"INSUFFICIENT_ALLOWANCE_AMOUNT");
-        (uint amountOut, uint relayGton) = _internalSwap(
-            _tokenFrom,
-            _tokenTo,
-            _amountTokenIn,
-            _minimalAmountOut
-        );
-        require(IERC20(_tokenTo).transfer(_user,amountOut),"INSUFFICIENT_CONTRACT_BALANCE");
-        emit Swap(_provider, _user, _tokenFrom, _tokenTo, _amountTokenIn, relayGton, amountOut);
-    }
-    
-    function onchainSwapFromEth (
-        address _tokenTo, 
-        uint _amountTokenIn, 
-        uint _minimalAmountOut,
-        address _user
-    ) public payable {
-        require(_amountTokenIn <= msg.value, 'EXCESSIVE_INPUT_AMOUNT');
-        eth.deposit{value: _amountTokenIn}();
-        (uint amountOut, uint relayGton) = _internalSwap(
-            address(eth),
-            _tokenTo,
-            _amountTokenIn,
-            _minimalAmountOut
-        );
-        require(IERC20(_tokenTo).transfer(_user,amountOut),"INSUFFICIENT_CONTRACT_BALANCE");
-        emit Swap(msg.sender, _user, address(eth), _tokenTo, _amountTokenIn, relayGton, amountOut);
-    }
-    
-    function onchainSwapToEth (
-        address _tokenFrom, 
-        address _tokenTo, 
-        uint _amountTokenIn, 
-        uint _minimalAmountOut,
-        address payable _user,
-        address _provider
-    ) public payable {
-        require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"INSUFFICIENT_ALLOWANCE_AMOUNT ");
-        (uint amountOut, uint relayGton) = _internalSwap(
-            _tokenFrom,
-            _tokenTo,
-            _amountTokenIn,
-            _minimalAmountOut
-        );
-        eth.withdraw(amountOut);
-        _user.transfer(amountOut);
-        emit Swap(_provider, _user, address(eth), _tokenTo, _amountTokenIn, relayGton, amountOut);
-    }
-    
-    function crossChainFromEth (
-        uint chainType,
-        uint chainId,
-        uint _amountTokenIn,
-        bytes memory customPayload
-    ) public payable {
-        
-        require(_amountTokenIn <= msg.value, 'INSUFFICIENT_INPUT_AMOUNT');
-        eth.deposit{value: _amountTokenIn}();
-        
-        IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(address(eth),address(gtonToken)));
-        
-        (uint reserveA, uint reserveB,) = pair.getReserves();
-        (reserveA, reserveB) = pair.token0() == address(gtonToken) ? (reserveB,reserveA) : (reserveA,reserveB);
-
-        address[] memory path = new address[](2);
-        path[0] = address(eth);
-        path[1] = address(gtonToken);
-        uint relayGton = router.getAmountOut(_amountTokenIn,reserveA,reserveB);
-        require(eth.approve(address(router),_amountTokenIn),"INSUFFICIENT_CONTRACT_BALANCE");
-        router.swapExactTokensForTokens(
-            _amountTokenIn,
-            relayGton,
-            path,
-            address(this),
-            block.timestamp + 10000
-        );
-        bytes memory payload = abi.encodePacked(block.number,chainType,chainId,relayGton,customPayload);
-        
-        emit CrossChainInput(msg.sender, address(eth), chainType, chainId, relayGton, _amountTokenIn);
-        emit PayloadMeta(relayGton,chainType,chainId);
-        emit Payload(payload);
-    }
-    
-    function crossChain (
-        uint chainType,
-        uint chainId,
-        uint _amountTokenIn,
-        address _tokenFrom,
-        address _provider,
-        bytes memory customPayload
-    ) public returns (bytes memory payload) {
-        require(IERC20(_tokenFrom).transferFrom(_provider,address(this),_amountTokenIn),"INSUFFICIENT_ALLOWANCE_AMOUNT");
-        
-        IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(_tokenFrom,address(gtonToken)));
-        (uint reserveA, uint reserveB,) = pair.getReserves();
-        (reserveA, reserveB) = pair.token0() == address(gtonToken) ? (reserveB,reserveA) : (reserveA,reserveB);
-
-        address[] memory path = new address[](2);
-        path[0] = _tokenFrom;
-        path[1] = address(gtonToken);
-        uint relayGton = router.getAmountOut(_amountTokenIn,reserveA,reserveB);
-        require(IERC20(_tokenFrom).approve(address(router),_amountTokenIn),"INSUFFICIENT_CONTRACT_BALANCE");
-        router.swapExactTokensForTokens(
-            _amountTokenIn,
-            relayGton,
-            path,
-            address(this),
-            block.timestamp + 10000
-        );
-        
-        payload = abi.encodePacked(block.number,chainType,chainId,relayGton,customPayload);
-        emit CrossChainInput(_provider, _tokenFrom, chainType, chainId, relayGton, _amountTokenIn);
-        emit PayloadMeta(relayGton,chainType,chainId);
-        emit Payload(payload);
-    }
-    
-    function crossChainFromGton (
-        uint chainType,
-        uint chainId,
-        uint _amountTokenIn,
-        address _provider,
-        bytes memory customPayload
-    ) public {
-        require(IERC20(gtonToken).transferFrom(_provider,address(this),_amountTokenIn),"");
-        bytes memory payload = abi.encodePacked(block.number,chainType,chainId,_amountTokenIn,customPayload);
-        
-        emit CrossChainInput(_provider, address(gtonToken), chainType, chainId, _amountTokenIn, _amountTokenIn);
-        emit PayloadMeta(_amountTokenIn,chainType,chainId);
-        emit Payload(payload);
-    }
-    
-    function deserializeUint(
+        function deserializeUint(
         bytes memory b,
         uint256 startPos,
         uint256 len
@@ -301,13 +126,84 @@ contract OGSwap {
     function tokenWithdraw(uint _amount, address _token, address _user) public onlyOwner {
         require(IERC20(_token).transfer(_user,_amount),'INSUFFICIENT_CONTRACT_BALANCE');
     }
+
     
-    mapping (bytes => bool) public processedData;
-    uint public fee;
+    function _swap(uint[] memory amounts, address[] memory path, address _to) internal virtual {
+        for (uint i; i < path.length - 1; i++) {
+            (address input, address output) = (path[i], path[i + 1]);
+            (address token0,) = UniswapV2Library.sortTokens(input, output);
+            uint amountOut = amounts[i + 1];
+            (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
+            address to = i < path.length - 2 ? UniswapV2Library.pairFor(address(factory), output, path[i + 2]) : _to;
+            IUniswapV2Pair(UniswapV2Library.pairFor(address(factory), input, output)).swap(
+                amount0Out, amount1Out, to, new bytes(0)
+            );
+        }
+    }
+    
+    function crossChainFromEth (
+        uint chainType,
+        uint chainId,
+        uint _minimalAmountOut,
+        address[] memory path,
+        bytes memory customPayload
+    ) public payable {
+        require(path[0]==address(eth) && path[path.length-1]==address(gtonToken),'PATH_SHOULD_START_WITH_WETH');
+        uint[] memory amounts = UniswapV2Library.getAmountsOut(factory, msg.value, path);
+        eth.deposit{value: amounts[0]}();
+        require(_minimalAmountOut <= amounts[amounts.length-1], 'INSUFFICIENT_OUTPUT_AMOUNT');
+        require(eth.transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]));
+        _swap(amounts, path, address(this));
+        
+        bytes memory payload = abi.encodePacked(block.number,chainType,chainId,amounts[amounts.length-1],customPayload);
+        emit CrossChainInput(msg.sender, address(eth), chainType, chainId, amounts[amounts.length-1], msg.value);
+        emit PayloadMeta(amounts[amounts.length-1],chainType,chainId);
+        emit Payload(payload);
+    }
+    
+    function crossChain (
+        uint chainType,
+        uint chainId,
+        uint _amountTokenIn,
+        uint _minimalAmountOut,
+        address _provider,
+        address[] memory path,
+        bytes memory customPayload
+    ) public returns (bytes memory payload) {
+        require(path[path.length-1]==address(gtonToken),'PATH_SHOULD_END_WITH_GTON');
+        uint[] memory amounts = UniswapV2Library.getAmountsOut(factory, _amountTokenIn, path);
+        require(_minimalAmountOut <= amounts[amounts.length-1], 'INSUFFICIENT_OUTPUT_AMOUNT');
+        require(IERC20(path[0]).transferFrom(
+            _provider,
+            UniswapV2Library.pairFor(factory, path[0], path[1]), 
+            amounts[0]
+        ),"INSUFFICIENT_ALLOWANCE_AMOUNT");
+        _swap(amounts, path, address(this));
+
+        payload = abi.encodePacked(block.number,chainType,chainId,amounts[amounts.length-1],customPayload);
+        emit CrossChainInput(_provider, path[0], chainType, chainId, amounts[amounts.length-1], _amountTokenIn);
+        emit PayloadMeta(amounts[amounts.length-1],chainType,chainId);
+        emit Payload(payload);
+    }
+    
+    function crossChainFromGton (
+        uint chainType,
+        uint chainId,
+        uint _amountTokenIn,
+        address _provider,
+        bytes memory customPayload
+    ) public {
+        require(IERC20(gtonToken).transferFrom(_provider,address(this),_amountTokenIn),"");
+        bytes memory payload = abi.encodePacked(block.number,chainType,chainId,_amountTokenIn,customPayload);
+        
+        emit CrossChainInput(_provider, address(gtonToken), chainType, chainId, _amountTokenIn, _amountTokenIn);
+        emit PayloadMeta(_amountTokenIn,chainType,chainId);
+        emit Payload(payload);
+    }
     
     function recv (
         bytes calldata payload
-    ) public {
+    ) external payable {
         require(msg.sender == address(provisor),"NOT_PROVISOR");
         require(!processedData[payload],"DATA_ALREADY_PROCESSED");
         processedData[payload] = true;
@@ -319,28 +215,22 @@ contract OGSwap {
         address payable receiver = payable(deserializeAddress(payload,32*4));
         if (payload.length > 32*5) {
             address tokenTo = deserializeAddress(payload,32*4+20);
-            (address t0, address t1) = tokenTo < address(gtonToken) ? (tokenTo,address(gtonToken)) : (address(gtonToken),tokenTo);
-            IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(t0,t1));
-            (uint reserveA, uint reserveB,) = pair.getReserves();
-            (reserveA, reserveB) = pair.token0() == address(gtonToken) ? (reserveB,reserveA) : (reserveA,reserveB);
             address[] memory path = new address[](2);
-            path[1] = tokenTo;
             path[0] = address(gtonToken);
-            uint releaseAmount = router.getAmountOut(gtonAmount,reserveB,reserveA);
-            require(gtonToken.approve(address(router),gtonAmount),"INSUFFICIENT_CONTRACT_BALANCE");
-            router.swapExactTokensForTokens(
-                gtonAmount,
-                releaseAmount,
-                path,
-                address(this),
-                block.timestamp + 10000
-            );
-            emit CrossChainOutput(receiver, tokenTo, chainFromType, chainFromId, releaseAmount, gtonAmount);
+            path[1] = tokenTo;
+            uint[] memory amounts = UniswapV2Library.getAmountsOut(factory, gtonAmount-fee, path);
+
+            require(gtonToken.transfer(UniswapV2Library.pairFor(factory, path[0], path[1]),
+                gtonAmount),"INSUFFICIENT_CONTRACT_BALANCE");
+            _swap(amounts, path, address(this));
+            
+            emit CrossChainOutput(receiver, tokenTo, chainFromType, chainFromId, amounts[1], gtonAmount);
             if ( tokenTo == address(eth)) {
-                eth.withdraw(releaseAmount);
-                receiver.transfer(releaseAmount);
+                require(eth.balanceOf(address(this))>=amounts[1],'insuf bal');
+                eth.withdraw(amounts[1]);
+                require(receiver.send(amounts[1]),'cant send eth');
             } else {
-                require(IERC20(tokenTo).transfer(receiver,releaseAmount),"INSUFFICIENT_CONTRACT_BALANCE");
+                require(IERC20(tokenTo).transfer(receiver,amounts[1]),"INSUFFICIENT_CONTRACT_BALANCE");
             }
             return;
         }
