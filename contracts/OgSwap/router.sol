@@ -5,8 +5,6 @@ import "./interfaces/ierc20.sol";
 import "./interfaces/uniswapRouter.sol";
 import "./interfaces/weth.sol";
 import './libraries/UniswapV2Library.sol';
-import '@uniswap/lib/contracts/libraries/TransferHelper.sol';
-
 
 contract OGSwap {
     IWETH public eth;
@@ -225,10 +223,8 @@ contract OGSwap {
             _swap(amounts, path, address(this));
             
             emit CrossChainOutput(receiver, tokenTo, chainFromType, chainFromId, amounts[1], gtonAmount);
-            if ( tokenTo == address(eth)) {
-                require(eth.balanceOf(address(this))>=amounts[1],'insuf bal');
-                eth.withdraw(amounts[1]);
-                require(receiver.send(amounts[1]),'cant send eth');
+            if (tokenTo == address(eth)) {
+                safeWithdrawEth(receiver,amounts[amounts.length-1]);
             } else {
                 require(IERC20(tokenTo).transfer(receiver,amounts[1]),"INSUFFICIENT_CONTRACT_BALANCE");
             }
@@ -236,6 +232,11 @@ contract OGSwap {
         }
         emit CrossChainOutput(receiver, address(gtonToken), chainFromType, chainFromId, gtonAmount, gtonAmount);
         require(gtonToken.transfer(receiver,gtonAmount),"INSUFFICIENT_CONTRACT_BALANCE");  
+    }
     
+    function safeWithdrawEth (address payable receiver, uint amount) public payable {
+        require(eth.balanceOf(address(this))==amount,'insuf bal');
+        IWETH(address(eth)).withdraw(amount);
+        require(receiver.send(amount),'cant send eth');
     }
 }
