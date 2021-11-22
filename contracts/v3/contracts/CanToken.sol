@@ -282,9 +282,9 @@ contract Can is ICan {
     }
 
     // creates some can tokens for user in declared stack
-    function mintFor(address _user, uint _providedAmount) public override notReverted {
+    function mintFor(uint _providedAmount) public override notReverted {
         // getting user and stack info from mappings
-        UserTokenData storage userTokenData = usersInfo[_user];
+        UserTokenData storage userTokenData = usersInfo[msg.sender];
         CanData storage canData = canInfo;
         updateCan();
         
@@ -305,7 +305,7 @@ contract Can is ICan {
         }
         uint secondTokenAmount = canData.router.quote(_providedAmount,reserveFirst,reserveSecond);
         // approve tokens for liquidity
-        require(IERC20(firstToken).transferFrom(_user,address(this),_providedAmount),"not enough");
+        require(IERC20(firstToken).transferFrom(msg.sender,address(this),_providedAmount),"not enough");
         
         require(IERC20(firstToken).approve(address(canData.router),_providedAmount),"not enough");
         require(IERC20(secondToken).approve(address(canData.router),secondTokenAmount),"not enough");
@@ -339,9 +339,9 @@ contract Can is ICan {
     
     
     // creates some can tokens for user in declared stack
-    function burnFor(address _user, uint _providedAmount, uint _rewardAmount) public override notReverted {
+    function burnFor(uint _providedAmount, uint _rewardAmount) public override notReverted {
         // getting user and stack info from mappings
-        UserTokenData storage userTokenData = usersInfo[_user];
+        UserTokenData storage userTokenData = usersInfo[msg.sender];
         CanData storage canData = canInfo;
         updateCan();
         
@@ -366,14 +366,13 @@ contract Can is ICan {
         // aggregate rewards  and transfer
         userTokenData.aggregatedReward += userTokenData.farmingAmount * canData.accRewardPerShare / 1e12 - userTokenData.rewardDebt;
         require(_rewardAmount <= userTokenData.aggregatedReward, "insufficent amount");
-        require(canData.rewardToken.transfer(_user,(_rewardAmount - canData.fee)),'lol');
+        require(canData.rewardToken.transfer(msg.sender,(_rewardAmount - canData.fee)),'lol');
         // transfer fee 
         require(canData.rewardToken.transfer(feeReceiver,canData.fee),'unable to transfer fee');
         userTokenData.aggregatedReward -= _rewardAmount;
         canData.totalRewardsClaimed += _rewardAmount;
         // prevent stack too deep
         uint providingAmount = _providedAmount;
-        address user = _user;
             
          if(_providedAmount > 0) {
        
@@ -391,7 +390,7 @@ contract Can is ICan {
             block.timestamp + 10000
             );
             
-            require(IERC20(address(canData.providingToken)).transfer(user,amountFirst),'transfer provided amount error');
+            require(IERC20(address(canData.providingToken)).transfer(msg.sender,amountFirst),'transfer provided amount error');
 
             userTokenData.providedAmount -= _providedAmount;
             userTokenData.farmingAmount = (userTokenData.providedAmount - _providedAmount) * canData.lpToken.totalSupply() / reserveFirst;
@@ -403,10 +402,9 @@ contract Can is ICan {
         userTokenData.rewardDebt = userTokenData.farmingAmount * canData.accRewardPerShare / 1e12;
     }
     
-    function transfer(address _from, address _to, uint _providingAmount, uint _rewardAmount) public override notReverted {
-        require(msg.sender == _from, 'not allowed');
- 
-        UserTokenData storage from_data = usersInfo[_from];       
+    function transfer(address _to, uint _providingAmount, uint _rewardAmount) public override notReverted {
+        
+        UserTokenData storage from_data = usersInfo[msg.sender];       
         UserTokenData storage to_data = usersInfo[_to];
         CanData storage canData = canInfo;
         updateCan();

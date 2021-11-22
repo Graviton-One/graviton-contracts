@@ -12,9 +12,9 @@ interface ICan {
     function emergencyTakeout(IERC20 _token, address _to, uint _amount) external;
     function changeCanFee(uint _fee) external;
     function updateCan () external;
-    function mintFor(address _user, uint _providedAmount) external;
-    function burnFor(address _user, uint _providedAmount, uint _rewardAmount) external;
-    function transfer(address _from, address _to, uint _providingAmount, uint _rewardAmount) external;
+    function mintFor(uint _providedAmount) external;
+    function burnFor(uint _providedAmount, uint _rewardAmount) external;
+    function transfer(address _to, uint _providingAmount, uint _rewardAmount) external;
     function emergencySendToFarming(uint _amount) external;
     function emergencyGetFromFarming(uint _amount) external;
 }

@@ -168,7 +168,6 @@ contract OGSwap {
         uint chainId,
         uint _amountTokenIn,
         uint _minimalAmountOut,
-        address _provider,
         address[] memory path,
         bytes memory customPayload
     ) public returns (bytes memory payload) {
@@ -176,14 +175,14 @@ contract OGSwap {
         uint[] memory amounts = UniswapV2Library.getAmountsOut(factory, _amountTokenIn, path);
         require(_minimalAmountOut <= amounts[amounts.length-1], 'INSUFFICIENT_OUTPUT_AMOUNT');
         require(IERC20(path[0]).transferFrom(
-            _provider,
+            msg.sender,
             UniswapV2Library.pairFor(factory, path[0], path[1]), 
             amounts[0]
         ),"INSUFFICIENT_ALLOWANCE_AMOUNT");
         _swap(amounts, path, address(this));
 
         payload = abi.encodePacked(block.number,chainType,chainId,amounts[amounts.length-1],customPayload);
-        emit CrossChainInput(_provider, path[0], chainType, chainId, amounts[amounts.length-1], _amountTokenIn);
+        emit CrossChainInput(msg.sender, path[0], chainType, chainId, amounts[amounts.length-1], _amountTokenIn);
         emit PayloadMeta(amounts[amounts.length-1],chainType,chainId);
         emit Payload(payload);
     }
@@ -192,13 +191,12 @@ contract OGSwap {
         uint chainType,
         uint chainId,
         uint _amountTokenIn,
-        address _provider,
         bytes memory customPayload
     ) public {
-        require(IERC20(gtonToken).transferFrom(_provider,address(this),_amountTokenIn),"");
+        require(IERC20(gtonToken).transferFrom(msg.sender,address(this),_amountTokenIn),"");
         bytes memory payload = abi.encodePacked(block.number,chainType,chainId,_amountTokenIn,customPayload);
         
-        emit CrossChainInput(_provider, address(gtonToken), chainType, chainId, _amountTokenIn, _amountTokenIn);
+        emit CrossChainInput(msg.sender, address(gtonToken), chainType, chainId, _amountTokenIn, _amountTokenIn);
         emit PayloadMeta(_amountTokenIn,chainType,chainId);
         emit Payload(payload);
     }
