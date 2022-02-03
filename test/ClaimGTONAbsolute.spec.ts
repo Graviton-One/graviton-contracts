@@ -8,7 +8,7 @@ import { claimGTONAbsoluteFixture, TEST_START_TIME } from './shared/fixtures'
 import { EVM_CHAIN, expandTo18Decimals } from './shared/utilities'
 import { expect } from './shared/expect'
 
-describe('ClaimGTONAbsolute', () => {
+describe.only('ClaimGTONAbsolute', () => {
   const [wallet, other] = waffle.provider.getWallets()
 
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
